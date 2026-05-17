@@ -1,0 +1,8 @@
+# Moshi (Kyutai) — PyPI package pulls torch/transformers-compatible deps.
+moshi==0.2.2          # same pin as the CSM repo uses for Mimi; matched on purpose
+sphn==0.1.4           # audio io used by moshi_benchmark.py / run_inference
+numpy
+# torch/torchaudio come with moshi; on Colab they're preinstalled (CUDA build).
+# faster-whisper + jiwer reused from spike_b for the pt-BR WER metric post-LoRA:
+faster-whisper==1.1.0
+jiwer==3.0.4

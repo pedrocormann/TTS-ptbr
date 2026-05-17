@@ -3,14 +3,14 @@
 > **Status: DRAFT v0.2.** Architecture is bet-not-locked: Phase 0 decides with data. `[TBD]` = open.
 
 ## System architecture
-Full-duplex conversational voice. Bet = **path B (CSM-style hybrid, the Maya recipe)**: a pluggable text LLM produces the words; the speech model conditions on conversational *audio* context for prosody/emotion and in-context voice cloning; prosody does not pass through the text bottleneck. Layers:
+Full-duplex conversational voice. **The spine is the conversational speech model (audio-native, emotional, full-duplex). Text is backstage/parallel, never the spine** (see `phase0/RETHINK.md`, primary-source verified 2026-05-17). Bet = **Moshi** (true full-duplex, text = ablatable parallel Inner Monologue, official LoRA finetune); co-bet = **Qwen3-Omni** (Apache-2.0, native pt speech I/O). CSM-1B = expressive single-utterance + in-context voice-clone **component**, not the spine. Cascade = latency/expressivity floor only. Layers:
 
 ~~~
 Audio I/O:   mic capture / playback, 24 kHz, streaming, barge-in
 VAD:         silero-vad — endpointing + turn-taking
 ASR:         faster-whisper (CTranslate2) — streaming pt-BR + transcription context
-LLM (brain): content only, pluggable behind interface (candidates: Sabiá, Gemini Flash) [decide post-Phase 0]
-Speech:      CSM-1B (bet) + Mimi codec (RVQ, 12.5 Hz, 80 ms/frame); alts: A=cascade TTS, C=Moshi
+Text (back): backstage/parallel only — Moshi Inner-Monologue (internal) OR a swappable content LLM (Sabiá/Gemini Flash). NOT the spine.
+Spine:       Moshi (bet, FD) | Qwen3-Omni (co-bet, pt-native) — both + Mimi-class codec (12.5 Hz, 80 ms/frame). CSM-1B = voice/clone component. Cascade = floor.
 Serving:     hybrid — Python orchestration + Rust/Moshi server for codec/inference
 Eval:        latency harness, WER round-trip (faster-whisper), MOS panel tooling
 Data tools:  in-house pt-BR audio manual labeling tool (lightweight, from Phase 1)
@@ -21,25 +21,27 @@ Storage:     open code; PRIVATE weights registry + proprietary dataset (the "gol
 | Layer | Technology | Why |
 |---|---|---|
 | Language | Python | team proficiency; ML/audio ecosystem; maintenance = decision factor #1 |
-| Speech model (bet) | Sesame CSM-1B (Apache-2.0) | built for conversational context + in-context cloning = the goal |
-| Codec | Kyutai Mimi (CC-BY-4.0) | low-latency streaming RVQ; shared by CSM and Moshi |
-| LLM (content) | Pluggable; Sabiá / Gemini Flash candidates | swap behind interface; decide with Phase-0 data |
+| Spine — bet | **Moshi** (kyutai, CC-BY-4.0) | true full-duplex; text=parallel Inner Monologue (ablatable); official `moshi-finetune` LoRA; ~200ms |
+| Spine — co-bet | **Qwen3-Omni-30B-A3B** (Apache-2.0) | native pt speech I/O; emotion via prompt; streaming near-FD; fine-tunable |
+| Voice component | Sesame CSM-1B (Apache-2.0) | best expressive single-utterance + in-context clone; NOT a spine (no FD, no text) |
+| Codec | Mimi-class (CC-BY-4.0) | low-latency streaming RVQ; shared by Moshi and CSM |
+| Text (backstage) | Moshi Inner-Monologue (internal) or pluggable LLM (Sabiá/Gemini Flash) | content only; parallel/backstage, not the spine |
 | ASR | faster-whisper | fast (CTranslate2), pt-BR ok, ubiquitous; Sesame forks it |
 | VAD / turn-taking | silero-vad | endpointing, barge-in; Sesame forks it |
 | Serving | Hybrid: Python orchestration + Rust/Moshi inference server | latency without making the team a Rust shop (factor #1) |
-| Emotion control | Tags + reference audio | explicit control surface + in-context nuance (fits CSM paradigm) |
+| Emotion control | spine-native (Moshi: latent via audio-context; Qwen3-Omni: prompt) + reference audio | conversational emotion lives in the spine, not bolted-on tags |
 | Training | PyTorch; QLoRA proof (Colab) → continued-pretrain + full (SDumont GH200) | cost-staged |
 | Experiment tracking | `[TBD]` W&B / local | reproducibility |
 
-## Phase-0 hypotheses (decide architecture with data)
-| Spike | Stack | Decisive metric (go/no-go) |
+## Phase-0 hypotheses (decide the SPINE with data — see phase0/README.md)
+| Spike | Model | Decisive metric (go/no-go) |
 |---|---|---|
-| A — Cascade | faster-whisper → pt-BR LLM → Orpheus/XTTS clone | e2e p50 < 800 ms + intelligible clone from 10-30 s |
-| B — CSM hybrid (bet) | pt-BR LLM → CSM-1B on audio context | prosody/emotion MOS vs A + CSM pt-BR phonetics w/o fine-tune |
-| C — Moshi (ceiling probe) | stock Moshi | measured full-duplex latency + pt-BR out-of-box go/no-go |
-| (opt) Orpheus | dedicated TTS latency spike | published ~100-200 ms streaming validated on our HW |
+| **C — Moshi** ★bet | `kyutai/moshiko-pytorch-bf16` | real full-duplex latency (ceiling) + after small pt LoRA: pt-BR WER drops while FD/Inner-Monologue holds |
+| **D — Qwen3-Omni** co-bet | `Qwen/Qwen3-Omni-30B-A3B-Instruct` | pt-BR emotional expressivity preference + turn latency (heavy GPU: SDumont/A100-80G, not free Colab) |
+| **B — CSM** voice probe | `sesame/csm-1b` | in-context clone fidelity (Pedro/carioca) + pt-BR WER no-FT — feeds the voice layer whichever spine wins |
+| **A — Cascade** floor | faster-whisper → LLM → TTS | e2e p50 latency floor every spine must beat (yardstick, not destination) |
 
-**Research vigil (standing ritual):** each sprint, review new papers/refs/repo advances (CSM, Moshi, Orpheus, …) → decide to incorporate into B or test in parallel.
+**Research vigil (standing ritual):** each sprint, review new papers/refs/repo advances (Moshi/Kyutai, Qwen-Omni, Step-Audio, CSM, …) → decide to incorporate into the spine or test in parallel.
 
 ## Hardware
 - Dev recording: team mics (good quality) for in-house directed recording.

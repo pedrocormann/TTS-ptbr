@@ -1,6 +1,12 @@
-# Spike B — CSM-1B hybrid (the bet)
+# Spike B — CSM-1B (voice component probe, NOT the spine)
 
-Throwaway. One job: decide if CSM-1B is worth betting on, with numbers.
+> Reframed 2026-05-17 (see ../RETHINK.md). CSM is no longer "the bet" — text is
+> parallel, not core, so the spine bet moved to Moshi (Spike C). CSM stays as the
+> **expressive single-utterance + in-context voice-clone component** probe: its
+> output feeds the voice layer whichever spine wins. Still worth running.
+
+Throwaway. One job: measure CSM's expressive voice + pt-BR phonetics + clone of
+Pedro/carioca — the voice-quality data point, independent of the spine choice.
 
 ## Decisive metrics (go/no-go)
 1. **Latency/RTF** on the Colab GPU (real-time factor = gen_time / audio_seconds; <1 is the floor for streaming).

@@ -49,6 +49,19 @@ Do not ship their code into the product without resolving the license then.
 - GitHub: releases/activity of the Watch repos above
 - HF + GitHub: search "portuguese" / "brazilian" TTS monthly for new pt-BR work
 
+## Spine candidates (post-RETHINK 2026-05-17 — audio is the spine, text parallel)
+
+| Model | Role | Spine type | License | pt-BR |
+|---|---|---|---|---|
+| **Moshi** (kyutai) | ★bet | true full-duplex, text=parallel Inner Monologue (ablatable) | CC-BY-4.0 | needs LoRA (EN/FR base) |
+| **Qwen3-Omni-30B-A3B** (Qwen) | co-bet | s2s Thinker-Talker, near-FD turn-taking | Apache-2.0 ✅ | native ✅ |
+| **CSM-1B** (sesame) | voice component | single-utterance + in-context clone (NOT a spine) | Apache-2.0 | from scratch |
+| Step-Audio 2 (StepFun) | emotion probe | end-to-end s2s, RL paralinguistics | unverified ⚠️ | unverified |
+| Kyutai DSM / Unmute | cascade ref | STT→LLM→TTS modular | CC-BY-4.0 | — |
+
+Watch additionally: `Qwen/Qwen3-Omni-*` (HF), arXiv 2509.17765; Step-Audio 2 arXiv
+2507.16632; kyutai-labs/delayed-streams-modeling. Rationale: `phase0/RETHINK.md`.
+
 ## Similar work / prior art to keep mapped
 
 - ElevenLabs (the incumbent / quality+price bar to beat in BR)

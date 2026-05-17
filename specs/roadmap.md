@@ -1,6 +1,6 @@
 # TTS-ptbr — Roadmap
 
-> **DRAFT v0.2.** Phases intentionally small (each implementable in a focused session, independently testable). No external deadline. Bet = path B; A/C/Orpheus validated in Phase 0. Standing ritual: research vigil each sprint. Owners: Pedro (core ML solo), João (data phase only).
+> **DRAFT v0.2.** Phases intentionally small (each implementable in a focused session, independently testable). No external deadline. Spine bet = Moshi (full-duplex, text=parallel); co-bet Qwen3-Omni; CSM=voice component; cascade=floor (see phase0/RETHINK.md). Standing ritual: research vigil each sprint. Owners: Pedro (core ML solo), João (data phase only).
 
 ---
 
@@ -8,10 +8,10 @@
 
 **Goal:** decide the architecture with data, not on paper. Throwaway parallel spikes, one decisive metric each.
 
-- [ ] Spike A — cascade: faster-whisper → pt-BR LLM → Orpheus/XTTS clone. Metric: e2e p50 < 800 ms + intelligible clone from 10-30 s sample
-- [ ] Spike B — CSM hybrid (bet): pt-BR LLM → CSM-1B on audio context. Metric: prosody/emotion MOS vs A + CSM pt-BR phonetics w/o fine-tune
-- [ ] Spike C — Moshi ceiling probe: stock Moshi. Metric: measured full-duplex latency + pt-BR out-of-box go/no-go
-- [ ] (optional) Spike Orpheus — dedicated TTS latency spike
+- [ ] Spike C — **Moshi (★bet)**: latency benchmark on our GPU + confirm pt-BR gap + moshi-finetune pt LoRA path. Metric: real FD latency (ceiling) + pt-BR WER drops after small LoRA while FD/Inner-Monologue holds
+- [ ] Spike D — **Qwen3-Omni (co-bet)**: native pt speech + emotion-via-prompt + latency (heavy GPU: SDumont/A100-80G). Metric: pt-BR emotional expressivity preference + turn latency
+- [ ] Spike B — **CSM (voice component probe)**: in-context clone of Pedro/carioca + pt-BR phonetics. Metric: clone fidelity + pt-BR WER no-FT (feeds voice layer, not the spine)
+- [ ] Spike A — **cascade (floor)**: faster-whisper → LLM → TTS. Metric: e2e p50 latency floor every spine must beat
 - [ ] Decision: lock architecture from metrics; record in tech-stack + Dev KB
 - [ ] Compute ready: Colab set up + SDumont GH200 requested/confirmed + NVIDIA Inception activated
 

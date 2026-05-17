@@ -7,13 +7,13 @@ A low-latency Brazilian Portuguese conversational voice system targeting the *pe
 1. **Synthesize** expressive pt-BR speech with emotion control (categorical + intensity, tuned for service/warmth).
 2. **Clone** a voice in-context from a short conversational sample (Sesame-style). MVP = 2 voices: male = Pedro / carioca; female = hired professional / accent decided with her.
 3. **Converse** full-duplex (turn-taking, barge-in), end-to-end latency p50 < 800 ms.
-4. **Stay controllable**: words come from a pluggable text LLM; prosody, emotion and voice route through audio context, not the text bottleneck (the Maya recipe).
+4. **Audio is the spine**: emotion, prosody, voice and turn-taking live in the conversational speech model itself. Text (STT/LLM/Inner-Monologue) is backstage/parallel, never the core (see `phase0/RETHINK.md`).
 
 Central idea: language is not only the written word. Phonemes, prosody, melody, regional traits and emotion are first-class features, enriched over time with language and verbal-communication specialists.
 
 ## Motivation
 - No strong open expressive pt-BR conversational voice exists. Closed leaders (ElevenLabs, GPT-4o Realtime, Gemini Live) are proprietary; Maya is the best isolated experience tested (rated above ElevenLabs) but its voice/fine-tune is not open and is English-centric.
-- The open base (Sesame CSM-1B, Apache-2.0) is a base model only; pt-BR is a from-scratch language adaptation.
+- No open model is at once full-duplex + native pt-BR + emotion-controllable + commercial. The bet is **Moshi** (right architecture, pt-BR is the adaptation risk); co-bet **Qwen3-Omni** (native pt, Apache-2.0). pt-BR + emotion is the work, not a download.
 - Unflat already pays for ElevenLabs in real work (e.g. the "Arquitetos do Samba" AI vitrola at the SambaCore expo). A controllable in-house pt-BR voice removes per-token lock-in and becomes a product line.
 
 ## Target audience (phased)
@@ -40,7 +40,7 @@ First consumer = **demo on the Unflat website**: low-latency pt-BR conversation,
 - In-context cloning of 2 voices / 2 genders / 2 accents (M = Pedro/carioca; F = hired pro).
 - Emotion control: categorical + intensity (neutral, warm/welcoming, enthusiastic, empathetic, sad, surprise; intensity 0..1), expandable.
 - Low-latency streaming, end-to-end p50 < 800 ms, full-duplex (turn-taking, barge-in).
-- Architecture chosen by data via Phase 0 (bet = path B / CSM-style hybrid).
+- Architecture chosen by data via Phase 0 (bet = Moshi full-duplex; co-bet Qwen3-Omni; CSM = voice component; cascade = floor).
 - Unflat-website demo with freemium gating (2 min anon / 10 min signed).
 ### Deferred (mapped, out of MVP)
 - **5 regional accents** — start with 2; each accent ~10-30 h recorded.

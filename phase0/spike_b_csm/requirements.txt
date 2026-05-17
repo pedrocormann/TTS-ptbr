@@ -1,0 +1,17 @@
+# Pinned to the CSM repo (research/repos/csm/requirements.txt) — do not float these.
+torch==2.4.0
+torchaudio==2.4.0
+tokenizers==0.21.0
+transformers==4.49.0
+huggingface_hub==0.28.1
+moshi==0.2.2
+torchtune==0.4.0
+torchao==0.9.0
+silentcipher @ git+https://github.com/SesameAILabs/silentcipher@master
+
+# Spike B extras (not in the CSM repo)
+faster-whisper==1.1.0   # ASR round-trip for the pt-BR WER metric
+jiwer==3.0.4            # WER computation
+# QLoRA scaffold only (see qlora_finetune.py — not turnkey):
+peft==0.13.2
+datasets==3.1.0

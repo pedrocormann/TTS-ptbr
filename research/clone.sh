@@ -13,11 +13,13 @@ REPOS=(
   "moshi|https://github.com/kyutai-labs/moshi.git"
   "moshi-finetune|https://github.com/kyutai-labs/moshi-finetune.git"
   "Orpheus-TTS|https://github.com/canopyai/Orpheus-TTS.git"
-  "Llasa|https://github.com/HKUSTAudio/Llasa.git"
   "faster-whisper|https://github.com/SYSTRAN/faster-whisper.git"
   "silero-vad|https://github.com/snakers4/silero-vad.git"
   "unsloth|https://github.com/unslothai/unsloth.git"
   "TTS-Portuguese-Corpus|https://github.com/Edresson/TTS-Portuguese-Corpus.git"
+  # Study-only: technique reference. Commercial-license gate deferred to launch (Pedro's call).
+  "coqui-TTS|https://github.com/coqui-ai/TTS.git"
+  "F5-TTS|https://github.com/SWivid/F5-TTS.git"
 )
 
 for entry in "${REPOS[@]}"; do
@@ -31,6 +33,6 @@ for entry in "${REPOS[@]}"; do
 done
 
 echo
-echo "Reference-only (NOT cloned by default — license-vetoed for product, study via web):"
-echo "  coqui-ai/TTS (XTTS, CPML)  ·  SWivid/F5-TTS (CC-BY-NC)"
+echo "NOTE: coqui-TTS (CPML) and F5-TTS (CC-BY-NC) cloned for STUDY only."
+echo "      Commercial-license gate is deferred to launch — do not ship their code."
 echo "Done. Repos in: $(pwd)"

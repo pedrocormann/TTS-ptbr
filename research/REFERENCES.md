@@ -11,15 +11,16 @@ to `VIGIL-LOG.md`. `research/repos/` is gitignored (we don't vendor others' code
 | `kyutai-labs/moshi` | Full-duplex speech-native + **Mimi codec** (Spike C, ceiling) | code MIT/Apache ✅ / weights CC-BY |
 | `kyutai-labs/moshi-finetune` | Official finetune recipe (no equivalent for CSM) | Apache ✅ |
 | `canopyai/Orpheus-TTS` | Spike A/Orpheus. Emotion tags, ~100-200ms published | Apache-2.0 ✅ |
-| `HKUSTAudio/Llasa` | Spike contender, pt via MLS, Llama-3.2 speech-LM | verify ⚠️ |
+| Llasa | Spike contender, pt via MLS, Llama-3.2 speech-LM. GitHub path 404'd on clone — study via HF model `HKUSTAudio/Llasa-1B-Multilingual`; training repo to confirm | verify ⚠️ |
 | `SYSTRAN/faster-whisper` | ASR (locked) | MIT ✅ |
 | `snakers4/silero-vad` | VAD / turn-taking (locked) | MIT ✅ |
 | `unslothai/unsloth` | QLoRA/LoRA on Colab (the proof rig) | Apache ✅ |
 | `Edresson/TTS-Portuguese-Corpus` | pt-BR seed corpus + author is a key person (below) | CC-BY ✅ |
 
-**Reference-only (read, do NOT vendor/use in product — license vetoed):**
-`coqui-ai/TTS` (XTTS, CPML non-commercial), `SWivid/F5-TTS` (CC-BY-NC). Study the
-technique, never ship it.
+**Cloned for STUDY (commercial-license gate deferred to launch — Pedro's call):**
+`coqui-ai/TTS` (XTTS, CPML non-commercial), `SWivid/F5-TTS` (CC-BY-NC). Learn the
+technique freely now; the license decision happens at productization, not before.
+Do not ship their code into the product without resolving the license then.
 
 ## Watch — orgs & people (weekly: new repos / papers / releases)
 

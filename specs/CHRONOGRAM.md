@@ -36,9 +36,9 @@ stays current against a fast-moving field.
 
 ## Session log
 
-> Honest accounting: elapsed = verifiable git span (first→last commit); real
-> session is a bit longer (pre-first-commit interview not git-captured).
-> Plus concrete output + an honest *human-equivalent* estimate. One block/session.
+> Honest accounting: **hours = Pedro's net record** (he lived the timeline; git
+> only brackets the post-first-commit portion). Plus concrete output + an honest
+> *human-equivalent* estimate. One block per work session.
 
 ### Day 1 — 2026-05-17 (project kickoff)
 - **Arc:** memory note → SDD constitution (mission/tech-stack/roadmap v0.2, 28-Q
@@ -49,12 +49,13 @@ stays current against a fast-moving field.
 - **Concrete output:** 14 commits · 55 versioned files · ~3,600 lines specs/code/
   dossier · 13 research docs · 10 research agents · 2 skills (created
   `feature-spec`, updated `/sdd`+dev-kb) · 3 real bugs caught+fixed by testing.
-- **Elapsed (verifiable):** git span 1st→last commit = **22:58→02:07 ≈ 3h09m**,
-  continuous (commit every ~5–30 min, no idle/sleep gap). Real session ≈ 3h30–4h
-  (the pre-first-commit `/sdd` interview isn't git-captured). Single late-night session.
+- **Hours: 6h net** (Pedro's record — he started ~20:00, session to ~02:07).
+  Git only brackets the back half (1st commit 22:58 → last 02:07 ≈ 3h09m); the
+  first ~3h were the `/sdd` interview + research before any commit landed.
+  Authoritative figure = **6h net**.
 - **Human-equivalent (estimate):** ~2–4 person-weeks of a small team
   (researcher: the dossier; ML eng: spikes/pipeline/eval; + spec/business) →
-  delivered in ~3–4h. That ratio is the actual compression story.
+  delivered in **~6h**. That ratio is the compression story.
 - **State at close:** critical path unblocked (Moshi/Mimi ungated; HF token +
   csm-1b/pyannote granted; Llama pending Meta — secondary). Next: token + Colab
   + `phase0/RUNBOOK.md` (copy-paste). No open decisions blocking execution.

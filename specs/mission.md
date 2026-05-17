@@ -29,6 +29,12 @@ First consumer = **demo on the Unflat website**: low-latency pt-BR conversation,
 - Live-marketing activations and artistic installations (replacing ElevenLabs, e.g. the samba vitrola).
 - B2B API, and a packaged physical device ("maquininha") for retail, self-service and events.
 
+## Commercial wedge (from /office-hours 2026-05-17 — see specs/business/2026-05-17-office-hours-wedge.md)
+- **Wedge ICP:** cultural/experiential client with recurring real budget, annual procurement, who rejects variable cost (the "Mariclea/Sesc" archetype). Anchor: Sesc, 3-yr repeat client, R$350k+, a deferred PO gated on this product (declined an AI-voice activation feature purely on ElevenLabs cost).
+- **Motion:** A → B. A = AI-voice as a fixed-price, capped, fail-closed line bundled into Unflat activation contracts now (runs on the R$50k box). B = standardized "signature voice" offer for the experiential segment, funded by A. Gov / maquininha / API = expansion, not wedge.
+- **Moat:** owning a small (1B) pt-BR model → serving ≈ R$0.02-0.12/min, ~10-40× under ElevenLabs, subsidy-independent (SDumont funds training only; serving self-funded).
+- **New product requirement:** fixed annual price + quota metering + **fail-closed** mode (hard-stop at quota, zero variable bill). Customer-dictated; only viable because of the moat. Must enter the roadmap via `/sdd` ATUALIZAR or a feature-spec (not silently rewritten here).
+
 ## Scope
 ### MVP delivers
 - In-context cloning of 2 voices / 2 genders / 2 accents (M = Pedro/carioca; F = hired pro).
@@ -76,7 +82,7 @@ Beyond automatic metrics: a "linguistic richness" track (phonemes, prosody, melo
 1. F voice accent (decided with the hired talent; complementary to carioca).
 2. WER round-trip threshold (set after Phase-0 baseline).
 3. Language-specialist rubric + partners.
-4. Phase C business model (B2B pricing, D2C product shape, the physical device) — routed to `/office-hours`.
+4. Phase C business model — **resolved** by /office-hours 2026-05-17: wedge = experiential bundle (Mariclea/Sesc archetype), fixed-annual + fail-closed pricing, A→B motion. See `specs/business/2026-05-17-office-hours-wedge.md`. Remaining sub-question: the fixed-annual price point (clear discount vs ElevenLabs, fat-margin at owned serving cost).
 5. Which portfolio product (beyond the website demo) is productized first after MVP.
 
 ## Inspiration / prior art

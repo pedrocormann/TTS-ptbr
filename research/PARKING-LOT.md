@@ -1,15 +1,21 @@
 # PARKING LOT — needs Pedro's authorization (NOT done autonomously)
 
 Aggregated from the 2026-05-17 deep research pass. Pedro said: don't do anything
-that requires authorization, save it for later. These are saved here. Nothing
-below was acted on. Ordered by when it bites.
+that requires authorization, save it for later. These are saved here. Ordered by
+when it bites.
+
+> **STATUS 2026-05-17 (pre-sleep):** Pedro committed to P1 — the 3 HF gated
+> accepts + read token. Colab Pro+ / W&B / NVIDIA Inception = still PENDING
+> (not done tonight). Everything else below = PENDING.
 
 ## Blocks Phase-0 / Phase-1 (decide soon)
-- [ ] **HF gated-model license accepts** (free, but a human must click "agree"):
-      `meta-llama/Llama-3.2-1B` (CSM dependency), `sesame/csm-1b`,
-      `pyannote/speaker-diarization-3.1` (needed for stereo role-split).
-      `kyutai/moshiko-pytorch-bf16` + `kyutai/mimi` are CC-BY-4.0 (no gate, but
-      attribution obligation — note for legal). Qwen3-Omni Apache (no gate).
+- [x] **HF gated-model accepts + read token** — Pedro committing 2026-05-17
+      (pre-sleep): `meta-llama/Llama-3.2-1B`, `sesame/csm-1b`,
+      `pyannote/speaker-diarization-community-1` (+3.1 fallback) + a READ token
+      at hf.co/settings/tokens (kept by Pedro → Colab `HF_TOKEN`).
+      `kyutai/moshiko-pytorch-bf16` + `kyutai/mimi` = CC-BY-4.0 (no gate;
+      attribution obligation — legal note). Qwen3-Omni Apache (no gate).
+      ⤷ Verify on next session that all 3 accepts went through before Spike C.
 - [ ] **SDumont GH200 allocation** — still "pending auth" in specs. Blocks the
       Phase-1 continued-pretrain scale run. Needs PI/academic affiliation +
       proposal (continuous-flow call open). Contact CEIA-UFG / a USP lab.

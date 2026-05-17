@@ -105,6 +105,24 @@ Order, all no-spend, fits 1×A100-80G / GH200 / Colab-A100 except where noted:
 - Watermarking method + where in the stack (codec vs post) — pick before any
   voice data is shipped/stored.
 
+## Update — scan #2 (2026-05-17, dossier 60/70)
+- **CPT is probably SKIPPABLE for pt-BR.** Finetune ≈ 6–20 GH200-h / <US$60.
+  Heavy CPT (~920–1,540 GH200-h) only forced by tokenizer-swap (J-Moshi's case);
+  pt-BR likely keeps Helium's tokenizer ⇒ **LoRA-only is the first bet; CPT is a
+  fallback gated by native-speaker eval, not metrics.** This makes the bet much
+  cheaper than dossier 13 implied. Revised Phase-0 test #3 = LoRA proof, escalate
+  to CPT only if human eval fails.
+- **Voice path corrected:** Moshi spine ⇒ **Kyutai-TTS/DSM voice embeddings**
+  (~5–15 min/voice, no drift), NOT per-voice LoRA, NOT CSM-front (CSM doesn't
+  compose with FD Moshi). per-voice LoRA = staged fallback.
+- **Watermark corrected:** post-waveform marks die under neural-codec re-encode
+  (Sony RAW-Bench); our output is Mimi-decoded. AudioSeal day-one = provenance
+  signal only; codec-embedded/Latent-Mark = the durable Phase-3+ upgrade.
+- **Built + tested this pass:** synth 2-party pipeline (`tools/data/synth/`,
+  gen_dialogues+compose_stereo CPU-validated), eval harness (`eval/`, wer/utmos/
+  latency CPU-validated), Mimi freeze-test, data pipeline. Spike venv conflict
+  (torch 2.4 vs 2.6) found+fixed.
+
 ## Cross-doc honesty notes
 - Dossier 30 Moshi-license = **wrong** (corrected here + in 30 header). Trust 00/13.
 - Dossier 10 "LoRA path is real" = **too optimistic** for fluent pt-BR; corrected

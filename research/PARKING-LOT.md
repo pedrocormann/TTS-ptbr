@@ -52,7 +52,13 @@ below was acted on. Ordered by when it bites.
 - [ ] **Counsel on voice-clone consent + data provenance vs LGPD + ANPD 2026
       voice-biometrics rules** — engage BEFORE any voice-donation/cloning data
       collection. Voice = sensitive personal data; clone-fraud R$4.5B/2025.
-      Blocks Phase-2 (the 2 signature voices: Pedro + hired F).
+      Blocks Phase-2 (the 2 signature voices: Pedro + hired F). Concrete consent-
+      artifact + provenance-log checklist now in dossier 70 §B — counsel reviews it.
+- [ ] **Clear VoiceMark license** before any use (unstated). AudioSeal MIT /
+      Moshi-Mimi CC-BY-4.0 / CSM Apache are clear. Hired-talent voice IP/license
+      contract = counsel item too.
+- [ ] **Email helpdesk-sdumont@lncc.br** to confirm the GPU→UA conversion before
+      sizing the SDumont Standard proposal (no published rate; needed to budget).
 - [ ] Mirror Sesame acceptable-use + Moshi/Mimi CC-BY attribution + Llama-3.2
       community license into product T&Cs (legal review before commercial ship).
 - [ ] LGPD consent artifacts per recorded/cloned voice (Phase-2 blocker).

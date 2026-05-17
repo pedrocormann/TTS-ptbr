@@ -68,4 +68,27 @@ Chatterbox (MIT)** only — XTTS/F5 NC poisons output. pyannote **community-1** 
 **Action deltas:** to_stereo.py → community-1; tools/data + eval harness built;
 spike_c requirements fixed (torch 2.6 conflict — separate venvs B vs C).
 
+### 2026-05-17 — scan #2 (compute budget + voice/watermark) → dossier 60, 70
+
+**CPT probably SKIPPABLE for pt-BR (big).** Finetune ≈ 6–20 GH200-h / <US$60 /
+<1 day. Heavy CPT (~920–1,540 GH200-h) only forced by tokenizer-swap/embedding-
+re-init — pt-BR (Latin, Helium EN/EU-heavy) likely keeps Helium tokenizer ⇒
+**LoRA-only is the first bet; CPT is the fallback gated by native-speaker eval,
+not metrics.** Do scenario M (SDumont LoRA, ~free) regardless. SDumont: 1 UA =
+1 CPU-core-h, Standard ≥750k covers all; confirm GPU→UA w/ helpdesk-sdumont.
+
+**Voice path CORRECTED.** For a Moshi spine: NOT per-voice LoRA, NOT CSM-front
+(CSM doesn't compose with FD Moshi — either/or). Use **Kyutai-TTS/DSM voice-
+EMBEDDING conditioning** (re-anchored, no drift); ~5–15 min/voice; LoRA staged
+fallback. ⇒ corrects dossier 50's "CSM = the voice component" for the Moshi case.
+
+**Watermark CORRECTED.** Sony RAW-Bench: post-waveform marks (AudioSeal etc.)
+ERASED by neural-codec re-encode; our output IS Mimi-decoded. Ship AudioSeal
+(MIT) day-one as **provenance signal only**; codec-embedded/Latent-Mark = the
+durable Phase-3+ upgrade. VoiceMark license unstated → don't ship.
+
+**Action deltas:** synth 2-party pipeline built + CPU-tested (gen_dialogues +
+compose_stereo ✓); eval harness CPU-validated; dossier 50/00 get correction
+pointers; PARKING-LOT += helpdesk-sdumont email, privacy counsel, VoiceMark lic.
+
 Next scan: 2026-05-24 (weekly). Big review folds this: 2026-06-17 (`/sdd` ATUALIZAR).

@@ -13,6 +13,13 @@ Data = **stereo WAV (L=Moshi, R=user)** + `.jsonl {path,duration}` + sibling `.j
 Config: hf_repo moshiko-pytorch-bf16; lora rank128/scaling2.0/ft_embed false; first_codebook_weight_multiplier 100 (keep — up-weights semantic cb); text_padding_weight .5; duration_sec100/bs16/steps2000; lr2e-6/wd0.1/pct_start0.05; grad-ckpt; save_adapters. Tokens = steps×gpus×bs×dur×9×12.5. Compute: 1×H100 ≈12k tok/s @ **39.6GB** ⇒ fits one 80GB GPU; **NOT free-Colab T4/L4 at defaults**. OOM: bs↓ then dur↓ (shorter ⇒ model goes silent faster). Inference: `python -m moshi.server --lora-weight=…/lora.safetensors --config-path=…/config.json`.
 
 ## 3. Voice cloning by model
+
+> **CORRECTION (2026-05-17, see dossier 70):** for the **Moshi spine**, CSM-front
+> does NOT compose (CSM is single-utterance, no full-duplex — running it on
+> Moshi's text output kills Moshi's audio-native FD; either/or). The MVP voice
+> path is **Kyutai-TTS/DSM voice-EMBEDDING conditioning** (same multistream
+> lineage, re-anchored, no drift), per-voice LoRA staged as fallback. CSM stays
+> a *standalone* voice component only if the spine becomes CSM, not Moshi.
 - **Moshi:** voice baked in base (moshiko M / moshika F), no clean in-context API ⇒ per-voice LoRA on that speaker's Moshi-channel, or full-FT. Long-dialogue consistency strong (voice in weights).
 - **CSM-1B:** **native in-context cloning, excellent** — `context=[Segment(text,speaker,audio),…]`, tens of sec ref. Our **voice-clone component** (matches tech-stack). Long-dialogue drift = known failure ⇒ carry growing context / periodic re-anchor / per-voice LoRA stabilizes.
 - **Qwen3-Omni:** fixed speaker set + system-prompt/reference; not arbitrary few-shot OOTB; pt in-distribution.

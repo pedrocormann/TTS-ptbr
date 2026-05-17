@@ -1,0 +1,49 @@
+# Research Vigil Log
+
+Weekly scan (per CHRONOGRAM standing ritual): review watched orgs/people/arXiv →
+log findings here → decide incorporate into the spine / test in parallel / ignore.
+
+---
+
+## 2026-05-17 — Deep scan #1 (autonomous, 5-front + code reads)
+
+Dossier written: `research/dossier/{00-SYNTHESIS,10..50}.md`. Highlights:
+
+**Incorporate into the bet:**
+- **J-Moshi (arXiv 2506.02979)** — non-EN/FR Moshi recipe = CPT + tokenizer/embed
+  swap + stereo FT, Mimi frozen. ⇒ pt-BR plan is CPT, not LoRA-only. Use
+  `nu-dialogue/moshi-finetune` + `nu-dialogue/j-moshi` as references. **Adopted.**
+- **Moshi weights = CC-BY-4.0** (verified in cloned repo README) — commercial OK
+  w/ attribution. Bet legal. **Confirmed.**
+- **Codec = freeze/clone Mimi recipe** (12.5 Hz split-RVQ WavLM-distilled causal).
+  Foundational, upstream of spine. **Adopted into Phase-0 (test #1 = Mimi freeze).**
+- **Emotion = implicit + NL prompt + light paralinguistic-RL** (Step-Audio 2,
+  arXiv 2507.16632, ~2× GPT-4o-Audio). **Adopted for Phase-3 method.**
+
+**Test in parallel / watch:**
+- Qwen3-Omni (2509.17765, Apache-2.0) — co-bet hedge; verify pt speech-output.
+- Step-Audio 2 (2507.16632) — emotion/paralinguistic-RL method study.
+- Full-Duplex-Bench v1.5/v2 (2507.23159 / 2510.07838), URO-Bench (2502.17810) —
+  eval harness blueprint (pt-BR version = strategic asset, none exists).
+- Codecs: U-Codec/FlexiCodec/TS3 5-Hz frontier (watch, don't adopt yet).
+- Watermarking: AudioSeal (2401.17264), VoiceMark (2505.21568) — day-one.
+
+**New facts logged:**
+- ElevenLabs $11B (Feb-26), entering Brazil, pure usage pricing → wedge durable.
+- Sesame $250M Series B, pivot to wearables, not selling pt-BR API.
+- FINEP R$300M Digital-Tech edital, deadline 2026-09-30 (priority funding).
+- SDumont +575% capacity ("first step of PBIA"); free training-only confirmed.
+- ANPD voice-biometrics rules expected 2026; voice = sensitive data (LGPD).
+
+**Watchlist (scan weekly):**
+- Orgs/repos: kyutai-labs (moshi/finetune/DSM/hibiki releases), QwenLM (Qwen-Omni),
+  stepfun-ai (Step-Audio), SesameAILabs (csm), canopyai (Orpheus), nu-dialogue
+  (J-Moshi lineage), Edresson (pt-BR TTS).
+- People: Edresson Casanova (NVIDIA), Kyutai team (Défossez/Zeghidour), Maritaca CEO.
+- Sources: arXiv eess.AS/cs.SD/cs.CL (pt-BR / full-duplex / speech-LM / codec),
+  HF papers daily (audio), finep.gov.br, sdumont.lncc.br/call.php, gov.br/anpd,
+  elevenlabs.io + kyutai.org blogs.
+- Recheck at ship: per-repo license text, Moshi watermarker presence, annotate.py
+  model versions, Qwen3-Omni pt speech-out.
+
+Next scan: 2026-05-24 (weekly). Big review folds this: 2026-06-17 (`/sdd` ATUALIZAR).

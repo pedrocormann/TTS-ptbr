@@ -9,9 +9,10 @@ when it bites.
 >   (not instant; minutes–days). Blocks **only Spike B (CSM)**, which is
 >   secondary. Spike-only fallback: Llama-3.2-1B tokenizer via an ungated
 >   mirror (e.g. `unsloth/Llama-3.2-1B`) — research/spike use only, NOT product.
-> - `sesame/csm-1b` → auto-accept, expected instant (Pedro to confirm "granted").
-> - `pyannote/speaker-diarization-community-1` (+3.1) → form auto-accept, instant.
-> - HF read token → Pedro creating, kept by him (Colab `HF_TOKEN`).
+> - `sesame/csm-1b` → **clicked by Pedro 2026-05-17** (auto-accept, granted).
+> - `pyannote/speaker-diarization-community-1` (+3.1) → **clicked, granted**.
+> - HF read token → **created by Pedro**, kept by him (→ Colab `HF_TOKEN`).
+>   ⤷ Next session: verify Llama-3.2 status (Meta review) before Spike B.
 > - `kyutai/moshiko-pytorch-bf16` + `kyutai/mimi` → **NO gate (CC-BY-4.0)**;
 >   token is enough. **Critical path (Moshi spine, Mimi-freeze test, data
 >   pipeline) does NOT depend on the Meta review.**

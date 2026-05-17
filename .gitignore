@@ -27,6 +27,13 @@ venv*/
 .env.*
 *.key
 
+# Reference repos cloned for study — never vendor others' code
+research/repos/
+
+# Phase 0 throwaway spikes (code is disposable; keep only metrics in tech-stack.md)
+phase0/**/venv*/
+phase0/**/__pycache__/
+
 # OS / editor
 .DS_Store
 .idea/

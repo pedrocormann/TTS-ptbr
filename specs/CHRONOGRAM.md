@@ -33,3 +33,24 @@ stays current against a fast-moving field.
 - Weekly: research vigil (above).
 - Monthly: spec/plan review (the ★ gate; first one 2026-06-17, then rolling).
 - Per phase: `/feature-spec` before implementing; `/review` before merge; `/qa` before ship.
+
+## Session log
+
+> Honest accounting: AI wall-clock hours are NOT tracked (would be fabricated).
+> Recorded instead: date, concrete output, and an honest *human-equivalent*
+> estimate. Append one block per work session.
+
+### Day 1 — 2026-05-17 (project kickoff)
+- **Arc:** memory note → SDD constitution (mission/tech-stack/roadmap v0.2, 28-Q
+  interview) → office-hours business wedge (Sesc/Mariclea) → architecture RETHINK
+  (audio-spine, bet = Moshi) → deep research dossier → Phase-0 spikes vs real
+  cloned APIs → eval harness + synthetic 2-party pipeline (built + CPU-tested) →
+  data pipeline + RUNBOOK + PARKING-LOT.
+- **Concrete output:** 14 commits · 55 versioned files · ~3,600 lines specs/code/
+  dossier · 13 research docs · 10 research agents · 2 skills (created
+  `feature-spec`, updated `/sdd`+dev-kb) · 3 real bugs caught+fixed by testing.
+- **Human-equivalent (estimate, not wall-clock):** ~2–4 person-weeks of a small
+  team (researcher: the dossier; ML eng: spikes/pipeline/eval; + spec/business).
+- **State at close:** critical path unblocked (Moshi/Mimi ungated; HF token +
+  csm-1b/pyannote granted; Llama pending Meta — secondary). Next: token + Colab
+  + `phase0/RUNBOOK.md` (copy-paste). No open decisions blocking execution.

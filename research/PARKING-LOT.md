@@ -38,6 +38,15 @@ below was acted on. Ordered by when it bites.
       NC-ND ⇒ research probe only, never trained into shippable weights.
 - [ ] C-ORAL-BRASIL (UFMG) — NC; contact only if mineiro spontaneous needed.
 - [ ] Re-verify exact license tags of EARS / Expresso before any non-research use.
+- [ ] **Câmara dos Deputados CC-BY-4.0 audio** — confirm attribution mechanics at
+      scale (how to credit in a trained model / product) before bulk ingest.
+- [ ] **Court/CNJ/STF audio (Art. 8º public-domain)** — per-portal terms review +
+      an **LGPD redaction policy for private parties' voices** (legal) before use.
+- [ ] EBC / TV Brasil — licensing contact (mostly ©, case-by-case) only if needed.
+- [ ] Re-verify **Kokoro (Apache) / Chatterbox (MIT) pt-BR quality** before bulk
+      synthetic generation (no spend; a quality check, parked as a task).
+- [ ] Product **data flywheel**: consent UX + LGPD doc so consented SAC calls
+      become training data (Phase B; legal + product decision).
 
 ## Legal / compliance
 - [ ] **Counsel on voice-clone consent + data provenance vs LGPD + ANPD 2026

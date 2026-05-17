@@ -22,7 +22,17 @@
 | **NURC-Recife** | tens h | spontaneous | no | academic, varies | ⚠️ contact | only sizeable **nordestino** spontaneous |
 | BRSpeech/LaPS/CETUC/Spoltech/WestPoint-pt/VoxForge-pt | 1–20 h ea | read | no | mixed | ⚠️ | legacy filler, low priority |
 
-**Hard fact:** no commercial-safe spontaneous conversational pt-BR corpus at scale. Single hardest constraint.
+**Hard fact:** no commercial-safe spontaneous *casual* conversational pt-BR corpus at scale.
+
+> **CORRECTION (2026-05-17, see dossier 21):** there IS a commercial-safe 2-party
+> pt-BR lane this pass missed — **Câmara dos Deputados** plenary/committee audio is
+> **CC-BY-4.0** and **court/CNJ/STF hearings** are non-copyrightable as official
+> acts (**Lei 9.610 Art. 8º**, public-domain). Both are mono (need diarization,
+> `tools/data/to_stereo.py`) and **formal/adversarial register** (not casual SAC —
+> that register gap stays a moat). ⚠️ **Senado/TV Senado is the OPPOSITE: proprietary,
+> commercial use forbidden** — do not confuse with Câmara. Synthetic 2-party
+> (Kokoro/Chatterbox + LLM) is the other commercial-safe lane; **never XTTS/F5
+> to generate training data — NC poisons the output.**
 
 ## 2. Emotional speech datasets (any language — method/transfer)
 

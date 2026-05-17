@@ -1,8 +1,17 @@
-# Moshi (Kyutai) — PyPI package pulls torch/transformers-compatible deps.
-moshi==0.2.2          # same pin as the CSM repo uses for Mimi; matched on purpose
-sphn==0.1.4           # audio io used by moshi_benchmark.py / run_inference
-numpy
-# torch/torchaudio come with moshi; on Colab they're preinstalled (CUDA build).
-# faster-whisper + jiwer reused from spike_b for the pt-BR WER metric post-LoRA:
+# ⚠️ VERSION CONFLICT (found by static test 2026-05-17):
+# moshi-finetune pins torch==2.6 + sphn==0.1.12 + moshi@git (latest).
+# CSM (spike_b) pins torch==2.4.0 + moshi==0.2.2. THESE CANNOT SHARE A VENV.
+# => Spike B (CSM) and Spike C (Moshi) MUST use SEPARATE environments.
+#
+# For Spike C, do NOT pin moshi==0.2.2. Install the Moshi env the way
+# moshi-finetune expects (it is the source of truth for the pt-BR path):
+#
+#   pip install -e research/repos/moshi-finetune     # pulls torch==2.6,
+#                                                     # sphn==0.1.12, moshi@git
+# or, for the smoke benchmark only (no finetune):
+#   pip install "moshi @ git+https://github.com/kyutai-labs/moshi.git#subdirectory=moshi" sphn==0.1.12
+#
+# Extras for the post-LoRA pt-BR WER metric (CPU-ok, version-independent):
 faster-whisper==1.1.0
 jiwer==3.0.4
+# numpy/torch/torchaudio come from the moshi/moshi-finetune install above.

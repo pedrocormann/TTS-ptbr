@@ -46,4 +46,26 @@ Dossier written: `research/dossier/{00-SYNTHESIS,10..50}.md`. Highlights:
 - Recheck at ship: per-repo license text, Moshi watermarker presence, annotate.py
   model versions, Qwen3-Omni pt speech-out.
 
+### 2026-05-17 — scan #1 continued (2 verification frentes)
+
+**Qwen3-Omni pt verified (2 primary sources):** `pt` IS in the speech-OUTPUT
+set (HF card + arXiv 2509.17765 Table 3). Genuine co-bet. Caveats: generic "pt"
+(likely EU-leaning, pt-BR needs FT); emotion control **weak** (3 fixed speakers
+Ethan/Chelsie/Aiden + system prompt only, no tags/clone); no official LoRA;
+heavy (~79GB bf16 → 2×A100, community AWQ-4bit only). Apache-2.0 ✅.
+- **New emotion model to study: Step-Audio-EditX** (3B, Apache, emotion/style/
+  paralinguistic edit + RL) + Step-Audio-2-mini — best-in-class controllable
+  emotion, lighter than Qwen. **GLM-4-Voice-9B** (26 langs, low-lat FD, small)
+  = 3rd candidate. MiMo-Audio (MIT). No Moshi v2; CSM-3B/8B still closed.
+
+**2-party pt-BR sourcing (dossier 21):** corrects dossier 20. **Câmara CC-BY-4.0**
++ **court/CNJ Art. 8º public-domain** = real commercial 2-party lane (formal
+register). **Senado = NC, do not use.** Synthetic via **Kokoro (Apache)/
+Chatterbox (MIT)** only — XTTS/F5 NC poisons output. pyannote **community-1** >
+3.1. Phase-0 needs ~1–3 h (synth = fastest, no-spend, this week). J-Moshi mix
+≈ 602 synth : 344 real on mono-dialogue CPT.
+
+**Action deltas:** to_stereo.py → community-1; tools/data + eval harness built;
+spike_c requirements fixed (torch 2.6 conflict — separate venvs B vs C).
+
 Next scan: 2026-05-24 (weekly). Big review folds this: 2026-06-17 (`/sdd` ATUALIZAR).

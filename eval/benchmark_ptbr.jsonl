@@ -1,0 +1,14 @@
+{"id": "neu-01", "emotion": "neutral", "intensity": 0.0, "accent": "neutral", "text": "Bom dia. Seja bem-vindo. Como posso ajudar você hoje?"}
+{"id": "neu-02", "emotion": "neutral", "intensity": 0.0, "accent": "carioca", "text": "Então, o atendimento funciona de segunda a sábado, das nove às dezoito horas."}
+{"id": "war-01", "emotion": "warm", "intensity": 0.7, "accent": "carioca", "text": "Que bom te ver por aqui! Fica à vontade, qualquer coisa é só chamar, tá?"}
+{"id": "war-02", "emotion": "warm", "intensity": 0.5, "accent": "neutral", "text": "Imagina, foi um prazer ajudar. Volte sempre que precisar, viu?"}
+{"id": "ent-01", "emotion": "enthusiastic", "intensity": 0.9, "accent": "neutral", "text": "Isso é incrível! Você vai amar o que a gente preparou pra essa exposição!"}
+{"id": "ent-02", "emotion": "enthusiastic", "intensity": 0.7, "accent": "carioca", "text": "Caraca, que ideia boa! Bora fazer isso acontecer agora mesmo!"}
+{"id": "emp-01", "emotion": "empathetic", "intensity": 0.7, "accent": "neutral", "text": "Eu entendo, isso é bem chato mesmo. Vamos resolver isso juntos, com calma."}
+{"id": "emp-02", "emotion": "empathetic", "intensity": 0.6, "accent": "carioca", "text": "Poxa, sinto muito que você passou por isso. Tô aqui pra te ajudar no que precisar."}
+{"id": "sad-01", "emotion": "sad", "intensity": 0.6, "accent": "neutral", "text": "Infelizmente a peça que você queria não está mais disponível. Sinto muito."}
+{"id": "sad-02", "emotion": "sad", "intensity": 0.5, "accent": "carioca", "text": "É uma pena, a gente ia adorar ter você na sessão de hoje."}
+{"id": "sur-01", "emotion": "surprise", "intensity": 0.8, "accent": "neutral", "text": "Nossa, sério? Não acredito que você conseguiu fazer tudo isso em um dia!"}
+{"id": "sur-02", "emotion": "surprise", "intensity": 0.6, "accent": "carioca", "text": "Ué, olha só! Apareceu uma novidade aqui que eu nem esperava."}
+{"id": "hard-01", "emotion": "neutral", "intensity": 0.0, "accent": "neutral", "text": "O CEP é 22290-160, o protocolo termina em 4-7-9, e o repasse é de R$ 1.350,90."}
+{"id": "hard-02", "emotion": "neutral", "intensity": 0.0, "accent": "carioca", "text": "A Mariclea, do Sesc, perguntou sobre a ativação de seis dias com fala de IA."}

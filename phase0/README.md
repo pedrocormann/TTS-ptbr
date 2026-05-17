@@ -48,4 +48,9 @@ exist in the back end; they are not the core.
 4. **Spike A** cascade as the latency floor reference.
 5. Decide the spine with data → record in `tech-stack.md` + Dev KB → `/sdd` ATUALIZAR → `/feature-spec` Phase 1.
 
+## ⚠️ Environment conflict (found by static test 2026-05-17)
+Spike B (CSM) needs **torch==2.4 + moshi==0.2.2**; Spike C (Moshi/moshi-finetune)
+needs **torch==2.6 + sphn==0.1.12 + moshi@git**. **Incompatible — use SEPARATE
+venvs / separate Colab runtimes per spike.** Don't `pip install` both in one env.
+
 Each spike dir has its own README + runnable code + Colab notebook. Reference code: `../research/repos/`.

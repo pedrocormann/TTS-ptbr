@@ -4,9 +4,18 @@ Aggregated from the 2026-05-17 deep research pass. Pedro said: don't do anything
 that requires authorization, save it for later. These are saved here. Ordered by
 when it bites.
 
-> **STATUS 2026-05-17 (pre-sleep):** Pedro committed to P1 — the 3 HF gated
-> accepts + read token. Colab Pro+ / W&B / NVIDIA Inception = still PENDING
-> (not done tonight). Everything else below = PENDING.
+> **STATUS 2026-05-17 (pre-sleep):**
+> - `meta-llama/Llama-3.2-1B` → **submitted, AWAITING META MANUAL REVIEW**
+>   (not instant; minutes–days). Blocks **only Spike B (CSM)**, which is
+>   secondary. Spike-only fallback: Llama-3.2-1B tokenizer via an ungated
+>   mirror (e.g. `unsloth/Llama-3.2-1B`) — research/spike use only, NOT product.
+> - `sesame/csm-1b` → auto-accept, expected instant (Pedro to confirm "granted").
+> - `pyannote/speaker-diarization-community-1` (+3.1) → form auto-accept, instant.
+> - HF read token → Pedro creating, kept by him (Colab `HF_TOKEN`).
+> - `kyutai/moshiko-pytorch-bf16` + `kyutai/mimi` → **NO gate (CC-BY-4.0)**;
+>   token is enough. **Critical path (Moshi spine, Mimi-freeze test, data
+>   pipeline) does NOT depend on the Meta review.**
+> - Colab Pro+ / W&B / NVIDIA Inception = PENDING (not tonight). Rest = PENDING.
 
 ## Blocks Phase-0 / Phase-1 (decide soon)
 - [x] **HF gated-model accepts + read token** — Pedro committing 2026-05-17

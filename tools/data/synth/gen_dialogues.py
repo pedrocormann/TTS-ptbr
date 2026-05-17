@@ -66,8 +66,8 @@ def main():
                     "scenario": s["scenario"],
                     "accent": s["accent"],
                     "turns": [
-                        {"spk": t["spk"], "emotion": t["emotion"],
-                         "intensity": t["intensity"], "text": vary(t["text"], v)}
+                        {**{k: t[k] for k in t if k != "text"},   # carry bc + any extra
+                         "text": vary(t["text"], v)}
                         for t in s["turns"]
                     ],
                 }

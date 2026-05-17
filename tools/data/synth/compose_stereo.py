@@ -31,38 +31,52 @@ def main():
 
     man = json.load(open(os.path.join(a.turns_dir, "_turns_manifest.json"),
                          encoding="utf-8"))
-    gap = np.zeros(int(a.gap * a.sr), dtype="float32")
     made = 0
     for did, d in man.items():
-        L_parts, R_parts, aligns, cursor = [], [], [], 0.0
+        # Build on two continuous timelines (samples), not concatenation, so a
+        # backchannel ("bc": true) can OVERLAP the previous turn — real
+        # full-duplex behaviour (dossier 30: backchannels/overlap matter; pure
+        # sequential data underfits it).
+        turns = []
         for turn in d["turns"]:
             wav, sr = sf.read(os.path.join(a.turns_dir, turn["file"]),
                               dtype="float32")
             if wav.ndim > 1:
                 wav = wav.mean(1)
-            if sr != a.sr:  # guard; synth_tts writes at sr already
+            if sr != a.sr:
                 import librosa
                 wav = librosa.resample(wav, orig_sr=sr, target_sr=a.sr)
-            sil = np.zeros(len(wav), dtype="float32")
-            if turn["spk"] == "A":          # agent -> LEFT/Moshi
-                L_parts += [wav, gap]
-                R_parts += [sil, gap]
-                role = "SPEAKER_MAIN"
-            else:                            # human -> RIGHT/user
-                L_parts += [sil, gap]
-                R_parts += [wav, gap]
-                role = "SPEAKER_OTHER"
-            dur = len(wav) / a.sr
-            aligns.append([turn["text"], [round(cursor, 3),
-                           round(cursor + dur, 3)], role])
-            cursor += dur + a.gap
+            turns.append((turn, wav))
 
-        left = np.concatenate(L_parts) if L_parts else np.zeros(1, "float32")
-        right = np.concatenate(R_parts) if R_parts else np.zeros(1, "float32")
-        n = max(len(left), len(right))
-        left = np.pad(left, (0, n - len(left)))
-        right = np.pad(right, (0, n - len(right)))
-        stereo = np.stack([left, right], axis=1)   # (T, 2)  L=Moshi R=user
+        total = sum(len(w) for _, w in turns) + int(a.gap * a.sr) * len(turns)
+        left = np.zeros(total, "float32")
+        right = np.zeros(total, "float32")
+        aligns = []
+        cursor = 0           # samples; next sequential turn starts here
+        prev_start = prev_dur = 0
+        end_used = 0
+        for i, (turn, wav) in enumerate(turns):
+            ch = left if turn["spk"] == "A" else right
+            role = "SPEAKER_MAIN" if turn["spk"] == "A" else "SPEAKER_OTHER"
+            is_bc = bool(turn.get("bc")) and i > 0  # 1st turn can't backchannel
+            if is_bc:
+                # start ~60% into the previous (opposite-speaker) turn; do NOT
+                # advance the sequential cursor past the previous turn's end.
+                start = prev_start + int(0.6 * prev_dur)
+            else:
+                start = cursor
+            start = min(start, total - len(wav)) if len(wav) <= total else 0
+            ch[start:start + len(wav)] += wav[:max(0, total - start)]
+            dur = len(wav)
+            aligns.append([turn["text"],
+                           [round(start / a.sr, 3),
+                            round((start + dur) / a.sr, 3)], role])
+            end_used = max(end_used, start + dur)
+            if not is_bc:
+                prev_start, prev_dur = start, dur
+                cursor = start + dur + int(a.gap * a.sr)
+        n = max(end_used, 1)
+        stereo = np.stack([left[:n], right[:n]], axis=1)  # (T,2) L=Moshi R=user
 
         wav_path = os.path.join(a.out_dir, f"{did}.wav")
         sf.write(wav_path, stereo, a.sr)

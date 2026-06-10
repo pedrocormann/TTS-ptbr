@@ -23,38 +23,31 @@
 6. **Notebook**: `notebooks/01_dataset_prep.ipynb` (transcrição + verificação WER
    + export no Colab).
 
-## Trabalho em voo no momento do corte (pode ter terminado ou não)
+## ATUALIZAÇÃO final da sessão (13:57)
 
-- **Workflow de pesquisa** (runId `wf_ff245249-d44`): faltava só a síntese final
-  → `research/dossier-2026-06/00-SYNTHESIS.md`. Se o arquivo não existir, os 8
-  relatórios 10..60 + o REPLAN já cobrem o conteúdo (eu li todos e o REPLAN é a
-  síntese). Para retomar o workflow:
-  `Workflow({scriptPath: "<session-dir>/workflows/scripts/tts-ptbr-research-refresh-wf_ff245249-d44.js", resumeFromRunId: "wf_ff245249-d44"})` — agents concluídos vêm do cache.
-- **3 agentes de extração de API** (p/ escrever os notebooks de finetune fiéis às
-  APIs reais): (a) Qwen3-TTS finetune (QwenLM/Qwen3-TTS + cheeweijie/
-  qwen3-tts-lora-finetuning patchado), (b) CSM-1B Unsloth (notebook oficial
-  Sesame_CSM_(1B)-TTS.ipynb + docs Unsloth + knottwill), (c) Chatterbox-pt-br +
-  Pocket-TTS-pt (uso/clone/finetune). Se os resultados não chegaram, a próxima
-  sessão refaz essas 3 buscas (prompts descritos acima) antes de escrever os
-  notebooks 02-04.
+- **Notebooks 02, 03 e 04 FEITOS** (APIs extraídas e verificadas na fonte pelos 3
+  agentes; fatos críticos preservados em `research/dossier-2026-06/70-api-recipes.md`):
+  02 = baselines zero-shot F0.5 (Chatterbox-pt-br from_local + Pocket-TTS pt 6L/24L
+  + CSM in-context + eval comparativa); 03 = Qwen3-TTS-1.7B-Base LoRA patchado
+  (L4/A100, NÃO T4); 04 = CSM-1B Unsloth LoRA (T4 ok).
+- roadmap.md → aponta pro REPLAN; RUNBOOK e VIGIL-LOG atualizados.
+- **Único item em voo**: a síntese automática do workflow de pesquisa
+  (`00-SYNTHESIS.md`, runId `wf_ff245249-d44`). NÃO é bloqueante — eu li as 8
+  frentes na íntegra e o REPLAN É a síntese. Se quiser retomá-la:
+  `Workflow({scriptPath: "<session-dir>/workflows/scripts/tts-ptbr-research-refresh-wf_ff245249-d44.js", resumeFromRunId: "wf_ff245249-d44"})`.
 
 ## Próximos passos (na ordem)
 
-1. **Escrever notebooks** (com as APIs reais extraídas):
-   - `notebooks/02_baseline_zeroshot.ipynb` — clone zero-shot do Pedro em
-     Chatterbox-pt-br + Pocket-TTS-pt + Qwen3-TTS(3s); eval WER+spk-sim sobre
-     `eval/benchmark_ptbr.jsonl`; decide candidato #1 (gate F0.5 do REPLAN).
-   - `notebooks/03_finetune_qwen3tts.ipynb` — LoRA sobre dataset_v1 (canonical).
-   - `notebooks/04_finetune_csm_unsloth.ipynb` — LoRA T4 sobre formato csm.
-2. Atualizar `specs/roadmap.md` (apontar pro REPLAN) e `phase0/RUNBOOK.md`
-   (trocar Kokoro→Qwen3-TTS/Chatterbox-pt-br no passo de síntese; nota A100-80/G4).
-3. `eval/`: adicionar wrapper TTSDS2 + trocar default do README (UTMOS rebaixado).
-4. VIGIL-LOG: registrar scan de 10/jun (Kyutai RL + Qwen3-TTS + PersonaPlex).
-5. Pedro (não-Claude): Colab Pro+, gravar G0, rodar notebook 02, e-mail NILC.
+1. **Pedro**: Colab Pro+ → gravar piloto G0 (README do kit) → rodar **notebook 02**
+   → trazer números + impressão de ouvido (pt-BR vs pt-PT é decisivo) →
+   **e-mail NILC** (licença NURC-TTS) → seguir gates do REPLAN §F0.5/F1.
+2. **Claude (próxima sessão)**: registrar resultado do gate F0.5 no VIGIL-LOG +
+   REPLAN; wrapper TTSDS2 no eval/ (UTMOS rebaixado — ver dossiê 30 §4); commitar
+   00-SYNTHESIS se tiver chegado; depois preparar F4 (trocar Kokoro→Qwen3-TTS no
+   tools/data/synth e notebook do moshi-finetune p/ A100-80/G4).
 
 ## Estado das tasks (painel)
 
-#1 pesquisa = concluída na prática (falta só o 00-SYNTHESIS automático);
-#2 REPLAN = **feito**; #3 kit de gravação = feito; #4 notebooks = 01 feito,
-02-04 pendentes (dependem dos 3 agentes acima); #5 eval/memória = speaker_sim
-feito, TTSDS2 pendente, memória persistente gravada.
+#1 pesquisa = feita (8/8 frentes; síntese automática opcional em voo);
+#2 REPLAN = feito; #3 kit de gravação = feito; #4 notebooks 01-04 = FEITOS;
+#5 = speaker_sim feito + memória gravada; TTSDS2 pendente (próxima sessão).

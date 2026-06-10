@@ -1,5 +1,12 @@
 # Phase-0 RUNBOOK — what needs Colab/GPU vs what doesn't
 
+> **UPDATE 2026-06-10 (see specs/REPLAN-2026-06-10.md):** (1) Colab Pro+ now has
+> A100-80GB/H100/G4-96GB → moshi-finetune LoRA (~40GB peak) fits in Colab; Kyutai
+> has an official Colab notebook (tutorials/moshi_finetune.ipynb). (2) For the
+> synthetic-data TTS step, prefer **Qwen3-TTS (Apache, pt) or
+> Chatterbox-Multilingual-pt-br (MIT)** over Kokoro (kept as fallback).
+> (3) Track-A baselines/finetunes (Qwen3-TTS, CSM-Unsloth) live in `notebooks/`.
+
 Single source for executing Phase 0. Top table answers "are the next steps all
 Colab-dependent?" — **no.** Prep is done on CPU (committed); Colab is only for
 the GPU model runs.

@@ -1,6 +1,14 @@
 # TTS-ptbr — Roadmap
 
-> **DRAFT v0.2.** Phases intentionally small (each implementable in a focused session, independently testable). No external deadline. Spine bet = Moshi (full-duplex, text=parallel); co-bet Qwen3-Omni; CSM=voice component; cascade=floor (see phase0/RETHINK.md). Standing ritual: research vigil each sprint. Owners: Pedro (core ML solo), João (data phase only).
+> **DRAFT v0.3 (2026-06-10).** ⚠️ **Execution plan superseded by
+> [`REPLAN-2026-06-10.md`](REPLAN-2026-06-10.md)** (two tracks: A = expressive
+> voice via Qwen3-TTS/Chatterbox-pt-br/CSM on Colab NOW; B = Moshi spine,
+> reinforced — Kyutai shipped the interactivity-RL recipe 2026-06-10; cascade
+> promoted to serious plan-B with 97-180ms TTS legs). The phase sketch below is
+> kept for historical scope; gates and sequencing live in the REPLAN.
+> Spine bet = Moshi (full-duplex, text=parallel); co-bet Qwen3-Omni; CSM=voice
+> component (see phase0/RETHINK.md). Standing ritual: research vigil each sprint.
+> Owners: Pedro (core ML solo), João (data phase only).
 
 ---
 

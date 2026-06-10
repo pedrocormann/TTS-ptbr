@@ -92,3 +92,33 @@ compose_stereo ✓); eval harness CPU-validated; dossier 50/00 get correction
 pointers; PARKING-LOT += helpdesk-sdumont email, privacy counsel, VoiceMark lic.
 
 Next scan: 2026-05-24 (weekly). Big review folds this: 2026-06-17 (`/sdd` ATUALIZAR).
+
+---
+
+## 2026-06-10 — Deep scan #3 (8-front web sweep; the big review, 1 week early)
+
+Dossier: `research/dossier-2026-06/10..60-*.md`. Plan: `specs/REPLAN-2026-06-10.md`.
+
+**Incorporated into the bet:**
+- **Qwen3-TTS (jan/2026, Apache, pt native, 97ms TTFA, official finetune)** —
+  Track-A candidate #1; also replaces Kokoro as synthetic-data generator.
+- **Kyutai interactivity-RL (2026-06-10!, `moshika-rl-seamless` CC-BY-4.0, arXiv
+  2606.11167)** — adopted as F5 post-training blueprint (supersedes Step-Audio-2
+  as primary reference).
+- **PersonaPlex-7B (NVIDIA, jan/2026)** — Moshi-architecture validation + public
+  persona/voice-prompt recipe (paper 2602.06053). Weights NVIDIA OML = outside
+  whitelist; replicate recipe, don't touch weights.
+- **Colab Pro+ A100-80/G4-96GB** — moshi-finetune fits in Colab now.
+- **Unsloth CSM-1B T4 notebook** — no public pt-BR CSM finetune exists; open lane.
+- **Eval v2**: TTSDS2 + Audiobox-Aesthetics + DNSMOS + Parakeet-v3 second-ASR +
+  emotion2vec+ SER head; UTMOS demoted. BIPA (CC-BY, Rio IPA) for accent eval.
+
+**Watch / vetoes:**
+- Pocket-TTS-pt (CC-BY, CPU 200ms) — listening test pending (pt-BR vs pt-PT).
+- NILC `NURC-SP_ENTOA_TTS` MIT tag — email NILC before training shippable weights.
+- New vetoes: Voxtral TTS (NC), Higgs v2/v3, Spark-TTS (relicensed NC!), Fish
+  S2-Pro (research), TAGARELA (NC, eval-only), CETUC (research-only).
+- Reg: PL 2338 pending vote; **PL 1460/2026** (voice replicas: consent+watermark
+  mandatory) — our design is already compliant.
+
+Next scan: 2026-06-17 (weekly). Next hard review: **2026-07-17**.

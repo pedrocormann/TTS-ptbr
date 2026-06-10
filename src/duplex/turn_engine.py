@@ -93,9 +93,10 @@ class TurnEngine:
     def _callback(self, indata, frames, t, status):
         self._q.put(indata[:, 0].copy())
 
-    def listen_turn(self) -> tuple[np.ndarray, dict]:
-        """Bloqueia até capturar um turno completo do usuário.
+    def listen_turn(self, stop_event=None) -> tuple[np.ndarray, dict] | None:
+        """Bloqueia até capturar um turno completo do usuário (None se stop_event).
         Se o agente estiver falando e o usuário entrar, faz barge-in e captura."""
+        import queue as _q
         import sounddevice as sd
         buf: list[np.ndarray] = []
         speech_frames = 0
@@ -108,7 +109,13 @@ class TurnEngine:
                             blocksize=FRAME, device=self.device,
                             callback=self._callback):
             while True:
-                frame = self._q.get()
+                if stop_event is not None and stop_event.is_set():
+                    self.player.stop()
+                    return None
+                try:
+                    frame = self._q.get(timeout=0.5)
+                except _q.Empty:
+                    continue
                 if frame.shape[0] != FRAME:   # garante janela exata p/ o VAD
                     continue
                 speaking = self.vad.is_speech(frame)

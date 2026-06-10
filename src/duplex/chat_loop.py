@@ -45,10 +45,12 @@ def main():
     ap.add_argument("--llm-model", required=True)
     ap.add_argument("--llm-key", default="x")
     ap.add_argument("--endpoint-ms", type=int, default=600)
+    ap.add_argument("--device", type=int, default=None,
+                    help="índice do mic (liste com: python -c \"import sounddevice; print(sounddevice.query_devices())\")")
     args = ap.parse_args()
 
     print("⏳ carregando modelos…")
-    engine = TurnEngine(endpoint_ms=args.endpoint_ms)
+    engine = TurnEngine(endpoint_ms=args.endpoint_ms, device=args.device)
     asr = ASR(model=args.asr_model)
     llm = LLM(base_url=args.llm_base_url, model=args.llm_model, api_key=args.llm_key)
     tts = make_tts(args.tts, args.voice, model_dir=args.model_dir,
@@ -57,7 +59,10 @@ def main():
     print(f"🎙️  Maya-BR v0 · tts={args.tts} · fale alguma coisa (Ctrl-C sai)\n")
 
     while True:
-        user_audio, meta = engine.listen_turn()
+        result = engine.listen_turn()
+        if result is None:
+            break
+        user_audio, meta = result
         t_vad_end = time.perf_counter()
 
         text = asr.transcribe(user_audio)

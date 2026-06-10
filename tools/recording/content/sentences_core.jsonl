@@ -1,0 +1,260 @@
+{"id":"core_001","text":"Amanhã de manhã eu passo aí.","focus":["nasal ã","sândi"],"len":"curta"}
+{"id":"core_002","text":"Minha irmã trouxe maçã e romã da feira.","focus":["nasal ã"],"len":"curta"}
+{"id":"core_003","text":"A campainha tocou três vezes e ninguém atendeu.","focus":["nasal ĩ","nasal ẽ"],"len":"curta"}
+{"id":"core_004","text":"O vento da tarde derrubou o varal da vizinha de novo.","focus":["nasal ẽ","palatalização tʃ/dʒ"],"len":"media"}
+{"id":"core_005","text":"Tem pudim de leite e capim-limão no cardápio de domingo.","focus":["nasal ĩ","ditongo ão"],"len":"media"}
+{"id":"core_006","text":"O som do tambor atravessa o salão e sobe o morro.","focus":["nasal õ","ditongo ão"],"len":"media"}
+{"id":"core_007","text":"Algum atum em lata resolve o almoço de hoje?","focus":["nasal ũ","interrogativa"],"len":"media"}
+{"id":"core_008","text":"A lã dessa manta pinica um pouquinho.","focus":["nasal ã","nasal ĩ"],"len":"curta"}
+{"id":"core_009","text":"Ninguém entende como o tempo passou tão depressa.","focus":["nasal ẽ","nasal ã"],"len":"curta"}
+{"id":"core_010","text":"O jardim do condomínio anda cheio de capim e jasmim.","focus":["nasal ĩ"],"len":"media"}
+{"id":"core_011","text":"Ontem comprei um bombom de coco na banca da esquina.","focus":["nasal õ","nasal ũ"],"len":"media"}
+{"id":"core_012","text":"O mundo dá voltas, e lá no fundo a gente sabe.","focus":["nasal ũ","l vocalizado"],"len":"media"}
+{"id":"core_013","text":"A romã madura mancha a mão e a roupa também.","focus":["nasal ã","ditongo ão"],"len":"media"}
+{"id":"core_014","text":"Sempre que chove, a gente lembra que a calha entope.","focus":["nasal ẽ","chiado coda"],"len":"media"}
+{"id":"core_015","text":"Pão na chapa e um pingado, por favor.","focus":["ditongo ão","imperativa"],"len":"curta"}
+{"id":"core_016","text":"As mães dos alunos põem a mão na massa quando chega a festa junina: enchem os balões, montam as barracas e ainda dançam quadrilha no fim.","focus":["ditongo ãe","ditongo õe","ditongo ão"],"len":"longa"}
+{"id":"core_017","text":"Os limões dessa estação estão bem mais baratos.","focus":["ditongo õe","ditongo ão"],"len":"curta"}
+{"id":"core_018","text":"O coração dispara quando o avião levanta voo.","focus":["ditongo ão","hiato"],"len":"curta"}
+{"id":"core_019","text":"Os cães da vizinhança latem pros caminhões de mudança.","focus":["ditongo ãe","ditongo õe"],"len":"media"}
+{"id":"core_020","text":"Ele põe o violão no colo e afina as cordas devagar.","focus":["ditongo õe","ditongo ão"],"len":"media"}
+{"id":"core_021","text":"O verão no Rio não é brincadeira, não!","focus":["ditongo ão","exclamativa"],"len":"curta"}
+{"id":"core_022","text":"Mãe, as informações do cartão chegaram de manhã.","focus":["ditongo ãe","ditongo õe","ditongo ão"],"len":"curta"}
+{"id":"core_023","text":"Meu pai deixou a caixa embaixo da escada.","focus":["ditongo ai","ditongo ei"],"len":"curta"}
+{"id":"core_024","text":"O peixe no leite de coco ficou uma delícia!","focus":["ditongo ei","exclamativa"],"len":"media"}
+{"id":"core_025","text":"De noite a gente ouviu dois barulhos na cozinha.","focus":["ditongo oi","ditongo ou","ditongo iu"],"len":"media"}
+{"id":"core_026","text":"Comprei um chapéu de palha no calçadão.","focus":["ditongo éu","ditongo ão"],"len":"curta"}
+{"id":"core_027","text":"Ele caiu da rede rindo e foi direto pro mar.","focus":["ditongo iu","ditongo oi","r coda"],"len":"media"}
+{"id":"core_028","text":"Fui cedo e voltei tarde, mas valeu cada minuto.","focus":["ditongo ui","ditongo ei","ditongo eu"],"len":"media"}
+{"id":"core_029","text":"O céu de outono pintou a Baía de Guanabara de dourado.","focus":["ditongo éu","ditongo ou","hiato"],"len":"media"}
+{"id":"core_030","text":"Saudade é ouvir aquele vinil antigo da minha avó.","focus":["ditongo au","ditongo ou","l vocalizado"],"len":"media"}
+{"id":"core_031","text":"Pouco a pouco o bairro mudou, você reparou?","focus":["ditongo ou","ditongo ai","interrogativa"],"len":"curta"}
+{"id":"core_032","text":"O grau da minha lente aumentou de novo.","focus":["ditongo au","ditongo ou"],"len":"curta"}
+{"id":"core_033","text":"Mesmo cansado, ele lavou as panelas da festa.","focus":["chiado coda"],"len":"curta"}
+{"id":"core_034","text":"A pasta de amendoim custa mais caro que biscoito fino.","focus":["chiado coda","ditongo oi"],"len":"media"}
+{"id":"core_035","text":"As meninas gostam de festival com as amigas.","focus":["chiado coda","sândi"],"len":"curta"}
+{"id":"core_036","text":"Faz duas semanas que as obras da escola pararam.","focus":["chiado coda"],"len":"media"}
+{"id":"core_037","text":"Os turistas perguntam onde fica a estação do bondinho.","focus":["chiado coda","ditongo ão"],"len":"media"}
+{"id":"core_038","text":"Tem biscoito Globo e mate gelado na praia inteira.","focus":["chiado coda","ditongo oi","tema praia"],"len":"media"}
+{"id":"core_039","text":"Eles mesmos pintaram as paredes da escada do prédio.","focus":["chiado coda","encontro consonantal"],"len":"media"}
+{"id":"core_040","text":"A luz do poste apagou faz três dias.","focus":["chiado coda"],"len":"curta"}
+{"id":"core_041","text":"Rapaz, esse arroz com feijão tá com gosto de casa!","focus":["chiado coda","exclamativa"],"len":"media"}
+{"id":"core_042","text":"Vamos descer com as crianças antes das seis.","focus":["chiado coda"],"len":"curta"}
+{"id":"core_043","text":"Os pescadores voltam quando as nuvens fecham no horizonte.","focus":["chiado coda","l vocalizado"],"len":"media"}
+{"id":"core_044","text":"Custa nada responder as mensagens até o fim da tarde.","focus":["chiado coda","palatalização tʃ/dʒ"],"len":"media"}
+{"id":"core_045","text":"As festas de fim de ano lotam os mercados do bairro, esgotam o gelo da cidade inteira e enchem as varandas de conversa até o sol nascer.","focus":["chiado coda","prosódia de lista"],"len":"longa"}
+{"id":"core_046","text":"Dez vezes mais gente, e o mesmo espaço de sempre.","focus":["chiado coda"],"len":"media"}
+{"id":"core_047","text":"Minha tia chega de viagem na terça de tarde.","focus":["palatalização tʃ/dʒ"],"len":"media"}
+{"id":"core_048","text":"O dia rendeu, ainda deu tempo de tomar um sorvete.","focus":["palatalização tʃ/dʒ","ditongo eu"],"len":"media"}
+{"id":"core_049","text":"O time treina de noite na quadra.","focus":["palatalização tʃ/dʒ","ditongo oi"],"len":"curta"}
+{"id":"core_050","text":"Vinte minutos de ponte e a gente tá na cidade.","focus":["palatalização tʃ/dʒ","números por extenso"],"len":"media"}
+{"id":"core_051","text":"A saudade aperta quando a tarde cai devagarzinho.","focus":["palatalização tʃ/dʒ","ditongo au"],"len":"curta"}
+{"id":"core_052","text":"Esse dente do siso incomoda desde ontem.","focus":["palatalização tʃ/dʒ","nasal ẽ"],"len":"curta"}
+{"id":"core_053","text":"Perdi a identidade dentro do shopping, acredita?","focus":["palatalização tʃ/dʒ","estrangeirismo","interrogativa"],"len":"curta"}
+{"id":"core_054","text":"Tem gente que só dorme depois da meia-noite, né?","focus":["palatalização tʃ/dʒ","interrogativa"],"len":"media"}
+{"id":"core_055","text":"O tio Valdir conta a mesma piada em todo aniversário de família, erra o final metade das vezes, e mesmo assim todo mundo chora de rir.","focus":["palatalização tʃ/dʒ","l vocalizado","tema família"],"len":"longa"}
+{"id":"core_056","text":"Diz aí: pastel de vento ou bolinho de aipim quente?","focus":["palatalização tʃ/dʒ","interrogativa","imperativa"],"len":"media"}
+{"id":"core_057","text":"A roupa rasgou no arame do varal.","focus":["r inicial ʁ","l vocalizado"],"len":"curta"}
+{"id":"core_058","text":"O carro do correio parou na rua de trás.","focus":["r inicial ʁ","rr intervocálico"],"len":"media"}
+{"id":"core_059","text":"O Rio de Janeiro continua lindo, mesmo na correria.","focus":["r inicial ʁ","rr intervocálico"],"len":"media"}
+{"id":"core_060","text":"O churrasco no terraço reuniu a rua inteira!","focus":["rr intervocálico","exclamativa"],"len":"curta"}
+{"id":"core_061","text":"A torneira do banheiro amanheceu com ferrugem de novo.","focus":["rr intervocálico","r brando"],"len":"media"}
+{"id":"core_062","text":"Tem rede de descanso na varanda com vista pro morro.","focus":["r inicial ʁ","chiado coda"],"len":"media"}
+{"id":"core_063","text":"A risada do Renato ecoa do corredor até a recepção.","focus":["r inicial ʁ","rr intervocálico"],"len":"media"}
+{"id":"core_064","text":"Rua esburacada e ladeira: respeito total por quem sobe de bicicleta.","focus":["r inicial ʁ","l vocalizado"],"len":"media"}
+{"id":"core_065","text":"A porta do bar fecha à meia-noite.","focus":["r coda"],"len":"curta"}
+{"id":"core_066","text":"O calor de fevereiro não dá sossego nem de manhã.","focus":["r coda","nasal ã"],"len":"media"}
+{"id":"core_067","text":"Deixa o carro perto do mercado e vem andando.","focus":["r coda","imperativa"],"len":"media"}
+{"id":"core_068","text":"O cheiro de torta de banana saindo do forno me leva direto pra cozinha da minha avó, num tempo em que domingo durava mais.","focus":["r coda","tema família"],"len":"longa"}
+{"id":"core_069","text":"Tem coisa melhor que mar e cerveja gelada?","focus":["r coda","interrogativa"],"len":"curta"}
+{"id":"core_070","text":"Perdi a hora porque o despertador ficou no silencioso.","focus":["r coda"],"len":"media"}
+{"id":"core_071","text":"Abrir a porta e sentir cheiro de café é a melhor parte.","focus":["r coda","infinitivo -ir"],"len":"media"}
+{"id":"core_072","text":"O farol do Forte pisca a noite inteira sobre o mar.","focus":["r coda","l vocalizado"],"len":"media"}
+{"id":"core_073","text":"O sol de abril ainda arde na pele.","focus":["l vocalizado"],"len":"curta"}
+{"id":"core_074","text":"O Brasil parou pra ver o gol no último minuto.","focus":["l vocalizado","tema futebol"],"len":"media"}
+{"id":"core_075","text":"Sal grosso, carvão, papel alumínio e gelo: a lista do churrasco fechou, agora só falta alguém lembrar de buscar as cadeiras na casa da sogra.","focus":["l vocalizado","prosódia de lista"],"len":"longa"}
+{"id":"core_076","text":"O anel de prata caiu no ralo do hotel.","focus":["l vocalizado","ditongo iu"],"len":"media"}
+{"id":"core_077","text":"O azul do mar hoje tá quase irreal!","focus":["l vocalizado","exclamativa"],"len":"curta"}
+{"id":"core_078","text":"A calma dele no volante me deixa tranquilo.","focus":["l vocalizado","encontro consonantal"],"len":"curta"}
+{"id":"core_079","text":"Mel, hortelã e limão resolvem qualquer garganta arranhada.","focus":["l vocalizado","nasal ã"],"len":"curta"}
+{"id":"core_080","text":"O painel do túnel avisou do acidente com antecedência.","focus":["l vocalizado","tema trânsito"],"len":"media"}
+{"id":"core_081","text":"Futebol de areia no fim da tarde é ritual aqui.","focus":["l vocalizado","palatalização tʃ/dʒ"],"len":"media"}
+{"id":"core_082","text":"O prédio da praça ganhou um grafite enorme.","focus":["encontro consonantal pr","tema arte"],"len":"curta"}
+{"id":"core_083","text":"A criança atravessou a pracinha atrás do cachorro.","focus":["encontro consonantal cr/tr"],"len":"curta"}
+{"id":"core_084","text":"Trinta degraus de pedra até a porta, sem elevador.","focus":["encontro consonantal tr/gr"],"len":"media"}
+{"id":"core_085","text":"O pneu da bicicleta furou na descida da ladeira.","focus":["encontro consonantal pn"],"len":"media"}
+{"id":"core_086","text":"O psicólogo do posto atende às quartas de manhã.","focus":["encontro consonantal ps","proparoxítona"],"len":"media"}
+{"id":"core_087","text":"O ritmo do tamborim guia a escola inteira na avenida, e quando a bateria cruza o recuo, o chão do sambódromo treme de verdade.","focus":["encontro consonantal tm","nasal ĩ","tema música"],"len":"longa"}
+{"id":"core_088","text":"Flores brancas e toalha limpa: pronto, virou festa.","focus":["encontro consonantal fl/br/pr"],"len":"curta"}
+{"id":"core_089","text":"O advogado explicou o problema com uma clareza rara.","focus":["encontro consonantal dv/pl/bl/cl"],"len":"media"}
+{"id":"core_090","text":"A blusa preta encolheu na secadora do prédio.","focus":["encontro consonantal bl/pr"],"len":"curta"}
+{"id":"core_091","text":"O motorista freou de repente pra desviar do buraco.","focus":["encontro consonantal fr","hiato"],"len":"media"}
+{"id":"core_092","text":"Saúde é o que importa no fim das contas.","focus":["hiato"],"len":"media"}
+{"id":"core_093","text":"O país inteiro acompanhou a final pelo rádio.","focus":["hiato","l vocalizado"],"len":"curta"}
+{"id":"core_094","text":"A saída do túnel vive engarrafada nesse horário.","focus":["hiato","tema trânsito"],"len":"curta"}
+{"id":"core_095","text":"A juíza pediu silêncio duas vezes seguidas.","focus":["hiato","proparoxítona"],"len":"curta"}
+{"id":"core_096","text":"O voo atrasou e o enjoo só piorou.","focus":["hiato"],"len":"curta"}
+{"id":"core_097","text":"A poesia dele fala de rua e maré.","focus":["hiato","tema arte"],"len":"curta"}
+{"id":"core_098","text":"Ele saiu da fila pra ajudar uma senhora.","focus":["hiato"],"len":"curta"}
+{"id":"core_099","text":"Caí na real: compreender leva tempo e paciência.","focus":["hiato"],"len":"curta"}
+{"id":"core_100","text":"A lâmpada da sala queimou no sábado.","focus":["proparoxítona"],"len":"curta"}
+{"id":"core_101","text":"O ônibus elétrico já passa pela área do mercado.","focus":["proparoxítona","hiato"],"len":"media"}
+{"id":"core_102","text":"O médico examinou o estômago e pediu exames básicos.","focus":["proparoxítona"],"len":"media"}
+{"id":"core_103","text":"Descobri que música clássica no volume certo acalma até o trânsito da Lagoa numa sexta-feira de chuva, véspera de feriado prolongado.","focus":["proparoxítona","tema trânsito"],"len":"longa"}
+{"id":"core_104","text":"O síndico trocou as câmeras do térreo semana passada.","focus":["proparoxítona","chiado coda"],"len":"media"}
+{"id":"core_105","text":"Debaixo da árvore, o vendedor arruma as últimas abóboras.","focus":["proparoxítona","ditongo ai"],"len":"media"}
+{"id":"core_106","text":"O número da página tá no canto, óbvio.","focus":["proparoxítona"],"len":"curta"}
+{"id":"core_107","text":"Relâmpago no horizonte é aviso pra recolher o varal rápido.","focus":["proparoxítona","tema clima"],"len":"media"}
+{"id":"core_108","text":"Como é que a gente chega aí?","focus":["sândi","interrogativa"],"len":"curta"}
+{"id":"core_109","text":"Vou embora antes que a chuva engrosse.","focus":["sândi","chiado /ʃ/"],"len":"curta"}
+{"id":"core_110","text":"Ela foi para a aula de canto às oito.","focus":["sândi","ditongo oi"],"len":"media"}
+{"id":"core_111","text":"Minha amiga avisou que ia atrasar uma hora.","focus":["sândi","hiato"],"len":"curta"}
+{"id":"core_112","text":"De hoje em diante, almoço em casa.","focus":["sândi","nasal ẽ"],"len":"curta"}
+{"id":"core_113","text":"Toda hora entra alguém perguntando a mesma coisa.","focus":["sândi","chiado coda"],"len":"curta"}
+{"id":"core_114","text":"Meia hora antes, o quiosque ainda estava vazio.","focus":["sândi","ditongo ei"],"len":"curta"}
+{"id":"core_115","text":"Pega o ônibus na esquina e desce em frente ao mercado.","focus":["sândi","imperativa","proparoxítona"],"len":"media"}
+{"id":"core_116","text":"Que horas você sai do trabalho hoje?","focus":["interrogativa","ditongo ai"],"len":"curta"}
+{"id":"core_117","text":"Cadê o controle do ar-condicionado?","focus":["interrogativa","encontro consonantal tr"],"len":"curta"}
+{"id":"core_118","text":"Você viu o jogo de ontem à noite?","focus":["interrogativa","palatalização tʃ/dʒ"],"len":"curta"}
+{"id":"core_119","text":"Tem açúcar aí ou acabou de vez?","focus":["interrogativa","hiato","proparoxítona"],"len":"curta"}
+{"id":"core_120","text":"Quanto custa a passagem até a Central?","focus":["interrogativa","chiado coda","l vocalizado"],"len":"curta"}
+{"id":"core_121","text":"Te encontro na praia ou no quiosque?","focus":["interrogativa","ditongo ai"],"len":"curta"}
+{"id":"core_122","text":"Por que o elevador desse prédio vive quebrado?","focus":["interrogativa","r coda"],"len":"curta"}
+{"id":"core_123","text":"Será que vai dar praia no fim de semana?","focus":["interrogativa","tema praia"],"len":"media"}
+{"id":"core_124","text":"Você prefere mar agitado ou cachoeira gelada?","focus":["interrogativa","entonação alternativa"],"len":"curta"}
+{"id":"core_125","text":"Onde fica a parada do ônibus pro Centro?","focus":["interrogativa","proparoxítona"],"len":"curta"}
+{"id":"core_126","text":"Quem deixou a janela aberta com esse vento todo?","focus":["interrogativa","nasal ẽ"],"len":"media"}
+{"id":"core_127","text":"O médico atende sábado ou só durante a semana?","focus":["interrogativa","proparoxítona"],"len":"media"}
+{"id":"core_128","text":"Como assim o jogo foi adiado pra terça?","focus":["interrogativa","sândi"],"len":"curta"}
+{"id":"core_129","text":"Vocês já provaram o pastel de queijo dessa barraca?","focus":["interrogativa","l vocalizado"],"len":"media"}
+{"id":"core_130","text":"Quanto tempo leva da Tijuca até a Barra de carro?","focus":["interrogativa","rr intervocálico","r coda"],"len":"media"}
+{"id":"core_131","text":"Esse forno aquece rápido ou demora pra valer?","focus":["interrogativa","proparoxítona"],"len":"curta"}
+{"id":"core_132","text":"Me explica de novo: o boleto vence quando?","focus":["interrogativa","nasal ẽ"],"len":"curta"}
+{"id":"core_133","text":"E aí, fechou o aluguel da casa de Maricá?","focus":["interrogativa","l vocalizado","sândi"],"len":"media"}
+{"id":"core_134","text":"Tu vai descer pra praia ou vai ficar de preguiça?","focus":["interrogativa","registro tu carioca"],"len":"media"}
+{"id":"core_135","text":"O quê? Aumentaram a tarifa da barca de novo?","focus":["interrogativa","entonação de surpresa"],"len":"media"}
+{"id":"core_136","text":"Alguém aí sabe se a farmácia da esquina abre feriado?","focus":["interrogativa","proparoxítona","sândi"],"len":"media"}
+{"id":"core_137","text":"Que tal a gente adiantar a reunião pra amanhã cedo?","focus":["interrogativa","ditongo ão","nasal ã"],"len":"media"}
+{"id":"core_138","text":"Por que será que todo verão falta luz no bairro?","focus":["interrogativa","l vocalizado","chiado coda"],"len":"media"}
+{"id":"core_139","text":"Esse samba é do Cartola ou do Nelson Cavaquinho?","focus":["interrogativa","tema música","l vocalizado"],"len":"media"}
+{"id":"core_140","text":"Caraca, que calor absurdo hoje!","focus":["exclamativa","r coda"],"len":"curta"}
+{"id":"core_141","text":"Que golaço no último minuto!","focus":["exclamativa","tema futebol","proparoxítona"],"len":"curta"}
+{"id":"core_142","text":"Olha esse pôr do sol, que coisa linda!","focus":["exclamativa","l vocalizado","ditongo oi"],"len":"curta"}
+{"id":"core_143","text":"Finalmente sexta-feira, que alívio!","focus":["exclamativa","chiado coda"],"len":"curta"}
+{"id":"core_144","text":"Esse bolo de fubá tá simplesmente perfeito!","focus":["exclamativa","encontro consonantal pl"],"len":"curta"}
+{"id":"core_145","text":"Que chuva foi aquela ontem, meu Deus!","focus":["exclamativa","ditongo eu","chiado /ʃ/"],"len":"curta"}
+{"id":"core_146","text":"Ganhamos! Eu não acredito que ganhamos!","focus":["exclamativa","nasal ã"],"len":"curta"}
+{"id":"core_147","text":"Que saudade da casa da minha avó!","focus":["exclamativa","palatalização tʃ/dʒ","ditongo au"],"len":"curta"}
+{"id":"core_148","text":"Como essa menina cresceu, gente!","focus":["exclamativa","ditongo eu","encontro consonantal cr"],"len":"curta"}
+{"id":"core_149","text":"Que vergonha esse atendimento, viu!","focus":["exclamativa","nasal õ","ditongo iu"],"len":"curta"}
+{"id":"core_150","text":"Nossa, que cheiro bom de café passado!","focus":["exclamativa","chiado /ʃ/","nasal õ"],"len":"curta"}
+{"id":"core_151","text":"Que orgulho de ver vocês formados!","focus":["exclamativa","r coda","chiado coda"],"len":"curta"}
+{"id":"core_152","text":"Caraca, o mar tá uma piscina hoje!","focus":["exclamativa","tema praia","r coda"],"len":"curta"}
+{"id":"core_153","text":"Que absurdo cobrarem trinta reais por um suco!","focus":["exclamativa","números por extenso"],"len":"curta"}
+{"id":"core_154","text":"Olha o tamanho dessa fila, gente, não é possível!","focus":["exclamativa","proparoxítona","sândi"],"len":"media"}
+{"id":"core_155","text":"Que show, que noite, que cidade maravilhosa!","focus":["exclamativa","estrangeirismo","prosódia de lista"],"len":"curta"}
+{"id":"core_156","text":"Fecha a janela antes que a chuva entre.","focus":["imperativa","chiado /ʃ/"],"len":"curta"}
+{"id":"core_157","text":"Liga pra sua mãe, vai.","focus":["imperativa","ditongo ãe"],"len":"curta"}
+{"id":"core_158","text":"Prova esse açaí e depois me conta.","focus":["imperativa","hiato"],"len":"curta"}
+{"id":"core_159","text":"Desliga essa televisão e vem jantar.","focus":["imperativa","ditongo ão","nasal ẽ"],"len":"curta"}
+{"id":"core_160","text":"Segura minha mochila um segundo, por favor.","focus":["imperativa","chiado /ʃ/","nasal ũ"],"len":"curta"}
+{"id":"core_161","text":"Anota o endereço antes que esqueça.","focus":["imperativa","chiado coda"],"len":"curta"}
+{"id":"core_162","text":"Respira fundo e conta até dez.","focus":["imperativa","nasal ũ","chiado coda"],"len":"curta"}
+{"id":"core_163","text":"Traz um guarda-chuva, confia em mim.","focus":["imperativa","chiado coda","nasal ĩ"],"len":"curta"}
+{"id":"core_164","text":"Vira à direita logo depois da padaria.","focus":["imperativa","ditongo ei"],"len":"curta"}
+{"id":"core_165","text":"Bota a água pra ferver enquanto eu pico o alho.","focus":["imperativa","r coda","sândi"],"len":"media"}
+{"id":"core_166","text":"Manda a localização quando estiver chegando.","focus":["imperativa","ditongo ão","r coda"],"len":"curta"}
+{"id":"core_167","text":"Experimenta chegar mais cedo amanhã e me agradece depois.","focus":["imperativa","nasal ã","chiado /ʃ/"],"len":"media"}
+{"id":"core_168","text":"O aluguel subiu pra dois mil e trezentos reais.","focus":["números por extenso","l vocalizado"],"len":"media"}
+{"id":"core_169","text":"A consulta ficou marcada pro dia vinte e três de agosto, às nove e quinze da manhã, e o doutor pediu pra levar os exames antigos.","focus":["números por extenso","data por extenso"],"len":"longa"}
+{"id":"core_170","text":"São quatro e quarenta e cinco da tarde, o sol ainda tá forte, e o pessoal do vôlei já começou a montar a rede na areia.","focus":["hora por extenso","tema praia"],"len":"longa"}
+{"id":"core_171","text":"O ingresso custou oitenta e sete reais e cinquenta centavos.","focus":["valores em reais","chiado coda"],"len":"media"}
+{"id":"core_172","text":"Minha avó nasceu em mil novecentos e quarenta e oito, em Campos dos Goytacazes, e veio pro Rio de trem com dezessete anos e uma mala só.","focus":["data por extenso","tema família"],"len":"longa"}
+{"id":"core_173","text":"Faltam onze dias pro feriado de sete de setembro.","focus":["números por extenso","data por extenso"],"len":"media"}
+{"id":"core_174","text":"Eram seis e meia quando o mar virou.","focus":["hora por extenso","r coda"],"len":"curta"}
+{"id":"core_175","text":"Noventa e nove por cento desse trabalho é paciência.","focus":["números por extenso","hiato"],"len":"media"}
+{"id":"core_176","text":"O troco veio errado: faltaram três reais e vinte centavos.","focus":["valores em reais","rr intervocálico"],"len":"media"}
+{"id":"core_177","text":"A feira começa às sete e fecha ao meio-dia e meia.","focus":["hora por extenso","sândi"],"len":"media"}
+{"id":"core_178","text":"O quilo do camarão tá sessenta e cinco reais, acredita?","focus":["valores em reais","interrogativa"],"len":"media"}
+{"id":"core_179","text":"Em dois mil e quatorze eu morava em Botafogo.","focus":["data por extenso","nasal ẽ"],"len":"media"}
+{"id":"core_180","text":"Duzentos e cinquenta gramas de presunto, fatiado fino, por favor.","focus":["números por extenso","imperativa"],"len":"media"}
+{"id":"core_181","text":"O condomínio aprovou na assembleia um rateio extra de cento e doze reais por apartamento, dividido em duas parcelas sem juros.","focus":["valores em reais","proparoxítona"],"len":"longa"}
+{"id":"core_182","text":"O voo sai às cinco e cinquenta da manhã do dia primeiro de julho, então o táxi precisa chegar às quatro em ponto.","focus":["hora por extenso","data por extenso","hiato"],"len":"longa"}
+{"id":"core_183","text":"Dois pastéis, um caldo de cana e uma água: deu dezessete reais.","focus":["valores em reais","l vocalizado","prosódia de lista"],"len":"media"}
+{"id":"core_184","text":"O wi-fi do café caiu de novo.","focus":["estrangeirismo","ditongo iu"],"len":"curta"}
+{"id":"core_185","text":"Me manda o e-mail com o link do site, por favor.","focus":["estrangeirismo","imperativa"],"len":"media"}
+{"id":"core_186","text":"O show de sábado esgotou em duas horas.","focus":["estrangeirismo","proparoxítona"],"len":"curta"}
+{"id":"core_187","text":"Atualizei o aplicativo do banco e o login parou de funcionar.","focus":["estrangeirismo","tema tecnologia"],"len":"media"}
+{"id":"core_188","text":"O IPTU chegou junto com a conta de luz, que maravilha.","focus":["sigla","ironia prosódica"],"len":"media"}
+{"id":"core_189","text":"Consegui marcar o exame pelo SUS no posto da Penha.","focus":["sigla","chiado coda"],"len":"media"}
+{"id":"core_190","text":"A playlist do churrasco mistura samba, funk e rock nacional.","focus":["estrangeirismo","tema música"],"len":"media"}
+{"id":"core_191","text":"Gravei um podcast sobre design e arquitetura carioca.","focus":["estrangeirismo","tema arte"],"len":"curta"}
+{"id":"core_192","text":"O delivery errou meu pedido pela segunda vez.","focus":["estrangeirismo","rr intervocálico"],"len":"curta"}
+{"id":"core_193","text":"O CEP daqui mudou quando renomearam a rua.","focus":["sigla","hiato"],"len":"curta"}
+{"id":"core_194","text":"Pedi feedback do projeto antes do deadline de sexta.","focus":["estrangeirismo","tema trabalho"],"len":"media"}
+{"id":"core_195","text":"Ela posta stories do café toda santa manhã.","focus":["estrangeirismo","nasal ã"],"len":"curta"}
+{"id":"core_196","text":"Quando o verão chega de verdade, o melhor plano é sair cedo, garantir um canto bom na areia e voltar pra casa antes do sol das onze.","focus":["tema praia","subordinada","prosódia longa"],"len":"longa"}
+{"id":"core_197","text":"Se a Linha Vermelha ajudar, a gente chega no aeroporto com folga, despacha as malas com calma e ainda toma um café antes do embarque.","focus":["tema trânsito","condicional","prosódia longa"],"len":"longa"}
+{"id":"core_198","text":"Minha mãe sempre dizia que panela velha é que faz comida boa, e até hoje a frigideira preta dela faz o melhor ovo frito do mundo.","focus":["tema comida","tema família","prosódia longa"],"len":"longa"}
+{"id":"core_199","text":"O técnico mexeu no time no intervalo, recuou o volante, abriu os pontas e, por incrível que pareça, o jogo virou nos acréscimos do segundo tempo.","focus":["tema futebol","prosódia de lista","proparoxítona"],"len":"longa"}
+{"id":"core_200","text":"Tem noite em que a roda de samba começa tímida, mas, quando o cavaquinho esquenta e alguém puxa um clássico, ninguém mais consegue ir embora cedo.","focus":["tema música","subordinada","prosódia longa"],"len":"longa"}
+{"id":"core_201","text":"Entre uma reunião e outra, eu ainda respondi trinta e duas mensagens, revisei o orçamento da obra e esqueci, é claro, de almoçar direito.","focus":["tema trabalho","números por extenso","ironia prosódica"],"len":"longa"}
+{"id":"core_202","text":"Dizem que março é o mês das águas, mas esse ano a chuva chegou adiantada, encheu as galerias e transformou a rua principal num rio marrom.","focus":["tema clima","chiado coda","prosódia longa"],"len":"longa"}
+{"id":"core_203","text":"Eu tentei resolver pelo aplicativo, depois pelo site, depois pelo telefone, e no fim das contas só funcionou quando fui pessoalmente na loja da esquina.","focus":["tema tecnologia","prosódia de lista","estrangeirismo"],"len":"longa"}
+{"id":"core_204","text":"A exposição ocupa três andares do centro cultural, mistura fotografia, escultura e vídeo, e termina num terraço com vista pra Baía de Guanabara.","focus":["tema arte","hiato","prosódia de lista"],"len":"longa"}
+{"id":"core_205","text":"Domingo na casa da minha tia é assim: chega gente que ninguém convidou, falta cadeira, sobra comida e, no fim, todo mundo sai feliz e levando marmita.","focus":["tema família","palatalização tʃ/dʒ","prosódia de lista"],"len":"longa"}
+{"id":"core_206","text":"O mar de ressaca engoliu a areia até o calçadão, arrancou dois quiosques e ainda assim tinha surfista achando que era o melhor dia do ano.","focus":["tema praia","rr intervocálico","prosódia longa"],"len":"longa"}
+{"id":"core_207","text":"O ônibus quebrou na subida do viaduto, o motorista pediu calma, ninguém teve calma, e eu terminei o trajeto a pé, suando feito condenado.","focus":["tema trânsito","l vocalizado","repetição enfática"],"len":"longa"}
+{"id":"core_208","text":"O segredo da feijoada da minha avó, segundo ela mesma, é cozinhar devagar, provar sem pressa e nunca, em hipótese alguma, deixar faltar laranja e couve.","focus":["tema comida","aposto","prosódia longa"],"len":"longa"}
+{"id":"core_209","text":"Quando o cliente disse que queria tudo pronto pra ontem, eu respirei fundo, sorri por educação e refiz o cronograma inteiro pela terceira vez no mês.","focus":["tema trabalho","subordinada","encontro consonantal cr"],"len":"longa"}
+{"id":"core_210","text":"O ensaio da bateria atravessa a madrugada de sábado, e quem mora perto da quadra já aprendeu que é mais fácil descer e dançar do que tentar dormir.","focus":["tema música","hiato","comparativa"],"len":"longa"}
+{"id":"core_211","text":"O calor de quarenta graus derrete o asfalto, lota as praias, esvazia os escritórios e faz o carioca inventar reunião urgente em qualquer lugar com ar-condicionado.","focus":["tema clima","números por extenso","prosódia de lista"],"len":"longa"}
+{"id":"core_212","text":"Minha avó aprendeu a fazer videochamada na pandemia e hoje, com oitenta e dois anos, manda figurinha, áudio de cinco minutos e cobra resposta na hora.","focus":["tema tecnologia","números por extenso","tema família"],"len":"longa"}
+{"id":"core_213","text":"O mural que pintaram na empena cega do prédio mudou a cara da praça, e agora todo turista que passa para, aponta e tira foto.","focus":["tema arte","relativa","prosódia de lista"],"len":"longa"}
+{"id":"core_214","text":"Meu avô atravessava a cidade de trem todo dia durante trinta anos e dizia, sem ironia nenhuma, que era ali que ele fazia os melhores amigos.","focus":["tema família","encontro consonantal tr","aposto"],"len":"longa"}
+{"id":"core_215","text":"Levei guarda-sol, cadeira, isopor, raquete e protetor, e mesmo assim minha filha só queria saber de cavar um buraco na areia com a mão.","focus":["tema praia","prosódia de lista","ditongo ão"],"len":"longa"}
+{"id":"core_216","text":"A final em casa tinha tudo pra ser tranquila, mas o time sofreu, o goleiro salvou duas vezes no fim e a arquibancada envelheceu uns dez anos.","focus":["tema futebol","adversativa","l vocalizado"],"len":"longa"}
+{"id":"core_217","text":"O boteco da esquina não tem cardápio, não tem pressa e não tem luxo, mas o bolinho de bacalhau de lá já desfez briga de família.","focus":["tema comida","repetição enfática","chiado /ʃ/"],"len":"longa"}
+{"id":"core_218","text":"A obra atrasou por causa da chuva, o material subiu de preço duas vezes, e ainda assim a entrega saiu antes do prazo, ninguém entendeu como.","focus":["tema trabalho","l vocalizado","prosódia longa"],"len":"longa"}
+{"id":"core_219","text":"Depois de uma semana inteira de céu cinza e garoa fina, o sol abriu no sábado de manhã e a cidade inteira pareceu acordar de bom humor.","focus":["tema clima","ditongo éu","prosódia longa"],"len":"longa"}
+{"id":"core_220","text":"Aprendi cavaquinho sozinho, ouvindo disco riscado e errando acorde atrás de acorde, até que um dia a roda me chamou pra sentar e eu não saí mais.","focus":["tema música","gerúndio","hiato"],"len":"longa"}
+{"id":"core_221","text":"O GPS mandou eu entrar numa rua que não existe, subir uma escadaria e atravessar uma feira, e ainda anunciou, todo orgulhoso, que eu tinha chegado ao destino.","focus":["sigla","tema tecnologia","ironia prosódica"],"len":"longa"}
+{"id":"core_222","text":"Ela passou meses restaurando o azulejo do casarão, peça por peça, e quando a fachada ficou pronta, a vizinhança inteira desceu pra ver de perto.","focus":["tema arte","chiado /ʒ/","subordinada"],"len":"longa"}
+{"id":"core_223","text":"Minha filha aprendeu a andar de bicicleta no aterro num domingo de manhã, caiu três vezes, chorou duas e, na terceira tentativa, saiu pedalando sem olhar pra trás.","focus":["tema família","números por extenso","ditongo iu"],"len":"longa"}
+{"id":"core_224","text":"Pegar a barca pra Niterói no fim da tarde tem disso: o mar de um lado, a cidade dourada do outro e a sensação de que o dia valeu.","focus":["tema trânsito","ditongo oi","prosódia longa"],"len":"longa"}
+{"id":"core_225","text":"Tem dia que a cidade amanhece impossível, com sirene, buzina e pressa, e aí o jeito é respirar fundo, botar uma música boa e seguir o baile.","focus":["prosódia de lista","proparoxítona","ditongo ai"],"len":"longa"}
+{"id":"core_226","text":"A maré baixa deixou a piscina natural cheia de peixinhos.","focus":["tema praia","ditongo ei","chiado /ʃ/"],"len":"media"}
+{"id":"core_227","text":"O salva-vidas apitou e a praia inteira voltou correndo!","focus":["exclamativa","tema praia","l vocalizado"],"len":"media"}
+{"id":"core_228","text":"Areia quente, pé descalço e mate gelado: que domingo!","focus":["exclamativa","prosódia de lista","l vocalizado"],"len":"media"}
+{"id":"core_229","text":"O engarrafamento começou bem antes do túnel, andou de dez em dez metros, e quando finalmente abriu, ninguém sabia explicar o motivo de nada.","focus":["tema trânsito","números por extenso","subordinada"],"len":"longa"}
+{"id":"core_230","text":"Rodízio de pizza com a família inteira é guerra declarada: tem aposta, tem traição pelo último pedaço de calabresa e tem sempre alguém que jura que não janta.","focus":["tema comida","tema família","prosódia de lista"],"len":"longa"}
+{"id":"core_231","text":"O caldo de feijão do boteco salva qualquer noite fria.","focus":["tema comida","l vocalizado","palatalização tʃ/dʒ"],"len":"media"}
+{"id":"core_232","text":"A reunião foi remarcada pra quinta de manhã.","focus":["tema trabalho","ditongo ão","nasal ã"],"len":"curta"}
+{"id":"core_233","text":"O cliente aprovou o projeto sem pedir nenhuma alteração.","focus":["tema trabalho","encontro consonantal cl/pr"],"len":"media"}
+{"id":"core_234","text":"Meu computador escolheu a pior hora pra atualizar o sistema.","focus":["tema tecnologia","ditongo eu","hiato"],"len":"media"}
+{"id":"core_235","text":"Por que a impressora do escritório só funciona quando quer?","focus":["interrogativa","tema trabalho","encontro consonantal pr/cr"],"len":"media"}
+{"id":"core_236","text":"A exposição de fotografia sobre os subúrbios ficou tão concorrida que o centro cultural estendeu o horário, abriu nas segundas e ainda assim a fila dobra o quarteirão.","focus":["tema arte","proparoxítona","consecutiva"],"len":"longa"}
+{"id":"core_237","text":"O espetáculo de dança lotou o teatro municipal por três noites.","focus":["tema arte","proparoxítona","hiato"],"len":"media"}
+{"id":"core_238","text":"Minha prima caçula vai se formar em engenharia esse ano.","focus":["tema família","hiato","nasal ẽ"],"len":"media"}
+{"id":"core_239","text":"O almoço de domingo na casa da minha mãe começa ao meio-dia, atravessa a tarde entre café e sobremesa, e nunca, jamais, termina antes das quatro.","focus":["tema família","ditongo ãe","repetição enfática"],"len":"longa"}
+{"id":"core_240","text":"A neblina cobriu o Cristo logo cedo.","focus":["tema clima","encontro consonantal bl/cr"],"len":"curta"}
+{"id":"core_241","text":"Será que essa garoa segura até o fim do jogo?","focus":["interrogativa","tema clima","hiato"],"len":"media"}
+{"id":"core_242","text":"O zagueiro novo ganhou apelido na primeira partida.","focus":["tema futebol","ditongo ei"],"len":"curta"}
+{"id":"core_243","text":"Quando a torcida estendeu a bandeira gigante na arquibancada, o estádio inteiro veio abaixo, e por um momento ninguém lembrou que o time tava em último.","focus":["tema futebol","subordinada","proparoxítona"],"len":"longa"}
+{"id":"core_244","text":"O pagode do quintal acabou com todo mundo cantando abraçado!","focus":["exclamativa","tema música","nasal ũ"],"len":"media"}
+{"id":"core_245","text":"Ele afinou o pandeiro com a mão e sorriu.","focus":["tema música","ditongo ão","ditongo iu"],"len":"media"}
+{"id":"core_246","text":"Cadê outro mercado que vende fruta madura por esse preço?","focus":["interrogativa","encontro consonantal fr/pr"],"len":"media"}
+{"id":"core_247","text":"A bicicletaria do bairro virou ponto de encontro.","focus":["ditongo ai","nasal õ"],"len":"curta"}
+{"id":"core_248","text":"O porteiro do meu prédio sabe quem chegou, quem saiu, quem brigou e quem fez as pazes, e ainda assim jura de pé junto que não repara em nada.","focus":["prosódia de lista","chiado coda","hiato"],"len":"longa"}
+{"id":"core_249","text":"Estendi a roupa cedo confiando no sol, deu errado.","focus":["tema clima","l vocalizado","rr intervocálico"],"len":"media"}
+{"id":"core_250","text":"Quantas vezes o vento vai derrubar esse guarda-sol hoje?","focus":["interrogativa","tema clima","l vocalizado"],"len":"media"}
+{"id":"core_251","text":"A laje vira arquibancada em noite de final, é lindo de ver!","focus":["exclamativa","chiado /ʒ/","l vocalizado"],"len":"media"}
+{"id":"core_252","text":"O vendedor de mate desce a praia no sol das duas, gritando a tabela de preços com uma alegria que ninguém explica, e sobe vazio antes das quatro.","focus":["tema praia","gerúndio","prosódia longa"],"len":"longa"}
+{"id":"core_253","text":"Minha vizinha rega as plantas conversando com cada uma.","focus":["chiado /ʒ/","encontro consonantal pl"],"len":"media"}
+{"id":"core_254","text":"O cinema de rua do bairro reabriu depois de cinco anos fechado, com poltrona nova, pipoca barata e sessão dupla de filme nacional aos domingos.","focus":["hiato","prosódia de lista","l vocalizado"],"len":"longa"}
+{"id":"core_255","text":"Trocaram o piso da quadra e o jogo melhorou.","focus":["encontro consonantal tr","chiado /ʒ/"],"len":"media"}
+{"id":"core_256","text":"O cheiro de pão saindo do forno atravessa o quarteirão.","focus":["ditongo ão","chiado /ʃ/","r coda"],"len":"media"}
+{"id":"core_257","text":"A van do bairro já encheu ou ainda dá tempo?","focus":["interrogativa","estrangeirismo","ditongo ai"],"len":"media"}
+{"id":"core_258","text":"Levei meu sobrinho pra ver o aquário pela primeira vez e ele passou meia hora parado na frente do tanque das arraias, sem falar uma palavra.","focus":["tema família","rr intervocálico","sândi"],"len":"longa"}
+{"id":"core_259","text":"Em dia de céu limpo, dá pra ver o contorno inteiro da Pedra da Gávea lá do alto do parque, e a cidade parece desenhada à mão.","focus":["ditongo éu","l vocalizado","proparoxítona"],"len":"longa"}
+{"id":"core_260","text":"Fim de tarde na mureta, água de coco e papo bom.","focus":["palatalização tʃ/dʒ","prosódia de lista","nasal õ"],"len":"media"}

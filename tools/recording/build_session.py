@@ -201,7 +201,10 @@ def main() -> None:
         return
 
     items = build(args.kind, None if args.all else args.minutes, args)
-    digit_warn = [it["id"] for it in items if g2p_pt.has_digits(it.get("text", ""))]
+    # dígitos só importam em texto LIDO (instruções de improviso podem ter números)
+    scripted = ("sentenca", "emocao", "sotaque", "dialogo")
+    digit_warn = [it["id"] for it in items
+                  if it["kind"] in scripted and g2p_pt.has_digits(it.get("text", ""))]
     if digit_warn:
         print(f"⚠️  itens com dígitos (escreva por extenso): {digit_warn}", file=sys.stderr)
 

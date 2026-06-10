@@ -25,9 +25,11 @@ class BaseTTS:
 
 
 class PocketTTSAdapter(BaseTTS):
-    def __init__(self, voice: str, language: str = "portuguese"):
+    def __init__(self, voice: str, language: str = "portuguese",
+                 quantize: bool = True):
         from pocket_tts import TTSModel
-        self.model = TTSModel.load_model()  # config de língua via packaging do pocket-tts
+        # language: "portuguese" (6L, rápido) | "portuguese_24l" (qualidade)
+        self.model = TTSModel.load_model(language=language, quantize=quantize)
         self.language = language
         self.state = self.model.get_state_for_audio_prompt(voice)  # wav | .safetensors | nome
         self.sr = getattr(self.model, "sample_rate", TTS_SR)

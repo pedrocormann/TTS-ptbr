@@ -20,12 +20,17 @@ FRAME = 512
 
 
 class VAD:
-    """silero-vad streaming (torch.hub). prob > threshold = fala."""
+    """silero-vad streaming. prob > threshold = fala.
+    Prefere o pacote pip oficial (sem API do GitHub); fallback torch.hub."""
 
     def __init__(self, threshold: float = 0.5):
         import torch
-        self.model, _ = torch.hub.load("snakers4/silero-vad", "silero_vad",
-                                       trust_repo=True)
+        try:
+            from silero_vad import load_silero_vad
+            self.model = load_silero_vad()
+        except ImportError:
+            self.model, _ = torch.hub.load("snakers4/silero-vad", "silero_vad",
+                                           trust_repo=True)
         self.threshold = threshold
         self._torch = torch
 

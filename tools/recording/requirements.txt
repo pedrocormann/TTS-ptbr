@@ -1,0 +1,7 @@
+# Kit de gravação — roda no Mac local (CPU)
+numpy
+sounddevice
+soundfile
+# opcionais (recomendados)
+pyloudnorm     # LUFS no qc_report
+soxr           # resample de qualidade no export

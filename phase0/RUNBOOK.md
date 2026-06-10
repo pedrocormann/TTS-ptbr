@@ -41,16 +41,20 @@ is execution, not figuring-things-out.
 !git clone https://<TOKEN>@github.com/pedrocormann/TTS-ptbr.git && cd TTS-ptbr
 ```
 
-**1. Synthetic Phase-0 data (no Meta needed; Kokoro = Apache, ungated):**
+**1. Synthetic Phase-0 data (engines atualizados 2026-06-10 — ver REPLAN):**
 ```
-!pip -q install kokoro soundfile
 !python tools/data/synth/gen_dialogues.py --seeds tools/data/synth/seed_dialogues.jsonl --out synth_dialogues.jsonl --variants 20
-!python tools/data/synth/synth_tts.py --dialogues synth_dialogues.jsonl --out-dir synth_turns --engine kokoro --voice-a pm_alex --voice-b pf_dora
+# PREFERIDO — qwen3 (Apache, pt nativo, emoção do diálogo via instruct):
+!pip -q install qwen-tts soundfile
+!python tools/data/synth/synth_tts.py --dialogues synth_dialogues.jsonl --out-dir synth_turns --engine qwen3 --voice-a Ethan --voice-b Chelsie
+# ALTERNATIVA — chatterbox-ptbr (MIT, pack pt-BR; voice-a/b = wavs de ref ~7-10s):
+#   !pip -q install chatterbox-tts && python tools/data/synth/synth_tts.py ... --engine chatterbox-ptbr --voice-a refA.wav --voice-b refB.wav
+# FALLBACK leve — kokoro (sem emoção): --engine kokoro --voice-a pm_alex --voice-b pf_dora
 !python tools/data/synth/compose_stereo.py --turns-dir synth_turns --out-dir data/data_stereo
 !python tools/data/make_jsonl.py --wav-dir data/data_stereo --out data/ds.jsonl   # needs sphn (moshi env)
 ```
-(26 seeds × 20 ≈ 520 dialogues; raise --variants for more. Verify Kokoro pt-BR
-voice quality on the first batch — parked check, PARKING-LOT.)
+(26 seeds × 20 ≈ 520 dialogues; raise --variants for more. Escutar o 1º lote de
+cada engine: o sotaque é pt-BR? — gate F0.5 do REPLAN.)
 
 **2. Spike C — Moshi latency ceiling (separate runtime; ungated):**
 ```

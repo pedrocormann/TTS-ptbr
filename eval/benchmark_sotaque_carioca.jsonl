@@ -1,0 +1,18 @@
+{"id": "sot_01", "text": "Custa nada responder as mensagens até o fim da tarde.", "traits": ["s-coda→ʃ", "tʃ tarde", "sândi as+mensagens"]}
+{"id": "sot_02", "text": "Rapaz, esse arroz com feijão tá com gosto de casa!", "traits": ["χ arroz", "ʃ final rapaz/arroz", "ʒ feijão"]}
+{"id": "sot_03", "text": "Minha tia chega de viagem na terça de tarde.", "traits": ["tʃ tia/tarde", "ʃ chega", "ʒ viagem", "χ terça"]}
+{"id": "sot_04", "text": "Quanto tempo leva da Tijuca até a Barra de carro?", "traits": ["tʃ Tijuca/até", "χ Barra/carro", "interrogativa"]}
+{"id": "sot_05", "text": "Vocês já provaram o pastel de queijo dessa barraca?", "traits": ["ʃ vocês", "ʒ já/queijo", "ʃ pastel-coda", "χ barraca"]}
+{"id": "sot_06", "text": "O caldo de feijão do boteco salva qualquer noite fria.", "traits": ["w caldo", "ʒ feijão", "tʃ noite", "χ qualquer-coda"]}
+{"id": "sot_07", "text": "Abrir a porta e sentir cheiro de café é a melhor parte.", "traits": ["χ porta/parte-coda", "ʃ cheiro", "tʃ sentir", "sândi café+é"]}
+{"id": "sot_08", "text": "Rua esburacada e ladeira: respeito total por quem sobe de bicicleta.", "traits": ["χ rua inicial", "ʒ esburacada", "w total", "tʃ respeito"]}
+{"id": "sot_09", "text": "O motorista freou de repente pra desviar do buraco.", "traits": ["ʃ motorista-coda", "dʒ de+repente", "ʒ desviar"]}
+{"id": "sot_10", "text": "O Rio de Janeiro continua lindo, mesmo na correria.", "traits": ["χ Rio inicial/correria", "dʒ de", "ʒ Janeiro/mesmo"]}
+{"id": "sot_11", "text": "A laje vira arquibancada em noite de final, é lindo de ver!", "traits": ["ʒ laje", "tʃ noite", "w final", "exclamativa"]}
+{"id": "sot_12", "text": "Tem rede de descanso na varanda com vista pro morro.", "traits": ["dʒ rede/de", "ʃ descanso/vista-coda", "χ morro"]}
+{"id": "sot_13", "text": "Futebol de areia no fim da tarde é ritual aqui.", "traits": ["w futebol/ritual", "dʒ de", "tʃ tarde", "sândi tarde+é"]}
+{"id": "sot_14", "text": "O farol do Forte pisca a noite inteira sobre o mar.", "traits": ["w farol", "χ Forte/mar-coda", "tʃ noite/inteira", "ʃ pisca-coda"]}
+{"id": "sot_15", "text": "Que tal a gente adiantar a reunião pra amanhã cedo?", "traits": ["w tal", "ʒ gente", "dʒ adiantar", "ã amanhã", "interrogativa"]}
+{"id": "sot_16", "text": "Mas que isso, são dez biscoitos e duas águas por trinta reais?", "traits": ["ʃ mas/isso/biscoitos/dez", "ãw̃ são", "tʃ trinta", "w reais", "indignação"]}
+{"id": "sot_17", "text": "Brasil jogando mal ainda é melhor que segunda-feira sem praia.", "traits": ["w Brasil/mal", "ʒ jogando", "χ melhor-coda", "sândi ainda+é"]}
+{"id": "sot_18", "text": "Desce dois mate e um globo, por favor, que o sol tá rachando.", "traits": ["ʃ desce/dois-coda", "tʃ mate", "w sol/globo", "χ favor/rachando", "léxico praia carioca"]}

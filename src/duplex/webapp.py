@@ -34,7 +34,8 @@ def conversation_loop(cfg: dict, stop_event: threading.Event):
         if cfg.get("hf_token"):
             os.environ["HF_TOKEN"] = cfg["hf_token"]
         engine = TurnEngine(endpoint_ms=int(cfg.get("endpoint_ms", 600)),
-                            device=cfg.get("device"))
+                            device=cfg.get("device"),
+                            barge_in=bool(cfg.get("barge_in", False)))
         asr = ASR(model=cfg.get("asr_model", "small"))
         llm = LLM(base_url=cfg["llm_base_url"], model=cfg["llm_model"],
                   api_key=cfg.get("llm_key") or "x")
@@ -170,6 +171,11 @@ button{padding:12px;border:0;border-radius:10px;font-size:15px;font-weight:600;c
  <div><label>HF token <span class="hint">(opcional, só pra clonar voz)</span></label>
    <input id="hf" type="password" placeholder="hf_…"></div>
  <div><label>Microfone</label><select id="device"></select></div>
+ <div><label style="display:flex;align-items:center;gap:8px">
+   <input type="checkbox" id="bargein" style="width:auto">
+   Barge-in (interromper falando) — <b>só com FONES</b></label>
+   <div class="hint">⚠️ Em caixa de som, deixe DESLIGADO: o mic ouve o próprio
+   agente (eco). Com fones ligado, você pode falar por cima.</div></div>
  <button id="go" onclick="toggle()">▶ Iniciar conversa</button>
  <div class="hint">Fale naturalmente — o VAD detecta. Interrompa falando por cima.
  Latências aparecem no chat. Key nunca é salva em disco.</div>
@@ -199,7 +205,7 @@ async function toggle(){
   const base = $('prov').value==='custom'?$('customUrl').value:$('prov').value;
   const cfg={llm_base_url:base,llm_model:$('model').value,llm_key:$('key').value,
     tts:'pocket',voice:$('voice').value,hf_token:$('hf').value,device:$('device').value,
-    tts_language:$('quality').value};
+    tts_language:$('quality').value,barge_in:$('bargein').checked};
   const r=await fetch('/start',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify(cfg)});
   if(r.ok){running=true;paint();} else add('error','já existe sessão rodando');}

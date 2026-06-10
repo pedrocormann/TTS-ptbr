@@ -47,10 +47,13 @@ def main():
     ap.add_argument("--endpoint-ms", type=int, default=600)
     ap.add_argument("--device", type=int, default=None,
                     help="índice do mic (liste com: python -c \"import sounddevice; print(sounddevice.query_devices())\")")
+    ap.add_argument("--barge-in", action="store_true",
+                    help="permite interromper falando por cima — SÓ COM FONES (eco)")
     args = ap.parse_args()
 
     print("⏳ carregando modelos…")
-    engine = TurnEngine(endpoint_ms=args.endpoint_ms, device=args.device)
+    engine = TurnEngine(endpoint_ms=args.endpoint_ms, device=args.device,
+                        barge_in=args.barge_in)
     asr = ASR(model=args.asr_model)
     llm = LLM(base_url=args.llm_base_url, model=args.llm_model, api_key=args.llm_key)
     tts = make_tts(args.tts, args.voice, model_dir=args.model_dir,

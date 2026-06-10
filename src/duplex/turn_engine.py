@@ -34,10 +34,12 @@ class VAD:
         self.threshold = threshold
         self._torch = torch
 
-    def is_speech(self, frame_f32: np.ndarray) -> bool:
+    def prob(self, frame_f32: np.ndarray) -> float:
         t = self._torch.from_numpy(frame_f32)
-        prob = self.model(t, SR).item()
-        return prob >= self.threshold
+        return self.model(t, SR).item()
+
+    def is_speech(self, frame_f32: np.ndarray) -> bool:
+        return self.prob(frame_f32) >= self.threshold
 
     def reset(self):
         self.model.reset_states()
@@ -51,6 +53,7 @@ class Player:
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
         self.playing = threading.Event()
+        self.ended_at = 0.0  # p/ cooldown anti-eco pós-playback
 
     def play(self, audio_f32: np.ndarray):
         import sounddevice as sd
@@ -69,6 +72,7 @@ class Player:
                         out.write(audio_f32[i:i + blocksize].reshape(-1, 1))
             finally:
                 self.playing.clear()
+                self.ended_at = time.time()
 
         self._thread = threading.Thread(target=_run, daemon=True)
         self._thread.start()
@@ -81,12 +85,20 @@ class Player:
 
 class TurnEngine:
     def __init__(self, endpoint_ms: int = 600, min_turn_ms: int = 300,
-                 barge_in_frames: int = 4, device: int | None = None):
+                 barge_in_frames: int = 8, device: int | None = None,
+                 barge_in: bool = False, echo_cooldown_s: float = 0.35,
+                 barge_in_threshold: float = 0.85):
+        """barge_in=False (default) = half-duplex: mic IGNORADO enquanto o agente
+        fala — único modo seguro em caixa de som (eco). Com FONES, ligue
+        barge_in=True (gate alto: prob>=0.85 por 8 frames ≈ 256ms)."""
         self.vad = VAD()
         self.player = Player()
         self.endpoint_frames = max(1, endpoint_ms // FRAME_MS)
         self.min_turn_frames = max(1, min_turn_ms // FRAME_MS)
         self.barge_in_frames = barge_in_frames  # frames seguidos de fala p/ cortar
+        self.barge_in = barge_in
+        self.barge_in_threshold = barge_in_threshold
+        self.echo_cooldown_s = echo_cooldown_s
         self.device = device
         self._q: queue.Queue[np.ndarray] = queue.Queue()
 
@@ -118,16 +130,23 @@ class TurnEngine:
                     continue
                 if frame.shape[0] != FRAME:   # garante janela exata p/ o VAD
                     continue
-                speaking = self.vad.is_speech(frame)
                 if self.player.playing.is_set():
-                    # agente falando: monitora barge-in
-                    consec_speech = consec_speech + 1 if speaking else 0
+                    if not self.barge_in:
+                        continue                    # half-duplex: ignora eco
+                    # com fones: barge-in com gate ALTO (anti-eco residual)
+                    strong = self.vad.prob(frame) >= self.barge_in_threshold
+                    consec_speech = consec_speech + 1 if strong else 0
                     if consec_speech >= self.barge_in_frames:
                         self.player.stop()          # BARGE-IN
                         started, buf = True, [frame]
                         speech_frames, silence_run = 1, 0
                         t0 = time.perf_counter()
                     continue
+                # cooldown anti-eco: ignora a cauda logo após o playback acabar
+                if (not started and self.player.ended_at
+                        and time.time() - self.player.ended_at < self.echo_cooldown_s):
+                    continue
+                speaking = self.vad.is_speech(frame)
                 if speaking:
                     if not started:
                         started = True

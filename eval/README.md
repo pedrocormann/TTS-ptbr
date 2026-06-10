@@ -11,6 +11,8 @@ to be reused by every Phase-0 spike and every later phase.
 - `utmos.py` — automatic naturalness MOS proxy (SpeechMOS, adapted from F5-TTS).
   Weak on *emotional* quality — pair with human CMOS.
 - `latency.py` — RTF + e2e p50/p95 vs the 800 ms budget. Reused by all spikes.
+- `speaker_sim.py` — clone fidelity: cosine vs reference-voice centroid
+  (WavLM-base-plus-sv default — Seed-TTS-eval convention; resemblyzer fallback).
 - `benchmark_ptbr.jsonl` — **frozen** pt-BR text set: neutral + warm/enthusiastic/
   empathetic/sad/surprise × {neutral, carioca} + 2 "hard" lines (numbers/named).
   Versioned. Every run synthesizes THIS set so numbers are comparable over time.
@@ -21,9 +23,9 @@ to be reused by every Phase-0 spike and every later phase.
    (note: jsonl uses `text`; pass the same file, the loader reads `text`).
 3. `python -m eval.utmos --audio-dir gen`
 4. Latency captured in-spike via `eval.latency.Timer/summarize`.
-5. (later) speaker-sim via F5-TTS `ecapa_tdnn.py` (reuse from research/repos);
-   emotion accuracy via a pt-BR SER head (must be trained — no good off-the-shelf
-   for pt-BR prosody; dossier 50).
+5. `python -m eval.speaker_sim --ref-dir ref_pedro/ --gen-dir gen/` (clone runs).
+6. (later) emotion accuracy via a pt-BR SER head (must be trained — no good
+   off-the-shelf for pt-BR prosody; dossier 50).
 
 ## Still to build (tracked, not done — needs GPU/data or auth)
 - pt-BR SER classifier (train our own on the in-house labeled set).

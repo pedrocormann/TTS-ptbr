@@ -89,6 +89,10 @@ when it bites.
 - [ ] Outreach: Edresson Casanova (NVIDIA, pt-BR TTS SOTA) / CEIA-UFG — partnership
       anchor (strengthens SDumont + FINEP). Maritaca — text-LLM partner candidate.
       All = relationship/NDA decisions, Pedro's call.
+- [ ] **Outreach: Frederico Santos de Oliveira** (fredso.com.br, HF freds0; 1º
+      autor do TAGARELA, co-autor recorrente do Edresson — um contato puxa o
+      outro). Pauta: TAGARELA (licença/colab.), pipeline de coleta pt-BR, SER
+      (2506.02088), possível parceria acadêmica (PROPOR/FINEP). [Pedro, 2026-06-10]
 
 Nothing here is urgent enough to have justified acting without you. The Phase-0
 technical work (dossier 00 §Revised Phase-0) needs none of it to start.

@@ -41,10 +41,13 @@
 1. **Pedro**: Colab Pro+ → gravar piloto G0 (README do kit) → rodar **notebook 02**
    → trazer números + impressão de ouvido (pt-BR vs pt-PT é decisivo) →
    **e-mail NILC** (licença NURC-TTS) → seguir gates do REPLAN §F0.5/F1.
-2. **Claude (próxima sessão)**: registrar resultado do gate F0.5 no VIGIL-LOG +
-   REPLAN; wrapper TTSDS2 no eval/ (UTMOS rebaixado — ver dossiê 30 §4); commitar
-   00-SYNTHESIS se tiver chegado; depois preparar F4 (trocar Kokoro→Qwen3-TTS no
-   tools/data/synth e notebook do moshi-finetune p/ A100-80/G4).
+2. **Claude (próxima sessão)**: (a) **deep-read da obra do Frederico Oliveira**
+   (lista no VIGIL-LOG 2026-06-10 addendum; prioridade arXiv 2506.02088 SER) e
+   **1ª rodada do OSINT-Sesame** (Trilha M do REPLAN: mapear autores do post CSM
+   + ex-funcionários + diffs dos forks da org); (b) registrar resultado do gate
+   F0.5 no VIGIL-LOG + REPLAN; (c) wrapper TTSDS2 no eval/; (d) preparar F4
+   (trocar Kokoro→Qwen3-TTS no tools/data/synth e notebook moshi-finetune
+   A100-80/G4); (e) montar Maya-BR v0 quando o CSM-pt-BR existir (F2-F3).
 
 ## Estado das tasks (painel)
 

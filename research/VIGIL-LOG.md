@@ -121,4 +121,21 @@ Dossier: `research/dossier-2026-06/10..60-*.md`. Plan: `specs/REPLAN-2026-06-10.
 - Reg: PL 2338 pending vote; **PL 1460/2026** (voice replicas: consent+watermark
   mandatory) — our design is already compliant.
 
+### 2026-06-10 — addendum (Pedro): Frederico Oliveira + programa OSINT-Sesame
+
+- **Frederico Santos de Oliveira** (fredso.com.br · HF `freds0` · UFG/cluster
+  Edresson) adicionado à watchlist como **perfil pt-BR #2** (ao lado do Edresson).
+  Obra a destrinchar (deep-read agendado p/ próxima sessão de pesquisa):
+  TAGARELA (2603.15326) · **SER multimodal grafos+prosódia (2506.02088,
+  Interspeech 2025 — insumo direto do nosso SER pt-BR)** · FreeSVC (2501.05586) ·
+  CORAA (2110.15731) · wav2vec2-pt (2107.11414) · SC-GlowTTS (2104.05557) ·
+  TTS-Portuguese (2005.05144) · Speech2Phone (2002.11213).
+  Busca ADS: author:"Santos de Oliveira, Frederico". Contato → PARKING-LOT.
+- **Programa OSINT-Sesame formalizado (Trilha M do REPLAN):** vigiar semanalmente
+  org GitHub SesameAILabs (forks novos + diffs vs upstream), HF sesame, blog,
+  autores do post CSM e ex-funcionários (Scholar/arXiv/LinkedIn/X), vagas e
+  patentes. Objetivo: refinar a hipótese arquitetural Maya v0 (cascata
+  engenheirada + CSM-Medium condicionado em áudio-contexto) e reproduzi-la
+  como **Maya-BR v0** (CSM-1B-pt + LLM pt + turn-engine silero/Unmute).
+
 Next scan: 2026-06-17 (weekly). Next hard review: **2026-07-17**.

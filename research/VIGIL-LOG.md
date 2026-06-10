@@ -138,4 +138,35 @@ Dossier: `research/dossier-2026-06/10..60-*.md`. Plan: `specs/REPLAN-2026-06-10.
   engenheirada + CSM-Medium condicionado em áudio-contexto) e reproduzi-la
   como **Maya-BR v0** (CSM-1B-pt + LLM pt + turn-engine silero/Unmute).
 
+### 2026-06-10 — noite: deep-read Frederico (dossiê 80) + OSINT-Sesame r1 (dossiê 81)
+
+**Frederico/UFMT-AKCIT (80-frederico-oliveira.md):**
+- Perfil: prof UFMT, PhD UFG, pesquisador **AKCIT** (instituto MCTI/EMBRAPII —
+  ângulo de parceria/FINEP além do CEIA). HF freds0 ativíssimo (update há 20h).
+- SER (2506.02088): receita copiável p/ nosso eval (F0-RMVPE quantizado +
+  weighted-CE + ensemble 13 variantes); código público SEM LICENSE — pedir
+  permissão antes de derivar. GAT só +1.3pt vs concat.
+- TAGARELA: NC-SA reconfirmado; **evidência de ouro: Orpheus/Chatterbox FT no
+  clean-2.800h → MOS 4,16 (GT 4,23)** — valida a Trilha A em podcast pt.
+  Campo `accent` existe no dataset. ⚠️ **Checkpoints "Coming Soon"** — se
+  saírem, são NC-tainted (treinados em NC): NÃO usar pesos, mas é o comp direto.
+- **BRSpeechMOS (2306.09979) = único preditor MOS calibrado pt-BR → adotar no
+  eval harness** (camada 2). FreeSVC sugere ECAPA2 como 2ª opinião de spk-sim.
+- Vigiar: BrSpeech-YT (stub vazio — corpus YouTube vindo?); BRSpeech-TTS (76k
+  linhas, campo accent, licença indocumentada).
+
+**OSINT-Sesame r1 (81-sesame-osint.md):**
+- Hipótese Maya CONFIRMADA (cascata) e refinada: orquestrador com tool-use
+  assíncrono + re-síntese incremental; ~2min de áudio-contexto no CSM;
+  **produção possivelmente CSM-1B (não Medium!)**; sglang fork com commits
+  reais (logit bias/clamps, CTO); watermark silentcipher; vagas pedem
+  vLLM+SGLang+K8s+GCP; **zero patentes** (moat = dados+eng).
+- Pessoas → watchlist: **Schalkwyk saiu p/ Meta Superintelligence (jun/25)**
+  — vigiar publicações; Dan Lyth (Parler-TTS: anotação sintética de estilo =
+  pista da receita de dados); Eskimez (E2-TTS/EmoCtrl); Sanabria (multi-sotaque).
+- Lacunas p/ OSINT r2: diff completo dos forks, ASR de produção, VAD client vs
+  server, "curiosity engine".
+- Delta de código nosso: src/duplex TODO v0.2 = re-síntese incremental
+  (sentença-a-sentença com pivô), não TTS por turno.
+
 Next scan: 2026-06-17 (weekly). Next hard review: **2026-07-17**.

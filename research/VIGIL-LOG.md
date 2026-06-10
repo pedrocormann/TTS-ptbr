@@ -169,4 +169,37 @@ Dossier: `research/dossier-2026-06/10..60-*.md`. Plan: `specs/REPLAN-2026-06-10.
 - Delta de código nosso: src/duplex TODO v0.2 = re-síntese incremental
   (sentença-a-sentença com pivô), não TTS por turno.
 
+### 2026-06-10 — rodada 2 (dossiês 82-85): forks/emoção, orquestradores, CSM prática, bases
+
+- **Sesame r2 (82):** sglang = 7 commits próprios; o decisivo é 1 linha do CTO
+  (abort 1s→**20ms** = a digital do barge-in/pivô) + logit_bias + OUTLINES
+  (JSON constrainado). faster-whisper-plus/silero = espelhos puros. silentcipher
+  no csm = 3 linhas no generate(), fork com MPS (roda no M2) → **adotar no
+  Maya-BR v0**. Emoção da Sesame = implícita por áudio-contexto (sem tags).
+  Schalkwyk = Voice Lead do MSL (PlayAI+WaveForms sob ele), zero publicações.
+  **r3: ouvir podcast a16z c/ Ankit Kumar na íntegra (YouTube bTcpNQH8ViQ).**
+- **Orquestradores (83):** decisão = manter src/duplex no v0.2 + **smart-turn
+  v3 (BSD-2)** no turn_engine + espelhar interfaces do Pipecat; Pipecat = v0.3+
+  (transporte). LiveKit fora (licença dos pesos), vocode morto, TEN não auditado.
+  Nenhum framework tem TTS-com-estado nem re-síntese incremental.
+- **CSM prática (84):** receita georgiana = referência (35h LIMPAS, r=64/α=64,
+  LR 5e-5, ~14 ep → CER 2,8%); lições: dado limpo > horas; fillers SEMPRE
+  transcritos (finlandês cospe "Ööö"); inglês sai com sotaque da língua nova.
+  ZERO finetunes pt/es — somos os primeiros. Multi-turno: suportado no chat
+  template HF (sem mask por turno; csm-mlx tem `--mask-speaker-ids` nativo) —
+  **ablação contexto-vs-sem = contribuição inédita nossa**. Elise DMCA
+  confirmado; emoção agora: laions_got_talent (Apache, proveniência OpenAI*) +
+  auto-anotação (emotion2vec/BUD-E-Whisper). Tags = texto puro no tokenizer
+  Llama → usar conjunto Orpheus exato, inline, dezenas-centenas por tag.
+  **csm-mlx no M2: finetune LoRA comprovado (M2 Air 16GB, 44min/época)** —
+  bancada de smoke local antes do Colab. Marvis-TTS prova CSM-style on-device.
+- **Bases (85):** **CML-TTS pt = 67,95h train (CC-BY)** — o "1.100h" era o
+  alemão; pool CC-clean lido recalibrado ~430h. **BRSpeechMOS: dataset+código
+  públicos, SEM checkpoint/licença → treinar o nosso** (Whisper-Small, LCC~0,70).
+  NURC tag-MIT frágil (upstream NC-ND explícito). CETUC: nem o texto pode.
+  SOTAQUE: CDLA ok mas vazio. **AKCIT = R$80M MCTI/Embrapii, grupo de fala =
+  Frederico**; BRSpeech-DF (459k amostras, CC-BY) serve pro nosso anti-spoof;
+  parceria via porta Embrapii/Sebrae-GO. Monitorar org AKCIT-Speech no HF
+  (migração do BRSpeech-TTS = onde a licença destravaria).
+
 Next scan: 2026-06-17 (weekly). Next hard review: **2026-07-17**.

@@ -78,8 +78,10 @@ def main() -> None:
     ap.add_argument("--peak-norm", type=float, default=-3.0, help="dBFS; use 0 p/ desligar")
     ap.add_argument("--format", nargs="+", default=["canonical"],
                     choices=["canonical", "csm", "orpheus", "ljspeech"])
-    ap.add_argument("--exclude-kinds", nargs="*", default=[],
-                    help="ex.: --exclude-kinds paralinguistico dialogo")
+    ap.add_argument("--exclude-kinds", nargs="*",
+                    default=["monologo", "dialogo", "found"],
+                    help="kinds 'pai' são excluídos por default (os SEGMENTOS "
+                         "transcritos deles entram via segments/transcribed.jsonl)")
     args = ap.parse_args()
 
     out_root = Path(args.out_root)
@@ -96,8 +98,18 @@ def main() -> None:
             if line.strip():
                 r = json.loads(line)
                 best[r["id"]] = r
-        for r in best.values():
-            if r.get("kind") in args.exclude_kinds:
+        # segmentos transcritos (monólogos/diálogos/importados) entram como clipes
+        transcribed = meta.parent / "segments" / "transcribed.jsonl"
+        seg_rows = []
+        if transcribed.exists():
+            for line in transcribed.read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    r = json.loads(line)
+                    if r.get("text"):           # só segmento já transcrito
+                        seg_rows.append(r)
+
+        for r in list(best.values()) + seg_rows:
+            if r.get("kind") in args.exclude_kinds and r not in seg_rows:
                 continue
             wav_in = Path(r["audio"])
             if not wav_in.exists():

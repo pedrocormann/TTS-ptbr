@@ -2,7 +2,9 @@
 
 > Protocolo pra responder "o Maya-BR está no nível da Maya?" com números e
 > escuta estruturada, não vibe. Rodar a cada marco da Trilha M; comparar SEMPRE
-> contra a Maya real (app iOS — Pedro tem acesso) na MESMA bateria.
+> contra a Maya real (app iOS — **confirmado 2026-06-10: Pedro tem o app
+> funcionando no Brasil**; gravar as sessões de referência com gravação de tela
+> do iPhone, áudio do sistema + mic) na MESMA bateria.
 > Pareia com `benchmark_ptbr.jsonl` (conteúdo) e `benchmark_sotaque_carioca.jsonl`
 > (sotaque). Resultados → `research/VIGIL-LOG.md` + REPLAN.
 

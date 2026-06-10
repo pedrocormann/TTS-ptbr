@@ -38,7 +38,9 @@ def conversation_loop(cfg: dict, stop_event: threading.Event):
         asr = ASR(model=cfg.get("asr_model", "small"))
         llm = LLM(base_url=cfg["llm_base_url"], model=cfg["llm_model"],
                   api_key=cfg.get("llm_key") or "x")
-        tts = make_tts(cfg.get("tts", "pocket"), cfg.get("voice") or None)
+        tts = make_tts(cfg.get("tts", "pocket"), cfg.get("voice") or None,
+                       language=cfg.get("tts_language") or "portuguese_24l",
+                       quantize=bool(cfg.get("quantize", False)))
         engine.player.sr_out = tts.sr
         emit("status", f"🎙️ pronto — fale! (tts={cfg.get('tts')}, voz={cfg.get('voice') or 'default'})")
         SESSION["status"] = "conversando"
@@ -162,6 +164,9 @@ button{padding:12px;border:0;border-radius:10px;font-size:15px;font-weight:600;c
    <input id="key" type="password" placeholder="cole aqui"></div>
  <div><label>Voz (TTS Pocket pt) <span class="hint">wav próprio = clone (exige HF token)</span></label>
    <input id="voice" value="rafael" placeholder="rafael | caminho/do/seu.wav"></div>
+ <div><label>Qualidade do TTS</label><select id="quality">
+   <option value="portuguese_24l">melhor (24 camadas, ~1,8× RT)</option>
+   <option value="portuguese">rápida (6 camadas, ~5× RT)</option></select></div>
  <div><label>HF token <span class="hint">(opcional, só pra clonar voz)</span></label>
    <input id="hf" type="password" placeholder="hf_…"></div>
  <div><label>Microfone</label><select id="device"></select></div>
@@ -193,7 +198,8 @@ async function toggle(){
   for(const k of ['key','hf','model','voice']) localStorage['maya_'+k]=$(k).value;
   const base = $('prov').value==='custom'?$('customUrl').value:$('prov').value;
   const cfg={llm_base_url:base,llm_model:$('model').value,llm_key:$('key').value,
-    tts:'pocket',voice:$('voice').value,hf_token:$('hf').value,device:$('device').value};
+    tts:'pocket',voice:$('voice').value,hf_token:$('hf').value,device:$('device').value,
+    tts_language:$('quality').value};
   const r=await fetch('/start',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify(cfg)});
   if(r.ok){running=true;paint();} else add('error','já existe sessão rodando');}

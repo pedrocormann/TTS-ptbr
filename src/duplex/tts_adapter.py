@@ -124,7 +124,9 @@ class Qwen3Adapter(BaseTTS):
 
 def make_tts(engine: str, voice: str | None, **kw) -> BaseTTS:
     if engine == "pocket":
-        return PocketTTSAdapter(voice or "rafael")
+        return PocketTTSAdapter(voice or "rafael",
+                                language=kw.get("language") or "portuguese_24l",
+                                quantize=bool(kw.get("quantize", False)))
     if engine == "chatterbox-ptbr":
         return ChatterboxPTBRAdapter(voice)
     if engine == "csm":

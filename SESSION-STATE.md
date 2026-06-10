@@ -23,6 +23,23 @@
 6. **Notebook**: `notebooks/01_dataset_prep.ipynb` (transcrição + verificação WER
    + export no Colab).
 
+## ATUALIZAÇÃO 14:35 — rodada "força total"
+
+- **Trilha M ganhou código**: `src/duplex/` = Maya-BR v0 (turn-engine c/ barge-in,
+  ASR, LLM plugável streaming-por-sentença, adaptadores pocket/chatterbox-ptbr/
+  csm-áudio-contexto/qwen3). Scaffold não testado e2e; primeiro alvo = Mac+pocket.
+- **Notebook 05** (Moshi LoRA pt-BR, A100-80/G4) escrito fiel ao clone local do
+  moshi-finetune. **ENVIRONMENTS.md** = mapa de runtimes/venvs + matriz de conflitos.
+- **eval**: ttsds2.py (métrica principal) + benchmark_sotaque_carioca.jsonl (18
+  sondas de traço) + maya_parity.md (eval da Trilha M). synth_tts.py ganhou
+  engines qwen3 (instruct de emoção) e chatterbox-ptbr.
+- **Pesquisa Frederico/OSINT-Sesame/82-moshi-api: FALHOU por limite de sessão de
+  subagentes (reseta 17h São Paulo)** — relançar depois:
+  `Workflow({scriptPath: ".../tts-ptbr-frederico-sesame-moshi-wf_46adc0e8-8c3.js"})`
+  (sem resume — os 3 agents morreram sem cache). A frente C (moshi-api) ficou
+  DISPENSÁVEL: o notebook 05 foi escrito do clone local. Faltam A (Frederico) e
+  B (OSINT-Sesame).
+
 ## ATUALIZAÇÃO final da sessão (13:57)
 
 - **Notebooks 02, 03 e 04 FEITOS** (APIs extraídas e verificadas na fonte pelos 3

@@ -8,8 +8,12 @@ to be reused by every Phase-0 spike and every later phase.
 - `wer_roundtrip.py` — intelligibility: gen/encode → ASR → WER vs source. The
   core gate. Library + CLI. Judge = faster-whisper (kept distinct from the
   annotate.py labeler on purpose).
-- `utmos.py` — automatic naturalness MOS proxy (SpeechMOS, adapted from F5-TTS).
-  Weak on *emotional* quality — pair with human CMOS.
+- `ttsds2.py` — **primary quality metric since 2026-06-10** (REPLAN eval v2):
+  distributional score vs REAL reference speech (MIT, multilingual-validated;
+  arXiv 2506.19441). Run on Colab (downloads probe models).
+- `utmos.py` — DEMOTED to historical-continuity number only (not calibrated for
+  pt-BR; unstable across runs — dossier-2026-06/30 §4). Never decide between
+  checkpoints with it; pair expressivity with human CMOS.
 - `latency.py` — RTF + e2e p50/p95 vs the 800 ms budget. Reused by all spikes.
 - `speaker_sim.py` — clone fidelity: cosine vs reference-voice centroid
   (WavLM-base-plus-sv default — Seed-TTS-eval convention; resemblyzer fallback).

@@ -84,10 +84,26 @@ def items_core(limit_s: float | None) -> list[dict]:
 
 def items_emotion(limit_s: float | None, styles: list[str] | None = None) -> list[dict]:
     cards = load_jsonl(CONTENT / "emotion_cards.jsonl")
+    anchors = load_jsonl(CONTENT / "anchors.jsonl")
     items, t = [], 0.0
     for card in cards:
         if styles and card["style"] not in styles:
             continue
+        # bloco 1 — frases-ÂNCORA: as MESMAS frases neutras em todos os estilos
+        # (pares mínimos de estilo; ouro p/ treino e eval de controle — protocolo EARS)
+        for a in anchors:
+            dur = EST["emotion"]
+            if limit_s and t + dur > limit_s:
+                return items
+            items.append({
+                "id": f"emo_{card['style']}_anchor_{a['id']}",
+                "kind": "emocao", "text": a["text"], "style": card["style"],
+                "intensity": "media", "accent": "carioca-medio",
+                "direction": card["direction"] + " (Frase-âncora: o TEXTO é neutro de "
+                             "propósito — toda a emoção vem da sua entrega.)",
+            })
+            t += dur
+        # bloco 2 — frases congruentes com a emoção, nas 3 intensidades
         for intensity in card.get("intensities", ["media"]):
             for k, sent in enumerate(card["sentences"]):
                 dur = EST["emotion"]
@@ -100,6 +116,18 @@ def items_emotion(limit_s: float | None, styles: list[str] | None = None) -> lis
                     "direction": card["direction"] + f" Intensidade: {intensity}.",
                 })
                 t += dur
+        # bloco 3 — monólogo improvisado no estilo (protocolo Expresso/EARS freeform)
+        dur = EST["monologo"]
+        if limit_s and t + dur > limit_s:
+            return items
+        items.append({
+            "id": f"emo_{card['style']}_freeform",
+            "kind": "monologo", "text": f"[IMPROVISO 2–3min no estilo {card['style']}] "
+                                        "Conte uma situação sua, real ou inventada, nesse estado emocional.",
+            "style": card["style"], "intensity": "media", "accent": "carioca-medio",
+            "direction": card["direction"],
+        })
+        t += dur
     return items
 
 

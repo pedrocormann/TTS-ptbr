@@ -40,7 +40,7 @@ CHANNELS = 1
 # limites de QC
 PEAK_CLIP = 0.985          # amostras acima disso contam como clipping
 CLIP_RATIO_MAX = 1e-4      # fração de amostras clipadas tolerada
-SNR_MIN_DB = 30.0          # abaixo disso, alerta
+SNR_MIN_DB = 32.0          # critério Hi-Fi TTS (arXiv 2104.01497); abaixo disso, alerta
 PEAK_LOW_DBFS = -24.0      # sinal fraco demais
 PEAK_HIGH_DBFS = -3.0      # quente demais (sem headroom)
 
@@ -134,6 +134,20 @@ def main() -> None:
     print(f"\n🎙️  Sessão {args.session} — {len(todo)} itens a gravar ({len(done)} já feitos)")
     print("    48 kHz · mono · 24-bit | alvo: pico entre −12 e −6 dBFS, sala silenciosa")
     print("    Dica: deixe ~0,5 s de silêncio antes e depois da fala em cada take.\n")
+
+    # tom da sala: 8s de silêncio no início de toda sessão (piso de ruído documentado)
+    if not (out_dir / "roomtone.wav").exists():
+        input("  🤫 Medição do ruído da sala: fique em silêncio e aperte ENTER (8s)… ")
+        chunks: list[np.ndarray] = []
+        with sd.InputStream(samplerate=SR, channels=CHANNELS, dtype="float32",
+                            device=args.device,
+                            callback=lambda d, f, t, s: chunks.append(d.copy())):
+            time.sleep(8)
+        tone = np.concatenate(chunks)[:, 0] if chunks else np.zeros(SR, dtype=np.float32)
+        sf.write(out_dir / "roomtone.wav", tone, SR, subtype="PCM_24")
+        floor = db(float(np.sqrt((tone ** 2).mean())))
+        status = "✅ ok" if floor < -60 else "⚠️ alto — cace a fonte de ruído (AC/fan/geladeira)"
+        print(f"  Piso de ruído: {floor:.0f} dBFS ({status}; alvo < −60)\n")
 
     for idx, item in enumerate(todo, 1):
         take = 1

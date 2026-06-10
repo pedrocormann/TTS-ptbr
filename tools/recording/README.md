@@ -12,16 +12,26 @@ pip install -r tools/recording/requirements.txt
 python tools/recording/record.py --list-devices   # ache o índice do seu mic
 ```
 
-## Protocolo de estúdio (resumo)
+## Protocolo de estúdio (resumo — base: NVIDIA Riva + Expresso/EARS)
 
-- **Sala:** a mais silenciosa possível (sem AC/ventilador/geladeira audível);
-  cobertores/cortinas reduzem reverb. Grave sempre na MESMA sala/posição.
-- **Mic:** condensador cardioide a ~15–20 cm, pop filter, levemente fora do eixo.
-- **Ganho:** fala normal picando entre −12 e −6 dBFS (o gravador avisa).
-- **Formato:** 48 kHz / 24-bit / mono (o kit já força isso).
+- **Sala:** a mais silenciosa possível (desligue AC/ventilador/geladeira; PC longe
+  do mic); cobertores/closet com roupas matam reflexão. Grave sempre na MESMA
+  sala/posição — tire foto do setup e marque com fita. Piso de ruído alvo <−60 dBFS
+  (o gravador mede 8 s de "tom da sala" no início de cada sessão).
+- **Mic:** condensador cardioide a ~1 palmo (10–15 cm), pop filter, levemente
+  fora do eixo. Ganho FIXO depois de calibrado — nunca mexer no meio da sessão.
+- **Níveis:** fala normal picando entre −12 e −6 dBFS (o gravador avisa);
+  SNR mínimo 32 dB (critério Hi-Fi TTS).
+- **Formato:** 48 kHz / 24-bit / mono (o kit já força isso). Normalização de
+  loudness (−23 LUFS) acontece só no export — nunca peak-normalize na gravação.
 - **Take:** ~0,5 s de silêncio antes e depois da fala. Errou? `r` regrava na hora.
-- **Sessões:** ≤ 60 min por bloco; água; não gravar gripado/rouco (consistência
-  de timbre importa mais que volume de horas).
+- **Sessões:** blocos de 45–60 min + 10 min de descanso vocal; máx 2–4 h/dia;
+  estilos extremos (grito/sussurro) em blocos ≤15 min intercalados com neutro;
+  aquecimento 5–10 min; água em temperatura ambiente; não gravar gripado/rouco.
+  Regra de produção: ~4 h de trabalho por 1 h de áudio útil.
+- **Emoções (4 blocos por estilo, gerados pelo build_session):** frases-âncora
+  (mesmas frases neutras em TODOS os estilos) → frases congruentes ×3 intensidades
+  → monólogo improvisado no estilo. Direção: crível > caricato ("menos 30%").
 
 ## Fluxo
 

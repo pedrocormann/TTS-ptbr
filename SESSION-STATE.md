@@ -1,4 +1,17 @@
-# SESSION-STATE — 2026-06-10 (sessão "resgate + replan + kit")
+# SESSION-STATE — 2026-06-10/11 (sessão "resgate + replan + kit + primeiro treino")
+
+## ⚡ ÚLTIMO ESTADO (2026-06-11 00:10)
+
+- **Finetune smoke CONCLUÍDO no M2**: voz do Pedro ENTROU NOS PESOS (spk-sim
+  0.97-0.98 sem âncora ✓); português ainda embolado (undertraining esperado —
+  ver eval/results/2026-06-11-finetune-smoke-m2.md). Adapter em
+  data/csmmlx_runs/v1 (o webapp carrega sozinho).
+- **Próximo passo técnico nº1: notebook 06 (Estágio A — adaptar CSM ao pt com
+  ~416h CC: CML+MLS+CV) no Colab A100/L4**, depois Estágio B (voz, provado).
+- App local (src/duplex) com smart-turn v3.2 semântico + truncamento de
+  contexto pós-barge-in + anti-eco. OSINT competitivo completo (dossiês 87-90).
+- Pedro: ouvir ft*.wav · gravar G0 · Colab Pro+ · mics GEAR.md · e-mail
+  Frederico/NILC · consentimento João/Guilherme.
 
 > Doc de retomada. Próxima sessão: leia isto + `specs/REPLAN-2026-06-10.md` e siga de "Próximos passos".
 

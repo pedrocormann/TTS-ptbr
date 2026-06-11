@@ -239,4 +239,13 @@ no ponto OUVIDO — padrão item.truncate/AgentResponseCorrection). Sondas de
 pronúncia pt-BR criadas (eval/benchmark_pronuncia_ptbr.jsonl, 27 itens).
 Achados de produto/preço isolados na §5 da síntese (não poluir startup mode).
 
+### 2026-06-11 00:05 — finetune smoke local CONCLUÍDO (eval/results/2026-06-11-finetune-smoke-m2.md)
+
+48min/LoRA r16/2 épocas no M2: **voz ENTROU NOS PESOS** (spk-sim 0.969-0.980
+SEM âncora = teto) ✅; português ainda embolado (WER 100%+, loss 5.10 ainda
+caindo = undertraining esperado) ❌. Conclusão: voz é barata, língua é o
+investimento → receita 2 estágios volta ao centro (Estágio A = língua com
+~416h CC abertas no Colab; Estágio B = LoRA da voz, provado hoje). Criar
+notebook 06 (Estágio A). Infra ponta-a-ponta validada num MacBook.
+
 Next scan: 2026-06-17 (weekly). Next hard review: **2026-07-17**.

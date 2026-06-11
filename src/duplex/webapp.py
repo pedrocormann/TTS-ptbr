@@ -198,7 +198,7 @@ $('prov').onchange=()=>{ $('customUrlBox').style.display = $('prov').value==='cu
 $('engine').onchange=()=>{const csm=$('engine').value==='csm-mlx';
   $('vtextBox').style.display=csm?'block':'none';
   $('qualityBox').style.display=csm?'none':'block';
-  if(!csm&&/\.wav$/.test($('voice').value)===false) $('voice').value='rafael';};
+  if(!csm&&!$('voice').value.endsWith('.wav')) $('voice').value='rafael';};
 fetch('/devices').then(r=>r.json()).then(ds=>{
   $('device').innerHTML='<option value="">(padrão do sistema)</option>'+
     ds.map(d=>`<option value="${d.index}">${d.index} · ${d.name}</option>`).join('');

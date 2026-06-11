@@ -5,7 +5,7 @@ Formato moshi-finetune: wav ESTÉREO, canal ESQUERDO = agente/modelo, DIREITO =
 usuário. De uma reunião com N falantes geramos N arquivos de treino — cada
 falante vira o "agente" uma vez (L = canal dele; R = MIX dos outros).
 Os .json de transcrição vêm depois, do annotate.py oficial (--lang pt) no Colab
-(notebook 05) — aqui só preparamos os wavs + manifest.
+(notebook 5) — aqui só preparamos os wavs + manifest.
 
   python tools/recording/meeting_to_moshi.py --session reuniao_2026-06-11
   python tools/recording/meeting_to_moshi.py --all
@@ -114,7 +114,7 @@ def main() -> None:
                 n_new += 1
                 total_s += r["duration"]
     print(f"🧩 {n_new} pares estéreo novos (+{total_s/3600:.2f} h de treino) → {egs}\n"
-          f"   transcrição: annotate.py --lang pt no Colab (notebook 05, célula 2)")
+          f"   transcrição: annotate.py --lang pt no Colab (notebook 5, célula 2)")
 
 
 if __name__ == "__main__":

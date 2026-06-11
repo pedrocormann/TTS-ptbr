@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Transcreve os segmentos de uma sessão LOCALMENTE (CPU, faster-whisper).
 
-Mesmo papel da célula 1 do notebook 01, sem Colab — útil pra dataset pequeno
+Mesmo papel da célula 1 do notebook 0, sem Colab — útil pra dataset pequeno
 (~48min ≈ 20min de CPU no M2 com 'medium' int8).
 
   python tools/recording/transcribe_local.py --session elevenlabs2024 --model medium

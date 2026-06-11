@@ -12,7 +12,7 @@
 > nome do run. Quando algo for virar produto: retreino com linhagem limpa
 > (CC/próprios) — caminho sempre documentado. Hipóteses explícitas em tudo.
 
-## Estágio A — ensinar PORTUGUÊS ao CSM-1B (notebook 06)
+## Estágio A — ensinar PORTUGUÊS ao CSM-1B (notebook 1)
 
 | Exp | Dados | Horas | Linhagem | Hipótese | GPU/CUs | Status |
 |---|---|---|---|---|---|---|
@@ -25,7 +25,7 @@
 Métricas de decisão (gate): WER round-trip (whisper-large-v3) ≤15% no
 benchmark_ptbr + sondas de pronúncia ≥70% + escuta. Vencedor vira a BASE-PT.
 
-## Estágio B — a VOZ por cima da BASE-PT (notebook 04 adaptado)
+## Estágio B — a VOZ por cima da BASE-PT (notebook 2 adaptado)
 
 | Exp | Dados | Hipótese | Status |
 |---|---|---|---|

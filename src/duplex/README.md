@@ -26,7 +26,7 @@ python -m src.duplex.chat_loop --tts pocket --voice /caminho/minha_voz.wav \
     --llm-model gemini-2.0-flash --llm-key $GEMINI_KEY
 ```
 
-GPU (Colab/box): `--tts csm` usa o checkpoint do notebook 04 com contexto de
+GPU (Colab/box): `--tts csm` usa o checkpoint do notebook 2 com contexto de
 conversa; `--tts qwen3` usa CustomVoice + instruct.
 
 ## Decisões embutidas

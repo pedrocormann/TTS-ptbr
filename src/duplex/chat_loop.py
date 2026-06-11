@@ -39,7 +39,7 @@ def main():
                          "csm: ref wav (com --voice-text) | qwen3: speaker preset")
     ap.add_argument("--voice-text", default=None,
                     help="csm: transcrição exata do wav de referência")
-    ap.add_argument("--model-dir", default=None, help="csm: dir do finetune (notebook 04)")
+    ap.add_argument("--model-dir", default=None, help="csm: dir do finetune (notebook 2)")
     ap.add_argument("--asr-model", default="small")
     ap.add_argument("--llm-base-url", required=True)
     ap.add_argument("--llm-model", required=True)

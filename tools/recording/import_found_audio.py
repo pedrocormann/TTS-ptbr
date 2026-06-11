@@ -3,7 +3,7 @@
 
 Faz: mp3/m4a/wav → wav mono PCM → QC (SNR/pico/duração) → segmentação por
 energia em utterances de 1-20s → data/raw/<sessao>/segments/to_transcribe.jsonl
-(exatamente o que o notebook 01 consome: transcreve no Colab → export → treino).
+(exatamente o que o notebook 0 consome: transcreve no Colab → export → treino).
 
   python tools/recording/import_found_audio.py \
       --src "data/voice clone eleven labs" --session elevenlabs2024 \
@@ -102,7 +102,7 @@ def main() -> None:
     bad = [(p, q["issues"]) for p, q in qc_rows if q["issues"]]
     for pid, issues in bad:
         print(f"   ⚠️ {pid}: {'; '.join(issues)}")
-    print(f"   próximo: notebook 01 no Colab (transcreve segments) → export → notebook 04")
+    print(f"   próximo: notebook 0 no Colab (transcreve segments) → export → notebook 2")
 
 
 if __name__ == "__main__":

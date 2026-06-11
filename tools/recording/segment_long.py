@@ -117,7 +117,7 @@ def main() -> None:
                     "dur_s": round((e - s) / sr, 2), "text": None,
                 }, ensure_ascii=False) + "\n")
                 n_out += 1
-    print(f"✂️  {n_out} segmentos → {seg_dir}\n   transcreva no Colab (notebook 01) e mescle no export.")
+    print(f"✂️  {n_out} segmentos → {seg_dir}\n   transcreva no Colab (notebook 0) e mescle no export.")
 
 
 if __name__ == "__main__":

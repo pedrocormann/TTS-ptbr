@@ -6,9 +6,9 @@
   0.97-0.98 sem âncora ✓); português ainda embolado (undertraining esperado —
   ver eval/results/2026-06-11-finetune-smoke-m2.md). Adapter em
   data/csmmlx_runs/v1 (o webapp carrega sozinho).
-- **Notebook 06 PRONTO** (Estágio A — ensinar pt ao CSM) + matriz de
+- **Notebook 1 PRONTO** (Estágio A — ensinar pt ao CSM) + matriz de
   experimentos em `specs/EXPERIMENTS.md` (A1-cml ⭐ → A2-mix → A3-tagarela
-  _RESEARCH → A4 ablação; Estágio B encadeia no notebook 04 via BASE-PT).
+  _RESEARCH → A4 ablação; Estágio B encadeia no notebook 2 via BASE-PT).
   Fluxo do Pedro no Colab: nb06 com SMOKE=True em A100 (~1-2h, ~10 CU) →
   ouvir → SMOKE=False (run cheio ~15-25h, retomável) → nb04 sobre a BASE-PT.
 - App local (src/duplex) com smart-turn v3.2 semântico + truncamento de
@@ -44,7 +44,7 @@
 - **Trilha M ganhou código**: `src/duplex/` = Maya-BR v0 (turn-engine c/ barge-in,
   ASR, LLM plugável streaming-por-sentença, adaptadores pocket/chatterbox-ptbr/
   csm-áudio-contexto/qwen3). Scaffold não testado e2e; primeiro alvo = Mac+pocket.
-- **Notebook 05** (Moshi LoRA pt-BR, A100-80/G4) escrito fiel ao clone local do
+- **Notebook 5** (Moshi LoRA pt-BR, A100-80/G4) escrito fiel ao clone local do
   moshi-finetune. **ENVIRONMENTS.md** = mapa de runtimes/venvs + matriz de conflitos.
 - **eval**: ttsds2.py (métrica principal) + benchmark_sotaque_carioca.jsonl (18
   sondas de traço) + maya_parity.md (eval da Trilha M). synth_tts.py ganhou
@@ -53,7 +53,7 @@
   subagentes (reseta 17h São Paulo)** — relançar depois:
   `Workflow({scriptPath: ".../tts-ptbr-frederico-sesame-moshi-wf_46adc0e8-8c3.js"})`
   (sem resume — os 3 agents morreram sem cache). A frente C (moshi-api) ficou
-  DISPENSÁVEL: o notebook 05 foi escrito do clone local. Faltam A (Frederico) e
+  DISPENSÁVEL: o notebook 5 foi escrito do clone local. Faltam A (Frederico) e
   B (OSINT-Sesame).
 
 ## ATUALIZAÇÃO final da sessão (13:57)
@@ -71,7 +71,7 @@
 
 ## Próximos passos (na ordem)
 
-1. **Pedro**: Colab Pro+ → gravar piloto G0 (README do kit) → rodar **notebook 02**
+1. **Pedro**: Colab Pro+ → gravar piloto G0 (README do kit) → rodar **notebook 3**
    → trazer números + impressão de ouvido (pt-BR vs pt-PT é decisivo) →
    **e-mail NILC** (licença NURC-TTS) → seguir gates do REPLAN §F0.5/F1.
 2. **Claude (próxima sessão)**: (a) **deep-read da obra do Frederico Oliveira**
@@ -85,5 +85,5 @@
 ## Estado das tasks (painel)
 
 #1 pesquisa = feita (8/8 frentes; síntese automática opcional em voo);
-#2 REPLAN = feito; #3 kit de gravação = feito; #4 notebooks 01-04 = FEITOS;
+#2 REPLAN = feito; #3 kit de gravação = feito; #4 notebooks (todos) = FEITOS;
 #5 = speaker_sim feito + memória gravada; TTSDS2 pendente (próxima sessão).

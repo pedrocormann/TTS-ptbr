@@ -6,8 +6,11 @@
   0.97-0.98 sem âncora ✓); português ainda embolado (undertraining esperado —
   ver eval/results/2026-06-11-finetune-smoke-m2.md). Adapter em
   data/csmmlx_runs/v1 (o webapp carrega sozinho).
-- **Próximo passo técnico nº1: notebook 06 (Estágio A — adaptar CSM ao pt com
-  ~416h CC: CML+MLS+CV) no Colab A100/L4**, depois Estágio B (voz, provado).
+- **Notebook 06 PRONTO** (Estágio A — ensinar pt ao CSM) + matriz de
+  experimentos em `specs/EXPERIMENTS.md` (A1-cml ⭐ → A2-mix → A3-tagarela
+  _RESEARCH → A4 ablação; Estágio B encadeia no notebook 04 via BASE-PT).
+  Fluxo do Pedro no Colab: nb06 com SMOKE=True em A100 (~1-2h, ~10 CU) →
+  ouvir → SMOKE=False (run cheio ~15-25h, retomável) → nb04 sobre a BASE-PT.
 - App local (src/duplex) com smart-turn v3.2 semântico + truncamento de
   contexto pós-barge-in + anti-eco. OSINT competitivo completo (dossiês 87-90).
 - Pedro: ouvir ft*.wav · gravar G0 · Colab Pro+ · mics GEAR.md · e-mail

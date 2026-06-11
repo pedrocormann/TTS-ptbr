@@ -220,4 +220,23 @@ finetune é o desbloqueio (como previsto). 4-bit precisa ≥3 âncoras
 (0.618→0.973). Pocket = WER 7% mas voz genérica. Finetune local de 48min
 rodando (transcrição→LoRA r16→amostras).
 
+### 2026-06-10 — madrugada: OSINT competitivo (dossiês 87-90 + 87-SINTESE)
+
+ElevenLabs deep + Inworld/Voice.ai + Google/bigtech + arquitetura de agentes
+ao vivo. Fatos-chave: nem o ElevenLabs entrega full-duplex em produção
+(cascading; expressivo v3 não streama × Flash rápido sem emoção = NOSSO gap-
+alvo continua aberto); CEO da ElevenLabs: o moat é data/labeling pipeline, não
+arquitetura; latência de mercado 2026 = p50 v2v ~800ms (>800 = "Zoom moment"),
+SOTA produção ~465-620ms; sotaque na big tech = prompt sem intensidade (pt-BR
+regional NÃO confirmado em fonte primária — ameaça média); Inworld: GRPO com
+reward composto WER+spk-sim+DNSMOS (adotar na Trilha A/B); métodos de latência
+(SoundStorm non-AR, VALL-E 2 grouped-code, overlap SpeechLM↔decoder).
+**IMPLEMENTADO na hora (ações #1 e #2 do dossiê 90):** smart-turn v3.2 (BSD-2,
+ONNX 8MB) como 2º estágio do turn_engine — endpointing semântico em ~98ms CPU
+no M2 (frase completa do Pedro → prob 0.74 ✓), silêncio curto 280ms + fallback
+duro; e truncamento de contexto pós-barge-in (LLM history + CSM context cortados
+no ponto OUVIDO — padrão item.truncate/AgentResponseCorrection). Sondas de
+pronúncia pt-BR criadas (eval/benchmark_pronuncia_ptbr.jsonl, 27 itens).
+Achados de produto/preço isolados na §5 da síntese (não poluir startup mode).
+
 Next scan: 2026-06-17 (weekly). Next hard review: **2026-07-17**.

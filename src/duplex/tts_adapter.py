@@ -23,6 +23,10 @@ class BaseTTS:
     def add_context(self, role: str, text: str, audio_24k: np.ndarray) -> None:
         """Histórico de conversa (só o CSM usa; no resto é no-op)."""
 
+    def truncate_last_agent(self, frac: float) -> None:
+        """Pós barge-in: corta o último turno do agente pro trecho OUVIDO
+        (padrão OpenAI item.truncate / ElevenLabs AgentResponseCorrection)."""
+
 
 class PocketTTSAdapter(BaseTTS):
     def __init__(self, voice: str, language: str = "portuguese",
@@ -160,6 +164,18 @@ class CSMMLXAdapter(BaseTTS):
         self.context.append(self._Segment(speaker=int(role), text=text,
                                           audio=mx.array(audio_24k)))
         self.context = self.context[-self.max_turns:]
+
+    def truncate_last_agent(self, frac):
+        import mlx.core as mx
+        if not self.context or self.context[-1].speaker != 0 or frac >= 0.99:
+            return
+        seg = self.context[-1]
+        wav = np.array(seg.audio, dtype=np.float32)
+        words = seg.text.split()
+        cut = max(1, int(len(words) * frac))
+        self.context[-1] = self._Segment(
+            speaker=0, text=" ".join(words[:cut]) + "…",
+            audio=mx.array(wav[: max(1, int(len(wav) * frac))]))
 
     def synth(self, text):
         from csm_mlx import generate

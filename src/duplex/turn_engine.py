@@ -45,6 +45,38 @@ class VAD:
         self.model.reset_states()
 
 
+class SmartTurn:
+    """smart-turn v3 (Pipecat/Daily, BSD-2): endpointing SEMÂNTICO por áudio.
+    2º estágio após o silero: 'esse silêncio é fim de turno ou só pausa?'
+    ONNX 8MB, ~12-95ms em CPU, 23 línguas (pt acc 95.4%). Receita verificada
+    no repo oficial (inference.py): últimos 8s @16kHz → WhisperFeatureExtractor
+    → input_features → sigmoid; >0.5 = turno completo."""
+
+    MAX_S = 8
+
+    def __init__(self):
+        import onnxruntime as ort
+        from huggingface_hub import hf_hub_download, list_repo_files
+        from transformers import WhisperFeatureExtractor
+        repo = "pipecat-ai/smart-turn-v3"
+        onnxs = sorted(f for f in list_repo_files(repo) if f.endswith(".onnx"))
+        path = hf_hub_download(repo, onnxs[-1])  # mais novo (v3.2 > v3.1)
+        opts = ort.SessionOptions()
+        opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        self.sess = ort.InferenceSession(path, opts, providers=["CPUExecutionProvider"])
+        self.fe = WhisperFeatureExtractor(feature_size=80)
+
+    def is_complete(self, audio_16k: np.ndarray) -> float:
+        n = self.MAX_S * SR
+        tail = audio_16k[-n:] if audio_16k.size > n else np.concatenate(
+            [np.zeros(n - audio_16k.size, dtype=np.float32), audio_16k])
+        feats = self.fe(tail, sampling_rate=SR, padding="max_length",
+                        max_length=n, return_tensors="np",
+                        do_normalize=True)["input_features"].astype(np.float32)
+        prob = self.sess.run(None, {"input_features": feats})[0][0].item()
+        return float(prob)
+
+
 class Player:
     """Playback interrompível (barge-in corta em ~1 buffer)."""
 
@@ -54,11 +86,25 @@ class Player:
         self._thread: threading.Thread | None = None
         self.playing = threading.Event()
         self.ended_at = 0.0  # p/ cooldown anti-eco pós-playback
+        self.total_samples = 0
+        self.played_samples = 0
+        self._interrupted = False
+
+    def consume_interruption(self) -> tuple[bool, float]:
+        """(houve barge-in?, fração OUVIDA do último playback). Reseta o flag."""
+        was = self._interrupted
+        frac = (self.played_samples / self.total_samples) if self.total_samples else 1.0
+        self._interrupted = False
+        return was, min(1.0, frac)
 
     def play(self, audio_f32: np.ndarray):
         import sounddevice as sd
         self.stop()
         self._stop.clear()
+
+        self.total_samples = len(audio_f32)
+        self.played_samples = 0
+        self._interrupted = False
 
         def _run():
             self.playing.set()
@@ -68,8 +114,10 @@ class Player:
                                      dtype="float32", blocksize=blocksize) as out:
                     for i in range(0, len(audio_f32), blocksize):
                         if self._stop.is_set():
+                            self._interrupted = True  # barge-in: parou no meio
                             break
                         out.write(audio_f32[i:i + blocksize].reshape(-1, 1))
+                        self.played_samples = min(i + blocksize, len(audio_f32))
             finally:
                 self.playing.clear()
                 self.ended_at = time.time()
@@ -90,8 +138,15 @@ class TurnEngine:
                  barge_in_threshold: float = 0.85):
         """barge_in=False (default) = half-duplex: mic IGNORADO enquanto o agente
         fala — único modo seguro em caixa de som (eco). Com FONES, ligue
-        barge_in=True (gate alto: prob>=0.85 por 8 frames ≈ 256ms)."""
+        barge_in=True (gate alto: prob>=0.85 por 8 frames ≈ 256ms).
+        Endpointing 2 estágios: silêncio CURTO (~280ms) → smart-turn semântico
+        decide se acabou; fallback DURO em endpoint_ms se ele disser 'pausa'."""
         self.vad = VAD()
+        try:
+            self.smart_turn = SmartTurn()
+        except Exception:
+            self.smart_turn = None  # sem onnx/transformers: cai no silêncio puro
+        self.short_silence_frames = max(1, 280 // FRAME_MS)
         self.player = Player()
         self.endpoint_frames = max(1, endpoint_ms // FRAME_MS)
         self.min_turn_frames = max(1, min_turn_ms // FRAME_MS)
@@ -157,8 +212,17 @@ class TurnEngine:
                 elif started:
                     buf.append(frame)
                     silence_run += 1
-                    if (silence_run >= self.endpoint_frames
-                            and speech_frames >= self.min_turn_frames):
+                    if speech_frames < self.min_turn_frames:
+                        continue
+                    done = False
+                    if silence_run >= self.endpoint_frames:
+                        done = True          # fallback duro: silêncio longo
+                    elif (self.smart_turn is not None
+                          and silence_run == self.short_silence_frames):
+                        # estágio 2: o silêncio curto é FIM DE TURNO ou pausa?
+                        prob = self.smart_turn.is_complete(np.concatenate(buf))
+                        done = prob > 0.5
+                    if done:
                         audio = np.concatenate(buf)
                         meta = {"t_start": t0, "t_end": time.perf_counter(),
                                 "dur_s": len(audio) / SR}

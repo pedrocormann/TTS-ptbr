@@ -62,6 +62,11 @@ def conversation_loop(cfg: dict, stop_event: threading.Event):
             if result is None:
                 break
             user_audio, _ = result
+            was_cut, frac = engine.player.consume_interruption()
+            if was_cut:  # barge-in: corrige histórico pro trecho realmente ouvido
+                llm.mark_interrupted(frac)
+                tts.truncate_last_agent(frac)
+                emit("status", f"✂️ interrompido a {frac:.0%} da fala")
             t0 = time.perf_counter()
             text = asr.transcribe(user_audio)
             t_asr = time.perf_counter()

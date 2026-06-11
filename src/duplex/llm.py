@@ -42,3 +42,13 @@ class LLM:
         if buf.strip():
             yield buf.strip()
         self.history.append({"role": "assistant", "content": full.strip()})
+
+    def mark_interrupted(self, frac: float):
+        """Pós barge-in: o usuário só ouviu `frac` da última resposta — corrige o
+        histórico pra o LLM não 'achar que falou' o que foi cortado."""
+        if not self.history or self.history[-1]["role"] != "assistant" or frac >= 0.99:
+            return
+        words = self.history[-1]["content"].split()
+        cut = max(1, int(len(words) * frac))
+        self.history[-1]["content"] = (" ".join(words[:cut])
+                                       + " … [interrompido pelo usuário]")

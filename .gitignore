@@ -9,6 +9,14 @@ weights/
 # Raw audio datasets (manifests are tracked, raw audio is not)
 data/raw/
 data/**/audio/
+# Local training artifacts & test audio (the "gold" stays off-git)
+data/csmmlx_ds/
+data/csmmlx_runs/
+data/testes_maya/
+data/meetings/
+data/dataset_v1/
+data/moshi_pairs/
+data/voice clone eleven labs/
 *.wav
 *.flac
 *.mp3

@@ -128,21 +128,30 @@ class CSMMLXAdapter(BaseTTS):
     conversa (usuário+agente) condiciona cada turno — mecanismo-Maya."""
 
     def __init__(self, voice: str, voice_text: str, bits: int = 4,
-                 max_context_turns: int = 4):
+                 max_context_turns: int = 4, adapter_path: str | None = None,
+                 extra_anchors: list[tuple[str, str]] | None = None):
+        """extra_anchors: [(wav, transcrição), ...] — medimos spk-sim 0.618 com
+        1 ref vs 0.973 com 3 refs no 4-bit: SEMPRE use 2-3 âncoras extras.
+        adapter_path: LoRA do finetune (csm-mlx) — carregado ANTES de quantizar."""
         import pathlib
         import mlx.nn as nn
-        from csm_mlx import CSM, csm_1b, Segment
+        from csm_mlx import CSM, csm_1b, Segment, load_adapters
         from huggingface_hub import hf_hub_download
         from mlx_lm.sample_utils import make_sampler
         self._Segment = Segment
         self.model = CSM(csm_1b())
         self.model.load_weights(
             hf_hub_download(repo_id="senstella/csm-1b-mlx", filename="ckpt.safetensors"))
+        if adapter_path:
+            load_adapters(self.model, adapter_path)
         if bits in (4, 8):
             nn.quantize(self.model, group_size=64, bits=bits)
         self.sampler = make_sampler(temp=0.8, top_k=50)
-        self.anchor = Segment(speaker=0, text=voice_text,
-                              audio_path=pathlib.Path(voice))
+        self.anchors = [Segment(speaker=0, text=voice_text,
+                                audio_path=pathlib.Path(voice))]
+        for wav, txt in (extra_anchors or []):
+            self.anchors.append(Segment(speaker=0, text=txt,
+                                        audio_path=pathlib.Path(wav)))
         self.context: list = []
         self.max_turns = max_context_turns
 
@@ -155,11 +164,32 @@ class CSMMLXAdapter(BaseTTS):
     def synth(self, text):
         from csm_mlx import generate
         audio = generate(self.model, text=text, speaker=0,
-                         context=[self.anchor] + self.context,
+                         context=self.anchors + self.context,
                          max_audio_length_ms=30_000, sampler=self.sampler)
         wav = np.array(audio, dtype=np.float32).reshape(-1)
         self.add_context("0", text, wav)
         return wav, TTS_SR
+
+
+def _auto_anchors(exclude: str, n: int = 2,
+                  transcribed: str = "data/raw/elevenlabs2024/segments/transcribed.jsonl"):
+    """Âncoras extras automáticas a partir dos segmentos já transcritos."""
+    import json
+    from pathlib import Path
+    p = Path(transcribed)
+    if not p.exists():
+        return []
+    out = []
+    for line in p.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        r = json.loads(line)
+        if (r["audio"] != exclude and 5.0 <= r.get("dur_s", 0) <= 10.0
+                and len((r.get("text") or "").split()) >= 8):
+            out.append((r["audio"], r["text"]))
+        if len(out) >= n:
+            break
+    return out
 
 
 def make_tts(engine: str, voice: str | None, **kw) -> BaseTTS:
@@ -170,8 +200,13 @@ def make_tts(engine: str, voice: str | None, **kw) -> BaseTTS:
     if engine == "csm-mlx":
         if not voice or not kw.get("voice_text"):
             raise SystemExit("csm-mlx exige --voice <wav> e voice_text (transcrição exata)")
+        extra = kw.get("extra_anchors")
+        if extra is None:  # auto: pega 2 segmentos transcritos da sessão como âncoras
+            extra = _auto_anchors(exclude=voice, n=2)
         return CSMMLXAdapter(voice, kw["voice_text"],
-                             bits=int(kw.get("bits", 4)))
+                             bits=int(kw.get("bits", 4)),
+                             adapter_path=kw.get("adapter_path") or None,
+                             extra_anchors=extra)
     if engine == "chatterbox-ptbr":
         return ChatterboxPTBRAdapter(voice)
     if engine == "csm":

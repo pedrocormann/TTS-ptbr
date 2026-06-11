@@ -24,6 +24,14 @@ app = Flask(__name__)
 SESSION: dict = {"thread": None, "stop": None, "events": queue.Queue(), "status": "parado"}
 
 
+def _latest_adapter():
+    """Adapter LoRA mais novo do finetune local (data/csmmlx_runs/*), se houver."""
+    from pathlib import Path
+    cands = sorted(Path("data/csmmlx_runs").glob("**/*.safetensors"),
+                   key=lambda p: p.stat().st_mtime, reverse=True)
+    return str(cands[0]) if cands else None
+
+
 def emit(kind: str, text: str):
     SESSION["events"].put({"kind": kind, "text": text, "t": time.strftime("%H:%M:%S")})
 
@@ -43,7 +51,8 @@ def conversation_loop(cfg: dict, stop_event: threading.Event):
                        language=cfg.get("tts_language") or "portuguese_24l",
                        quantize=bool(cfg.get("quantize", False)),
                        voice_text=cfg.get("voice_text") or None,
-                       bits=int(cfg.get("bits", 4)))
+                       bits=int(cfg.get("bits", 4)),
+                       adapter_path=cfg.get("adapter_path") or _latest_adapter())
         engine.player.sr_out = tts.sr
         emit("status", f"🎙️ pronto — fale! (tts={cfg.get('tts')}, voz={cfg.get('voice') or 'default'})")
         SESSION["status"] = "conversando"

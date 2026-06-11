@@ -122,11 +122,56 @@ class Qwen3Adapter(BaseTTS):
         return np.asarray(wav, dtype=np.float32).reshape(-1), sr
 
 
+class CSMMLXAdapter(BaseTTS):
+    """CSM-1B local no Apple Silicon (csm-mlx), clone in-context da voz.
+    4-bit ≈ 0,97x RT no M2; 8-bit ≈ 0,70x (melhor qualidade). O histórico da
+    conversa (usuário+agente) condiciona cada turno — mecanismo-Maya."""
+
+    def __init__(self, voice: str, voice_text: str, bits: int = 4,
+                 max_context_turns: int = 4):
+        import pathlib
+        import mlx.nn as nn
+        from csm_mlx import CSM, csm_1b, Segment
+        from huggingface_hub import hf_hub_download
+        from mlx_lm.sample_utils import make_sampler
+        self._Segment = Segment
+        self.model = CSM(csm_1b())
+        self.model.load_weights(
+            hf_hub_download(repo_id="senstella/csm-1b-mlx", filename="ckpt.safetensors"))
+        if bits in (4, 8):
+            nn.quantize(self.model, group_size=64, bits=bits)
+        self.sampler = make_sampler(temp=0.8, top_k=50)
+        self.anchor = Segment(speaker=0, text=voice_text,
+                              audio_path=pathlib.Path(voice))
+        self.context: list = []
+        self.max_turns = max_context_turns
+
+    def add_context(self, role, text, audio_24k):
+        import mlx.core as mx
+        self.context.append(self._Segment(speaker=int(role), text=text,
+                                          audio=mx.array(audio_24k)))
+        self.context = self.context[-self.max_turns:]
+
+    def synth(self, text):
+        from csm_mlx import generate
+        audio = generate(self.model, text=text, speaker=0,
+                         context=[self.anchor] + self.context,
+                         max_audio_length_ms=30_000, sampler=self.sampler)
+        wav = np.array(audio, dtype=np.float32).reshape(-1)
+        self.add_context("0", text, wav)
+        return wav, TTS_SR
+
+
 def make_tts(engine: str, voice: str | None, **kw) -> BaseTTS:
     if engine == "pocket":
         return PocketTTSAdapter(voice or "rafael",
                                 language=kw.get("language") or "portuguese_24l",
                                 quantize=bool(kw.get("quantize", False)))
+    if engine == "csm-mlx":
+        if not voice or not kw.get("voice_text"):
+            raise SystemExit("csm-mlx exige --voice <wav> e voice_text (transcrição exata)")
+        return CSMMLXAdapter(voice, kw["voice_text"],
+                             bits=int(kw.get("bits", 4)))
     if engine == "chatterbox-ptbr":
         return ChatterboxPTBRAdapter(voice)
     if engine == "csm":

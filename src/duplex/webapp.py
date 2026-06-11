@@ -41,7 +41,9 @@ def conversation_loop(cfg: dict, stop_event: threading.Event):
                   api_key=cfg.get("llm_key") or "x")
         tts = make_tts(cfg.get("tts", "pocket"), cfg.get("voice") or None,
                        language=cfg.get("tts_language") or "portuguese_24l",
-                       quantize=bool(cfg.get("quantize", False)))
+                       quantize=bool(cfg.get("quantize", False)),
+                       voice_text=cfg.get("voice_text") or None,
+                       bits=int(cfg.get("bits", 4)))
         engine.player.sr_out = tts.sr
         emit("status", f"🎙️ pronto — fale! (tts={cfg.get('tts')}, voz={cfg.get('voice') or 'default'})")
         SESSION["status"] = "conversando"
@@ -163,9 +165,15 @@ button{padding:12px;border:0;border-radius:10px;font-size:15px;font-weight:600;c
  <div><label>Modelo</label><input id="model" value="gemini-2.5-flash"></div>
  <div><label>API key <span class="hint">(fica só no seu navegador)</span></label>
    <input id="key" type="password" placeholder="cole aqui"></div>
- <div><label>Voz (TTS Pocket pt) <span class="hint">wav próprio = clone (exige HF token)</span></label>
-   <input id="voice" value="rafael" placeholder="rafael | caminho/do/seu.wav"></div>
- <div><label>Qualidade do TTS</label><select id="quality">
+ <div><label>Motor de voz</label><select id="engine">
+   <option value="csm-mlx">🏆 CSM local — SUA voz clonada (~1× RT, melhor qualidade)</option>
+   <option value="pocket">Pocket — rápido (latência mínima, qualidade básica)</option></select></div>
+ <div id="voiceBox"><label>Voz</label>
+   <input id="voice" value="data/raw/elevenlabs2024/segments/found_08_seg019.wav"
+     placeholder="csm: wav de referência | pocket: rafael ou wav"></div>
+ <div id="vtextBox"><label>Transcrição EXATA do wav de referência (csm)</label>
+   <input id="vtext" value="Então é um projeto que vai ser muito incrível, também super complexo. A gente vai precisar de vários meses de desenvolvimento, vai precisar de vários meses de pesquisa."></div>
+ <div id="qualityBox" style="display:none"><label>Qualidade (pocket)</label><select id="quality">
    <option value="portuguese_24l">melhor (24 camadas, ~1,8× RT)</option>
    <option value="portuguese">rápida (6 camadas, ~5× RT)</option></select></div>
  <div><label>HF token <span class="hint">(opcional, só pra clonar voz)</span></label>
@@ -187,6 +195,10 @@ for(const k of ['key','hf','model','voice'])
   if(localStorage['maya_'+k]) $(k).value=localStorage['maya_'+k];
 $('prov').onchange=()=>{ $('customUrlBox').style.display = $('prov').value==='custom'?'block':'none';
   if($('prov').value.includes('maritaca')&&!localStorage['maya_model_m']) $('model').value='sabia-3'; };
+$('engine').onchange=()=>{const csm=$('engine').value==='csm-mlx';
+  $('vtextBox').style.display=csm?'block':'none';
+  $('qualityBox').style.display=csm?'none':'block';
+  if(!csm&&/\.wav$/.test($('voice').value)===false) $('voice').value='rafael';};
 fetch('/devices').then(r=>r.json()).then(ds=>{
   $('device').innerHTML='<option value="">(padrão do sistema)</option>'+
     ds.map(d=>`<option value="${d.index}">${d.index} · ${d.name}</option>`).join('');
@@ -204,7 +216,8 @@ async function toggle(){
   for(const k of ['key','hf','model','voice']) localStorage['maya_'+k]=$(k).value;
   const base = $('prov').value==='custom'?$('customUrl').value:$('prov').value;
   const cfg={llm_base_url:base,llm_model:$('model').value,llm_key:$('key').value,
-    tts:'pocket',voice:$('voice').value,hf_token:$('hf').value,device:$('device').value,
+    tts:$('engine').value,voice:$('voice').value,voice_text:$('vtext').value,
+    hf_token:$('hf').value,device:$('device').value,
     tts_language:$('quality').value,barge_in:$('bargein').checked};
   const r=await fetch('/start',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify(cfg)});

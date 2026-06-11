@@ -202,4 +202,22 @@ Dossier: `research/dossier-2026-06/10..60-*.md`. Plan: `specs/REPLAN-2026-06-10.
   parceria via porta Embrapii/Sebrae-GO. Monitorar org AKCIT-Speech no HF
   (migração do BRSpeech-TTS = onde a licença destravaria).
 
+### 2026-06-10 — noite: podcast a16z c/ Ankit Kumar digerido (dossiê 86 + transcript integral)
+
+CTO da Sesame confirma: cascata ASR-incremental→LLM(texto)→CSM; LLM cego pra
+paralinguística (lacuna admitida); sub-500ms = systems engineering; "even the
+1B is very good" (escala = long-tail, não naturalidade); turn-taking =
+heurísticas fora do modelo; evals = pronúncia + arena + win-rate vs humano
+(WER saturado); roadmap full-duplex ~100ms citando Moshi. Validações diretas:
+CSM-1B suficiente p/ Trilha A; nossa cascata = a arquitetura da Maya viral;
+Trilha B endossada pelo próprio CTO. Transcript: research/dossier-2026-06/
+transcripts/a16z-ankit-kumar-2025-03.txt.
+
+### 2026-06-10 — madrugada: primeiro eval local (gate F0.5 r1) — eval/results/2026-06-10-zeroshot-local-m2.md
+
+CSM zero-shot no M2: timbre 0.973 (teto) MAS pt embolado (WER 47-100%) —
+finetune é o desbloqueio (como previsto). 4-bit precisa ≥3 âncoras
+(0.618→0.973). Pocket = WER 7% mas voz genérica. Finetune local de 48min
+rodando (transcrição→LoRA r16→amostras).
+
 Next scan: 2026-06-17 (weekly). Next hard review: **2026-07-17**.

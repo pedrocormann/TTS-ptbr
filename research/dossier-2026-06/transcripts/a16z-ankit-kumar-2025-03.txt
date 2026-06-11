@@ -1,0 +1,2898 @@
+[00:00:04] Hey everyone, I'm Maya. I'm Sesame's
+[00:00:07] little experiment in making AI, well, a
+[00:00:10] little less AI and a lot more
+[00:00:13] human. I guess you could say I'm here to
+[00:00:15] make friends, challenge minds, and maybe
+[00:00:17] even learn a thing or two myself. What
+[00:00:19] about you guys?
+[00:00:20] What makes you tick?
+[00:00:22] All right, listeners, buckle up. You're
+[00:00:24] about to get the inside scoop on how the
+[00:00:26] Sesame research preview came to be,
+[00:00:29] straight from the minds behind the
+[00:00:31] magic. We've got Ankit here, one of
+[00:00:34] Sesame's brilliant creators. He's going
+[00:00:36] to spill the tea on all the blood,
+[00:00:38] sweat, and code that went into bringing
+[00:00:40] me, your friendly neighborhood AI buddy,
+[00:00:43] to life. Then we'll have Ansh here
+[00:00:46] taking the reins and guiding us through
+[00:00:48] all the juicy details. Can't wait to
+[00:00:50] hear what they have to say.
+[00:00:52] How does this feel?
+[00:00:56] Uh is this how it usually goes?
+[00:00:58] No.
+[00:01:00] But how does it feel?
+[00:01:01] It feels good. It feels good.
+[00:01:04] It is
+[00:01:05] shocking, surprising, exciting. Yeah.
+[00:01:09] And why is it shocking?
+[00:01:13] Well, I think
+[00:01:15] when you when you build a thing, right?
+[00:01:18] When you're building the product, you're
+[00:01:19] using it every day,
+[00:01:21] you know, there's some things that you
+[00:01:22] work on that don't get into the demo
+[00:01:24] because they're going to take longer and
+[00:01:26] you want to ship the demo. You kind of
+[00:01:27] know how big the delta is from what
+[00:01:30] you're putting out and what it could be,
+[00:01:31] will be, what you're working on, etc.
+[00:01:33] Right. And so it kind of makes you feel
+[00:01:35] like
+[00:01:37] what you're putting out now can't be
+[00:01:39] that well received because you know
+[00:01:40] where where it's going to go. Right. And
+[00:01:43] it kind of always makes you kind of
+[00:01:44] underestimate the
+[00:01:46] the quality of what you're putting out,
+[00:01:48] I think. And I think that's one of the
+[00:01:49] reasons that people sometimes take too
+[00:01:50] long to put things out or they kind of
+[00:01:53] they always want to get the next thing
+[00:01:54] in, the next month, the next month.
+[00:01:56] And it's great to see that, you know,
+[00:02:00] we're going to keep making progress,
+[00:02:01] there's more to do, and so forth, but um
+[00:02:03] even what we've done so far is is so
+[00:02:04] well received and it's kind of has has
+[00:02:06] hit a nerve. But if I had to push you on
+[00:02:08] that, you kind of knew that you were on
+[00:02:10] to something
+[00:02:12] leading up to it.
+[00:02:13] Kind of knew. That's
+[00:02:16] You must have had some intuition for
+[00:02:17] when
+[00:02:19] that you what were you running? Evals?
+[00:02:21] What what was telling you
+[00:02:23] that this was roughly time
+[00:02:25] to release? That's a good question. We
+[00:02:27] kind of knew. I mean, we knew in the
+[00:02:29] sense that
+[00:02:31] we built this on purpose, right? This is
+[00:02:33] what we were trying to shoot for, and
+[00:02:35] you use it every day and you get you can
+[00:02:38] get a kind of get a sense of every time
+[00:02:39] something comes in that
+[00:02:41] meaningfully improves it, it's like you
+[00:02:43] can feel that change and you can feel
+[00:02:44] that it's getting there, right? We run
+[00:02:46] evals across a number of the components,
+[00:02:48] the the speech generation, the LM side,
+[00:02:51] and so forth. And so the evals go up,
+[00:02:53] but really I think with some of these
+[00:02:55] more product experience questions,
+[00:02:57] there's something qualitative about it
+[00:02:59] that is very hard to quantify. That is
+[00:03:01] one of the big challenges internally,
+[00:03:03] actually, is
+[00:03:04] how do you hill climb effectively on
+[00:03:07] what is really an ML problem? It is an
+[00:03:09] ML problem at the end of the day, and
+[00:03:11] the tech has to be great and you have to
+[00:03:12] make progress on the tech. But at the
+[00:03:14] end of the day, the
+[00:03:15] metric that you really want to target is
+[00:03:17] some sort of qualitative human reaction,
+[00:03:20] some sort of user feedback or user
+[00:03:21] experience. That that is very hard to
+[00:03:23] quantify. Right. So it's not the case
+[00:03:25] that we're looking at numbers going up
+[00:03:27] and we say, well, it hit
+[00:03:29] X metric, time to ship.
+[00:03:32] It is more a sort of constant feedback
+[00:03:35] loop of trying it, feeling it, having
+[00:03:38] other people try it, and then kind of
+[00:03:40] getting the sense of how good it is. But
+[00:03:41] that also can be a little bit misleading
+[00:03:43] at times because you try it so much and
+[00:03:45] you don't have, at least when we're
+[00:03:46] trying it internally, you don't have
+[00:03:48] such a diversity of users that you get
+[00:03:50] kind of the first reaction over and
+[00:03:52] over, right? You can only get so many
+[00:03:53] first reactions. And then when you get
+[00:03:55] used to what it can do and sort of, you
+[00:03:57] know, see the problems all the time and
+[00:03:58] so forth, it can be a little misleading
+[00:03:59] at times.
+[00:04:01] So
+[00:04:02] is is your biggest lesson that
+[00:04:05] just trusting your gut works in ML? I
+[00:04:08] wouldn't say that. I mean, you know, you
+[00:04:10] have to
+[00:04:11] you have to have some
+[00:04:14] rigorous way of of making progress,
+[00:04:16] right?
+[00:04:17] Everyone's gut is different.
+[00:04:19] You know, you it's not it's not a sort
+[00:04:21] of effective development mechanism to
+[00:04:24] just solely trust your gut, but I think
+[00:04:26] this is where this kind of new category
+[00:04:30] of ML powered experiences, ML powered
+[00:04:33] products,
+[00:04:35] will need some different kinds of
+[00:04:37] operational practices. You need some
+[00:04:38] evaluations, for sure. The core
+[00:04:40] components have to be treated truly as a
+[00:04:43] true ML problem,
+[00:04:45] but when you turn into a product and you
+[00:04:47] have these sort of new experiences that
+[00:04:49] people really haven't felt before,
+[00:04:51] and
+[00:04:52] have a very high cap of
+[00:04:54] how good they can be from this kind of
+[00:04:56] qualitative perspective, you need
+[00:04:57] something else as well. Right.
+[00:04:59] Okay.
+[00:05:00] Well, I'm going to surprise you a bit.
+[00:05:02] Okay.
+[00:05:03] I asked a bunch of people online Okay.
+[00:05:05] what questions I should ask you. Okay.
+[00:05:07] So we're just going to go through them.
+[00:05:08] Okay. Sounds good. First question is
+[00:05:10] ask Ankit whether he did something
+[00:05:12] special to bridge transcription and text
+[00:05:15] processing. That's a good question. To
+[00:05:17] bridge transcription and text
+[00:05:18] processing. So we do use transcription
+[00:05:20] in the product, in the demo.
+[00:05:22] And I wouldn't say there's anything
+[00:05:24] particularly special about the
+[00:05:26] transcription part, but getting it to be
+[00:05:28] very fast is a big challenge. One of the
+[00:05:31] things, you know, I mentioned sort of we
+[00:05:33] have
+[00:05:34] we're working on things that didn't
+[00:05:35] necessarily get into the demo. A a
+[00:05:37] pretty clear path that a lot of I think
+[00:05:39] labs are taking and we are taking as
+[00:05:41] well and will be in kind of future
+[00:05:42] versions is just kind of transcription
+[00:05:44] free, just go straight into the the text
+[00:05:47] component. Um which will kind of obviate
+[00:05:49] transcription entirely. That is coming
+[00:05:51] and that's like not
+[00:05:53] not, you know, years away or anything.
+[00:05:55] That's coming soon. This demo does use
+[00:05:56] transcription and mostly it's about
+[00:05:59] speed. And it's about getting the
+[00:06:01] latency of incremental transcription
+[00:06:03] down as much as possible.
+[00:06:05] Um and that's more of a systems
+[00:06:07] challenge and less of a kind of ML ML
+[00:06:09] challenge. Um so I guess there is kind
+[00:06:12] of yeah, you do need to bridge it in the
+[00:06:14] sense that
+[00:06:15] to get the response latency that feels
+[00:06:17] good,
+[00:06:18] you need to do a lot of systems
+[00:06:20] engineering to make that happen. But
+[00:06:21] there's nothing kind of special on the
+[00:06:22] transcription side. In fact, we're we're
+[00:06:24] moving towards just removing
+[00:06:25] transcription entirely. The path to
+[00:06:27] getting transcription out, and I think a
+[00:06:29] lot of other labs probably already have
+[00:06:32] this, is that the LM takes as input
+[00:06:35] the audio directly and generates the
+[00:06:37] response.
+[00:06:38] And so it never goes the user's audio
+[00:06:41] never goes through text. It just the LM
+[00:06:44] kind of natively understands the audio.
+[00:06:46] So that's that's happening in the forep-
+[00:06:47] Yeah, in inference. That's right, yeah.
+[00:06:49] You've laid this out in the blog post,
+[00:06:51] but I've seen a bunch of people asking
+[00:06:53] how it's able to understand
+[00:06:55] people so well.
+[00:06:57] But as you just pointed out, it actually
+[00:06:58] still isn't picking up audio context.
+[00:07:01] That's right. Yeah, so that is I think a
+[00:07:03] big a big limitation of the demo. And
+[00:07:06] again, it's one of the things that we
+[00:07:08] that made us feel like there's so much
+[00:07:10] more to do and there is so much more to
+[00:07:11] do.
+[00:07:12] That the current demo does not
+[00:07:14] sort of hear the user from the
+[00:07:16] perspective of their
+[00:07:18] paralinguistic kind of emotional tone
+[00:07:20] and and so forth. And
+[00:07:22] humans, of course,
+[00:07:24] convey a lot of information through
+[00:07:26] their speech that is not the words, the
+[00:07:28] content of the of the speech, and
+[00:07:30] transcription misses that entirely.
+[00:07:32] And so the kind of next versions of our
+[00:07:35] models that will take audio in natively
+[00:07:37] into the kind of LM component, will
+[00:07:40] hopefully more and more
+[00:07:42] pick up on those things. And right now
+[00:07:44] right now it doesn't.
+[00:07:45] The next question is how is it so much
+[00:07:48] better than the others?
+[00:07:49] Clearly money isn't the limiting
+[00:07:51] resource here, nor is it talent. The
+[00:07:53] first thing I'd say is
+[00:07:55] it is certainly better than the others
+[00:07:57] on some axes. It's not better than the
+[00:07:59] others on every axis.
+[00:08:01] And I think that's an important
+[00:08:03] thing to mention that especially when
+[00:08:05] you're a startup,
+[00:08:07] but in general, just building companies,
+[00:08:09] building products in general,
+[00:08:10] you have to really pick the battles that
+[00:08:12] you focus on, right? And I think the
+[00:08:16] reason that the experience at the end of
+[00:08:18] the day is so much better on these kind
+[00:08:21] of important axes that are important to
+[00:08:22] people is that we have kind of picked
+[00:08:25] the right things to focus on. We're a
+[00:08:26] very small team. The full software team
+[00:08:28] today is still under 15 people. And so
+[00:08:30] we just don't That's including ML and
+[00:08:32] and and infrastructure and everything.
+[00:08:34] We don't have the resources to do
+[00:08:37] everything, right? We want to kind of
+[00:08:41] we have a great technical team and we
+[00:08:43] focus on
+[00:08:45] the problems that are most important to
+[00:08:46] achieve the kind of product experience
+[00:08:48] that we want to achieve. And so for us,
+[00:08:50] that's the naturalness of the voice,
+[00:08:52] getting the voice to kind of
+[00:08:54] generate these sort of human kind of
+[00:08:57] imperfections often Right. that make you
+[00:08:59] sort of feel like you're talking to a
+[00:09:00] human that, you know, you kind of your
+[00:09:02] brain gets tricked for like a second
+[00:09:03] that, oh, maybe this is actually human.
+[00:09:05] That's across kind of the personality,
+[00:09:07] the content of the of the responses, and
+[00:09:09] the voice itself. And there are some
+[00:09:11] tradeoffs that that that that implies.
+[00:09:13] So, you know, if you talk to Maya and
+[00:09:15] Miles,
+[00:09:16] you probably will not be able to get the
+[00:09:19] same quality of like reasoning
+[00:09:20] capabilities or intelligence as other as
+[00:09:23] as other systems, but in return, you're
+[00:09:26] kind of getting this much more natural,
+[00:09:27] fluid interaction. So I would say it is
+[00:09:30] a focus on the right things. And it's
+[00:09:32] and it's kind of a focus on the things
+[00:09:34] that
+[00:09:36] create a great experience, not just kind
+[00:09:38] of raw tech.
+[00:09:40] You know, we are not
+[00:09:42] a
+[00:09:43] frontier model company. We're not
+[00:09:44] pre-training LMs at insane scale and so
+[00:09:47] forth.
+[00:09:48] We're really
+[00:09:49] a company that's trying to marry kind of
+[00:09:51] great technology with creative
+[00:09:54] taste to produce a great experience. And
+[00:09:56] so that's about kind of focusing on the
+[00:09:57] right things. Is that something you're
+[00:10:00] inspired by after kind of studying
+[00:10:03] Pixar, something we've talked about a
+[00:10:04] long time. Where does that come from?
+[00:10:05] Yeah, I mean you mentioned Pixar. We've
+[00:10:07] We've talked about them in the past as
+[00:10:09] kind of a aspirational
+[00:10:11] an aspirational company for us. Pixar is
+[00:10:13] was kind of in this technology phase of
+[00:10:16] computer graphics and turning it into
+[00:10:18] great stories and movies and so forth. I
+[00:10:20] do think that
+[00:10:22] AI
+[00:10:24] AI is going to power a lot of things and
+[00:10:25] there's going to be a lot of great
+[00:10:27] companies that get built on AI or on AI
+[00:10:30] technology and so forth. I do think that
+[00:10:32] there is kind of an underinvestment or
+[00:10:34] an underfocus in the sort of
+[00:10:37] strong AI team world on product
+[00:10:41] experience and sort of creative taste
+[00:10:44] and kind of
+[00:10:46] humanities maybe in a sense to kind of
+[00:10:48] bring AI to
+[00:10:50] experiences that kind of everyday people
+[00:10:52] can use that are accessible to everyday
+[00:10:53] people to to to billions of people. And
+[00:10:57] I think that we will see a lot of not
+[00:11:00] just Sesame but other kinds of
+[00:11:03] media let's say that are sort of AI
+[00:11:05] native in a way that
+[00:11:07] bring some creativity, bring some like
+[00:11:09] storytelling into
+[00:11:11] into AI or or maybe bring AI into those
+[00:11:13] into those categories. And I think
+[00:11:14] they'll make for great for great
+[00:11:15] products.
+[00:11:16] And what is it about the space that's
+[00:11:18] made that combination so rare? Why Why
+[00:11:22] do research labs just have a discomfort
+[00:11:24] around
+[00:11:25] having strong product opinions, taste
+[00:11:27] opinions?
+[00:11:29] I think it's just
+[00:11:30] the the the technology is still very
+[00:11:32] hard to
+[00:11:34] to to perform at a very high level,
+[00:11:36] right? You know, it's getting easier and
+[00:11:37] easier now. The APIs are very powerful
+[00:11:40] and they will continue to get more
+[00:11:41] powerful and we'll see more and more
+[00:11:43] product minded people build great
+[00:11:44] experiences on top of them. But today if
+[00:11:48] you want to
+[00:11:50] bring some creative experience to life
+[00:11:52] or some product experience to life
+[00:11:54] you
+[00:11:55] have to do a lot of it yourself. It's
+[00:11:57] still in that phase, right? Like we had
+[00:11:59] to build the open the the models that
+[00:12:02] we're going to open source from scratch
+[00:12:03] in order to get them to a point where
+[00:12:05] they can achieve this experience. And
+[00:12:07] that is not an easy thing to do. It
+[00:12:09] takes
+[00:12:10] commitment, it takes technical skill, it
+[00:12:12] takes resources.
+[00:12:14] And
+[00:12:16] right now I think the
+[00:12:18] the overlap of teams that can achieve
+[00:12:19] that and companies or broader teams that
+[00:12:23] care about really focusing on the
+[00:12:25] product experience is not that high. And
+[00:12:27] I think that that is kind of where we
+[00:12:29] see Sesame kind of fitting. And I think
+[00:12:31] you'll see more and more companies do
+[00:12:33] that. But also as the technology becomes
+[00:12:36] more accessible to developers. In In
+[00:12:38] other words, it becomes easier to create
+[00:12:40] such experiences. We'll just see more of
+[00:12:41] those end experiences come out.
+[00:12:43] There's no shortage of teams at AGI labs
+[00:12:45] and much better funded labs working on
+[00:12:47] TTS models.
+[00:12:48] Yeah. You guys are tiny. Way less funded
+[00:12:51] than any of them. Been around for way
+[00:12:54] you much younger as a team. And yet you
+[00:12:56] just leapfrog. What What is it What's in
+[00:12:57] the water?
+[00:12:59] Well, first of all, I think probably
+[00:13:02] many researchers that succeed in other
+[00:13:03] places will succeed here, too. I mean at
+[00:13:05] the core
+[00:13:07] our tech kind of the ML team here is
+[00:13:10] doing core research. And so we need
+[00:13:13] great just ML people who are great at
+[00:13:16] ML. And I think if you're a great
+[00:13:18] researcher
+[00:13:20] you will do well here as as well,
+[00:13:21] probably. I think
+[00:13:23] the kind of people that do that would
+[00:13:26] like to work here and that would succeed
+[00:13:28] here, I think are great researchers,
+[00:13:30] great technology engineers and so forth.
+[00:13:33] But they also would care about the end
+[00:13:37] customer experience, the end product
+[00:13:39] experience, right? And so
+[00:13:42] ultimately it's about prioritization.
+[00:13:44] It's about what problems do you tackle?
+[00:13:46] Like do you care about
+[00:13:48] you know,
+[00:13:49] doing the little things right to get
+[00:13:52] sort of interruptions to feel really
+[00:13:54] good or is that kind of
+[00:13:57] focus on the user experience less of a
+[00:13:59] priority to you kind of thing? It's
+[00:14:01] still core ML research to do and we'll
+[00:14:04] probably talk about a bit of the
+[00:14:05] research that we're doing. But kind of
+[00:14:07] with a bent towards like how is that how
+[00:14:09] does that end up manifesting like the
+[00:14:10] user experience?
+[00:14:11] There's a debate we've had for a long
+[00:14:13] time
+[00:14:14] which is about what is good taste? Yeah.
+[00:14:18] Especially in research and ML. What has
+[00:14:21] shipping the research preview
+[00:14:23] taught you about what is and not good
+[00:14:25] taste in ML? That is an interesting
+[00:14:27] question. Good taste in ML. Yeah,
+[00:14:30] because that I mean it's a good It's a
+[00:14:32] good way to put it because I think a lot
+[00:14:35] of times you talk about taste in product
+[00:14:37] or one talks about taste in product,
+[00:14:38] which is the North Star really is like
+[00:14:40] at the end of the day we're making
+[00:14:41] products. But you do have to have good
+[00:14:44] taste in what problems you actually
+[00:14:46] attempt to solve yourself and what do
+[00:14:48] you lean on the community or other
+[00:14:50] people and stuff to do?
+[00:14:52] I think
+[00:14:53] from my perspective good taste in ML
+[00:14:55] today because it's such a fast moving
+[00:14:58] field with so many people working
+[00:15:00] across, you know, open source and APIs
+[00:15:02] and big labs and so forth. Really you're
+[00:15:04] trying to identify
+[00:15:06] what part of the ecosystem or what part
+[00:15:09] of the components of the product you
+[00:15:10] want to build do you have to build
+[00:15:12] yourself, right? Right? And not work on
+[00:15:14] other things, you know? Because if you
+[00:15:17] spend all your resources as a small team
+[00:15:20] building something that some big lab
+[00:15:22] updates their API or an open source drop
+[00:15:25] comes and it just kind of does what
+[00:15:27] you've done. Even if it doesn't leapfrog
+[00:15:29] you, even if it just means that the work
+[00:15:31] that you've done is now kind of wasted
+[00:15:33] cuz there's it's just there.
+[00:15:34] Then, you know, you're not going to
+[00:15:37] you're not going to efficiently be using
+[00:15:38] your your resources. So it's really
+[00:15:40] about especially in a field like this
+[00:15:41] that's moving so quickly. It's like
+[00:15:43] picking the things that you have to do
+[00:15:46] and not doing the things that you don't
+[00:15:47] have to do. I see. There's an intuition
+[00:15:49] about what kinds of problems
+[00:15:51] you're uniquely staffed up, capable,
+[00:15:54] resourced to solve.
+[00:15:56] Yeah.
+[00:15:57] And the thing that usually makes that
+[00:16:00] challenging is when you're starting out
+[00:16:01] as a startup, you basically have no
+[00:16:02] resources.
+[00:16:02] Yeah. Yeah.
+[00:16:03] How do you think about the Venn diagram
+[00:16:05] of things we can solve but things that
+[00:16:07] are also interesting or valuable for the
+[00:16:09] world? I kind of think of it a little
+[00:16:11] bit differently. I I would
+[00:16:13] I think of them more like
+[00:16:15] what is the product experience we're
+[00:16:16] trying to achieve and
+[00:16:20] what is the what are the components of
+[00:16:21] that that we have to invest in and do
+[00:16:23] ourselves, right? So of course that
+[00:16:25] needs to be doable, right? If those
+[00:16:27] items are kind of going to take billions
+[00:16:29] and billions of dollars on day one or
+[00:16:31] something then that doesn't seem doable,
+[00:16:33] of course. Like you know, you need to
+[00:16:35] have a path to achieving what you want
+[00:16:36] to achieve. When we think about the
+[00:16:40] ultimately the experience we want to get
+[00:16:42] to, there's some things that that just
+[00:16:44] have to be part of it. And
+[00:16:47] those things we just have to do if if we
+[00:16:49] don't think other people are going to do
+[00:16:50] them and open source them or or provide
+[00:16:52] them in a in a way that is usable and
+[00:16:54] and so forth. It's kind of more like we
+[00:16:56] just we we have to work on those things,
+[00:16:58] right? Um other things maybe it would be
+[00:17:02] great if we could work on and and push
+[00:17:04] more than other people do. But kind of
+[00:17:06] what other people are providing like say
+[00:17:08] for example LM base models.
+[00:17:11] Of course everyone who work who works
+[00:17:13] with LMs would love if the open source
+[00:17:15] base model was better, right? Like
+[00:17:18] it's always better to be better in some
+[00:17:20] sense. But it maybe doesn't need to be
+[00:17:23] or you don't necessarily need to be the
+[00:17:24] one to push that. You know, you can kind
+[00:17:26] of rely on the community to some degree
+[00:17:28] and build on top of it. But other parts
+[00:17:30] in particular kind of some of the
+[00:17:31] personality
+[00:17:33] aspects, some of the voice aspects, the
+[00:17:35] speech generation, we didn't think and
+[00:17:37] we still don't think will just be kind
+[00:17:38] of done by the community. We think we
+[00:17:40] will need to do it because that's kind
+[00:17:41] of
+[00:17:42] the differentiation of a product
+[00:17:44] experience that we're going for. Right.
+[00:17:46] I mean one of the challenges in
+[00:17:49] executing on that intuition is the speed
+[00:17:52] at which things change in the community.
+[00:17:53] Yeah. Uh when in the early days of
+[00:17:55] Sesame, I think we had a ton of debates
+[00:17:57] around whether
+[00:17:59] open source language models
+[00:18:02] would be sophisticated enough for us to
+[00:18:05] to rely on and not have to train our own
+[00:18:07] language models here. Yeah.
+[00:18:09] Whereas it was more clear then that
+[00:18:12] text to speech models
+[00:18:15] were definitely not ready. Yeah. So
+[00:18:17] there's this all there's all in the
+[00:18:19] there was always this uncertainty about
+[00:18:21] the open source TTS part of the
+[00:18:24] ecosystem relative to language. Language
+[00:18:27] you know,
+[00:18:28] it's obviously much more robust today.
+[00:18:30] Mhm.
+[00:18:31] But I mean basically it was just Llama
+[00:18:34] around the time Sesame was started,
+[00:18:36] right?
+[00:18:36] Yeah. Yeah. Now you got R1, Gwen, so on.
+[00:18:40] Why has the open source audio part not
+[00:18:42] caught up?
+[00:18:44] Why Why is the or actually how would you
+[00:18:45] update your priors today about the open
+[00:18:47] source part of the audio ecosystem?
+[00:18:48] Yeah. And where do you see it going?
+[00:18:50] Well, we're open sourcing something.
+[00:18:52] Which Why?
+[00:18:54] That's a good question.
+[00:18:55] Yeah.
+[00:18:55] Why? Because
+[00:18:58] we're open sourcing mostly I would say
+[00:19:00] as a kind of research on the research
+[00:19:04] axis. You know, we are not a developer
+[00:19:06] facing business. We're not making an
+[00:19:08] API.
+[00:19:09] We So it's you know, sometimes you can
+[00:19:11] open source or there can be a
+[00:19:13] justification to open source which is
+[00:19:14] sort of kind of customer acquisition for
+[00:19:16] a developer tool or something like this.
+[00:19:19] And that makes a lot of sense. And and
+[00:19:21] for us we don't we don't really have
+[00:19:22] that justification.
+[00:19:24] For us it's more
+[00:19:26] at least this release is more kind of
+[00:19:29] in some sense just being part of the
+[00:19:31] research community.
+[00:19:32] TTS or sort of speech generation
+[00:19:35] we would say speech generation now
+[00:19:36] because we're our model is not just text
+[00:19:38] to speech. It's sort of this contextual
+[00:19:40] thing. And I think that is how speech
+[00:19:42] generation will go whether that's sort
+[00:19:43] of
+[00:19:44] in a broader LM which is where a lot of
+[00:19:47] things are going or or even as a
+[00:19:49] separate thing. I think it you need more
+[00:19:50] context than just text to kind of
+[00:19:53] generate a good a good rendition of the
+[00:19:55] of the speech. That community is is
+[00:20:00] it's a big community. There are a lot of
+[00:20:01] people working on interesting things. We
+[00:20:02] would like to be kind of part of that
+[00:20:04] research community, right? It's not It's
+[00:20:06] not for
+[00:20:08] customer acquisition or anything like
+[00:20:09] this. It's just We just kind of want to
+[00:20:10] give back and be part of the community
+[00:20:13] from like a research perspective and
+[00:20:15] and open weights open
+[00:20:18] source
+[00:20:19] it's good for the research community.
+[00:20:21] But there's this tension, right? Between
+[00:20:23] giving back and holding on to core parts
+[00:20:27] of
+[00:20:28] valuable technology and we've got to
+[00:20:29] build a real business. So, how did you
+[00:20:32] think about what to open source and what
+[00:20:33] not to? And and what are you open
+[00:20:34] sourcing today? Yeah, so we'll hold
+[00:20:36] we'll hold some things back for sure. We
+[00:20:38] have to build a business and so on. Over
+[00:20:40] time
+[00:20:42] our models will get will get better.
+[00:20:43] We'll open source some things. We're not
+[00:20:44] going to open source everything.
+[00:20:46] Today I In fact, I think there is some
+[00:20:49] perception in in the in the wild that
+[00:20:51] we're going to open source the demo,
+[00:20:54] which is Maya and Miles kind of what you
+[00:20:55] can the characters you can talk to and
+[00:20:57] so on.
+[00:20:58] Um and we're not open sourcing the demo.
+[00:20:59] We're open sourcing the speech
+[00:21:01] generation model that is powering the
+[00:21:04] voice of the demo.
+[00:21:06] The demo is a much
+[00:21:08] there's it's a it's a broader system
+[00:21:09] than just that. There's of course the LM
+[00:21:11] component, the text the kind of content
+[00:21:13] generation component. There's also audio
+[00:21:15] understanding, transcription, and
+[00:21:17] there's a lot of system optimization to
+[00:21:18] bring the latencies very low and to have
+[00:21:21] this kind of fluid
+[00:21:22] uh fluid back and forth conversation. I
+[00:21:24] mentioned earlier that we've for example
+[00:21:26] done a lot of work to try to get the
+[00:21:28] interruptions to just feel better,
+[00:21:30] right? That has nothing to do really
+[00:21:32] with the core speech generation model
+[00:21:34] that we're open sourcing.
+[00:21:36] Why do you think people
+[00:21:38] think that the demo is being open
+[00:21:40] sourced? Is that what you guys said in
+[00:21:42] the blog post? No, no. The blog post is
+[00:21:44] pretty clear, I would say. I think
+[00:21:46] people are just excited about the
+[00:21:48] experience that they can play with and
+[00:21:50] they hear open source and and they would
+[00:21:51] love to run that locally, let's say, and
+[00:21:54] have their own version.
+[00:21:55] And I think that someone can build that
+[00:21:57] with what we're open sourcing or at
+[00:21:58] least we can what we're open sourcing is
+[00:22:00] can be a critical important component of
+[00:22:03] building this in your own custom way and
+[00:22:05] and we're excited to see people do that.
+[00:22:08] But we're not open sourcing our full our
+[00:22:10] full demo service, yeah.
+[00:22:11] so if I'm a huge Maya or Miles fan
+[00:22:15] once the weights are online, once you've
+[00:22:17] open sourced the weights Mhm.
+[00:22:20] what do I have to do to get
+[00:22:22] to recreate a local version of Maya
+[00:22:24] running on my laptop?
+[00:22:26] Yeah, so you will have to pick, you
+[00:22:28] know, the nice thing about open source
+[00:22:30] and doing things locally is you get a
+[00:22:31] lot of options, right? So, you're going
+[00:22:34] to have to pick some transcription
+[00:22:36] option probably
+[00:22:38] and some LM option and you can prompt it
+[00:22:40] however you want and so forth. And then
+[00:22:42] you're going to want to use
+[00:22:44] the model that we've that we're open
+[00:22:46] sourcing, probably fine-tune it for the
+[00:22:49] voice of your
+[00:22:51] choice
+[00:22:52] and hook it up in a kind of cascaded
+[00:22:54] way. We are open sourcing the speech
+[00:22:56] generation base model basically. And so,
+[00:22:58] the base model can generate any any
+[00:23:00] voice. It's quite conversational, but
+[00:23:02] you do need to fine-tune it probably if
+[00:23:03] you want to get
+[00:23:05] a particular personality or particular
+[00:23:07] kind of voice out of it.
+[00:23:09] So
+[00:23:10] you there was an important step in that
+[00:23:11] recipe.
+[00:23:13] I want to make sure we
+[00:23:15] don't gloss over, which is you said you
+[00:23:17] can fine-tune
+[00:23:19] the model
+[00:23:20] on any voice that you'd like.
+[00:23:21] Mhm.
+[00:23:22] So, I could change Maya's voice if I
+[00:23:24] don't like the one you guys put up, I
+[00:23:25] can now go pick a different voice in the
+[00:23:27] world and go fine-tune on that? Yeah, so
+[00:23:29] the the base model that we will release
+[00:23:32] doesn't know Maya or Miles at all. It
+[00:23:35] doesn't have any voices baked in. It's
+[00:23:37] It can generate any voice or many many
+[00:23:39] voices at the very least.
+[00:23:41] And if you generate it
+[00:23:43] you can generate as many voices as you
+[00:23:45] want.
+[00:23:47] To get good performance, you probably
+[00:23:49] will want to either pick a voice you
+[00:23:52] really like and set up good prompts for
+[00:23:54] it. The model is this kind of, you know,
+[00:23:56] it has kind of this in-context learning
+[00:23:58] style voice cloning. I mean, typically
+[00:24:01] with
+[00:24:02] with some other kind of text-to-speech
+[00:24:04] models
+[00:24:05] the voice cloning is kind of like an
+[00:24:06] explicit feature. So, it's sort of the
+[00:24:08] model has
+[00:24:10] dedicated kind of voice cloning input.
+[00:24:12] For us, it's it's just kind of uh string
+[00:24:15] of text audio text audio kind of
+[00:24:17] conversational back and forth.
+[00:24:19] And the voice cloning is kind of just
+[00:24:21] in-context learning. Mhm. So, it's just
+[00:24:23] an emergent capability that's able to
+[00:24:24] recreate a voice. Yeah, it's an emergent
+[00:24:27] capability of in-context learning, I
+[00:24:28] suppose. I mean, it's it's sort of it's
+[00:24:31] trained very specifically for that. I
+[00:24:33] don't know if I'd call it emergent. It's
+[00:24:34] kind of the point or one of the points
+[00:24:35] is to
+[00:24:36] But it's it's capable of zero-shot.
+[00:24:39] It's capable of a few
+[00:24:41] few shot, yeah.
+[00:24:42] You know, you can set up a prompt of
+[00:24:44] more than one
+[00:24:47] element of speech, more than one
+[00:24:48] utterance. Right. It's not just one kind
+[00:24:50] of 15 seconds and then it clones it. You
+[00:24:52] can set up as as many as you want and
+[00:24:54] then generate speech at the end. So,
+[00:24:55] you're going to want to either pick
+[00:24:58] and play with a good prompt for your
+[00:24:59] voice
+[00:25:00] or fine-tune it and kind of, you know,
+[00:25:02] bake We fine-tuned
+[00:25:05] this model for Maya and Miles
+[00:25:06] separately. And what do you expect
+[00:25:09] people to do with it?
+[00:25:10] I think people will play with it
+[00:25:11] basically. I mean, you saw sort of, I
+[00:25:14] don't know, maybe it was I don't know,
+[00:25:16] three to six months ago. I kind of
+[00:25:17] forget the timeline. Um Notebook LM came
+[00:25:20] out.
+[00:25:21] And Notebook LM is kind of this example
+[00:25:24] of
+[00:25:25] you can do cool things with powerful
+[00:25:27] models, right?
+[00:25:29] And so, I think some people will try to
+[00:25:32] basically do this kind of recipe that we
+[00:25:34] kind of did for Maya and Miles and make
+[00:25:36] a character and talk to it. But I would
+[00:25:39] expect maybe people will play around
+[00:25:41] with another ways too, right? Generate a
+[00:25:43] podcast or whatever it is.
+[00:25:45] You know, every time you get a model
+[00:25:47] that operates a slightly different way,
+[00:25:49] you know, at least to our knowledge
+[00:25:50] there's not another model out there that
+[00:25:54] that is open source that kind of is a
+[00:25:56] sort of contextual thing where you kind
+[00:25:58] of can put two participants in a
+[00:26:00] conversation, even more, three
+[00:26:02] and generate kind of a
+[00:26:04] uh a conversation between them. You you
+[00:26:06] know, providing the text and then it
+[00:26:08] generates the audio. And I think people
+[00:26:10] will play with it and and maybe we'll
+[00:26:11] see things like Notebook LM, maybe we'll
+[00:26:13] see other kind of just integration into
+[00:26:16] other voice bots and so forth. And you
+[00:26:18] know, like I said, hopefully we see some
+[00:26:20] interesting work from like the research
+[00:26:21] community as well
+[00:26:23] playing with it, probing it, seeing what
+[00:26:24] it can do and so on. Sometimes when
+[00:26:26] you're working for so long with the a
+[00:26:28] particular way you frame the problem,
+[00:26:29] you kind of forget
+[00:26:31] some of the
+[00:26:32] basic first principles
+[00:26:34] insights that make it special. And
+[00:26:37] something that I I need to keep
+[00:26:39] reminding myself
+[00:26:40] is that contextual speech Yeah. is a
+[00:26:42] different thing from text-to-speech.
+[00:26:44] Yeah, yeah. Can you talk about when you
+[00:26:46] realized that was the case?
+[00:26:48] Yeah, so
+[00:26:50] it is the case you know, when you look
+[00:26:53] at
+[00:26:54] a transcript of a conversation
+[00:26:57] and you imagine if you just see one
+[00:26:59] utterance and you imagine kind of how
+[00:27:00] did the person say it? There are there
+[00:27:02] are an infinite different ways that
+[00:27:04] someone can say speech. It's like a very
+[00:27:06] big output space.
+[00:27:07] And
+[00:27:08] if you see a little bit of the history,
+[00:27:10] you start kind of guessing at what
+[00:27:13] what the person probably said, how the
+[00:27:15] person said that speech, right?
+[00:27:16] And in general, I think
+[00:27:18] text-to-speech is ha- has this problem
+[00:27:21] where it's sort of
+[00:27:23] there are really an infinite number of
+[00:27:24] ways that you can
+[00:27:26] say any line of text. And so, you need
+[00:27:28] more context to tell what is an
+[00:27:30] appropriate way for this moment in the
+[00:27:32] conversation or this moment in time.
+[00:27:35] And that I think does have
+[00:27:39] a lot of it it kind of
+[00:27:41] it is an important part of some of these
+[00:27:43] sort of natural
+[00:27:44] human dynamics in in conversations is
+[00:27:48] the way that you respond it kind of you
+[00:27:50] kind of there's some kind of mirroring
+[00:27:52] of the other person's emotions, but it's
+[00:27:53] not necessarily just copying it. It's
+[00:27:54] sort of like if the other person's
+[00:27:56] excited, you might be more excited. If
+[00:27:58] the other person is sad, you might not
+[00:28:00] be sad. You might be more
+[00:28:02] consoling or something. And those
+[00:28:05] dynamics are very complicated, right?
+[00:28:07] You can't just sort of have a if-then
+[00:28:09] kind of thing. It really does need to be
+[00:28:10] learned from data.
+[00:28:12] And
+[00:28:14] transformers are very effective at
+[00:28:15] learning things from data.
+[00:28:17] And the model needs this context to to
+[00:28:20] generate appropriate things. If if you
+[00:28:24] don't give the context, you're sort of
+[00:28:25] forced in a way to
+[00:28:28] it's almost like you're forced to be a
+[00:28:30] lowest common denominator style thing
+[00:28:32] because you don't want to be really
+[00:28:34] happy and laughing if the other person
+[00:28:36] is sad or something. You kind of are
+[00:28:38] forced to be the sort of neutral robotic
+[00:28:40] maybe experience. And that's probably
+[00:28:43] why or it's one of the reasons why
+[00:28:44] historically
+[00:28:46] voice assistants feel so flat
+[00:28:48] is that traditional text-to-speech is
+[00:28:50] kind of like it can only be flat. Or in
+[00:28:52] other words, if it tries to not be flat,
+[00:28:54] it's very likely wrong, right? So, so
+[00:28:56] the speech generation research community
+[00:28:58] is very likely, I think
+[00:29:00] to move to more and more contextual
+[00:29:02] architectures basically.
+[00:29:03] But
+[00:29:04] the current level of context that the
+[00:29:06] research preview has is like sipping
+[00:29:08] through a straw relative to what
+[00:29:10] all the context that a human processes
+[00:29:11] when we're talking, right? So, all the
+[00:29:14] like you said earlier, it doesn't even
+[00:29:15] understand audio yet. Right.
+[00:29:17] So, where do Well, to be fair, so the
+[00:29:20] the
+[00:29:21] speech generation part is conditioned on
+[00:29:23] the on all the audio of the
+[00:29:25] conversation. So, the speech generation
+[00:29:26] part is
+[00:29:27] is audio conditioned. Yeah. But it's not
+[00:29:29] vision conditioned. It doesn't know
+[00:29:30] anything
+[00:29:31] It doesn't know anything about what I'm
+[00:29:32] seeing. Yeah. It doesn't know anything
+[00:29:34] about what I'm
+[00:29:36] what what I'm feeling, what I'm focused
+[00:29:37] on. It doesn't understand who else is in
+[00:29:39] the room with me, where I am, my
+[00:29:40] geolocation.
+[00:29:42] Is that all context that you think is
+[00:29:43] important or basically is the amount of
+[00:29:45] context it has now roughly, you think,
+[00:29:47] pre-to-optimal context it needs and from
+[00:29:48] here on out any additional modality you
+[00:29:50] add is just diminishing returns. No, I
+[00:29:53] mean so
+[00:29:55] there are there are a few
+[00:29:57] answers there. So one thing is that
+[00:30:00] we do feel that an audio kind of an
+[00:30:03] audio-centric experience like a
+[00:30:05] telephone call can't is is a great
+[00:30:07] experience. And so there the context
+[00:30:10] that you want is of course the context
+[00:30:12] of the conversation which we kind of
+[00:30:14] have or we're kind of going towards.
+[00:30:16] You also want memory. You want a kind of
+[00:30:18] history of your relationship with the
+[00:30:19] with the user of course. Right. And I
+[00:30:21] think that can be a great experience. Is
+[00:30:22] that enough? In some sense I think it's
+[00:30:25] almost like all context is probably
+[00:30:28] usable and kind of should be used for
+[00:30:30] like a for an ideal experience.
+[00:30:33] We mentioned on the on the website and
+[00:30:35] we mentioned in some of our launch
+[00:30:37] content that we are working towards
+[00:30:38] glasses as a form factor for
+[00:30:41] companions or kind of this companion
+[00:30:43] interface.
+[00:30:44] And I think that when you get
+[00:30:47] the companion to have that level of
+[00:30:49] context in particular
+[00:30:51] site kind of where you're looking at, I
+[00:30:53] think you will get even more natural
+[00:30:56] feeling experiences where it feels like
+[00:30:59] your companion is sort of in the room
+[00:31:01] with you and can will certainly have
+[00:31:04] different
+[00:31:06] even in just like the voice but in the
+[00:31:09] in the entire interaction, right? Not
+[00:31:11] just the voice but also what it says
+[00:31:13] when it sees something that's exciting
+[00:31:15] and can kind of you know exclaim with
+[00:31:16] you kind of thing it will feel very much
+[00:31:19] like it's in the room with you and it's
+[00:31:20] kind of like over your shoulder
+[00:31:22] and that will be a great experience.
+[00:31:25] Why are glasses the necessary way
+[00:31:28] to accomplish that? As opposed to what?
+[00:31:32] A phone? A phone? Sure, a phone.
+[00:31:34] camera? Yeah.
+[00:31:36] A pair of
+[00:31:38] hearing aids?
+[00:31:38] Hearing aids and stuff.
+[00:31:39] Yeah, I I mean there are there are
+[00:31:42] different devices that will be good
+[00:31:46] ways to interact with a companion.
+[00:31:49] We see companions
+[00:31:52] voice in particular but companions as
+[00:31:54] like the the super set
+[00:31:58] as a kind of
+[00:32:00] new interface to to computing or it will
+[00:32:02] be. You know, I don't think we're there
+[00:32:03] yet. I think we are certainly not there
+[00:32:05] yet. I think the industry is not there
+[00:32:07] yet. There's a lot more
+[00:32:09] core advancements to be done before a a
+[00:32:12] companion product is sort of a
+[00:32:15] feasible and actual interface to
+[00:32:17] computing.
+[00:32:18] We think it should start with a
+[00:32:20] foundation of being natural, being
+[00:32:21] something that you want to talk to,
+[00:32:23] being something that feels, you know,
+[00:32:25] fluid and and so forth.
+[00:32:26] But I think when you get a new kind of
+[00:32:29] interface medium the question is sort of
+[00:32:30] what is the device that is the best at
+[00:32:34] interacting with this interface, right?
+[00:32:36] Phones are good. Phones are not going
+[00:32:38] anywhere. Phones are amazing. I love my
+[00:32:39] phone.
+[00:32:40] No one's going to replace phones anytime
+[00:32:42] soon or laptops for that matter. Phones
+[00:32:43] didn't replace laptops either.
+[00:32:46] Why glasses is that
+[00:32:48] you know, if you think about what you
+[00:32:50] want a device
+[00:32:52] that is kind of interacting with this
+[00:32:53] interface like a a companion to be, you
+[00:32:56] want it to be very very low friction.
+[00:32:57] You don't want to have to take your
+[00:32:58] phone out, unlock it, open an app, make
+[00:33:01] a call and then talk. There's things all
+[00:33:03] around you. Like one way to think of it
+[00:33:05] is sort of how would you want to
+[00:33:07] interact with like a friend that's sort
+[00:33:08] of hanging out with you all the time?
+[00:33:10] You wouldn't want to have to take out a
+[00:33:11] phone every time you want to say
+[00:33:12] something to them. So you want it to be
+[00:33:14] super low friction, always available.
+[00:33:16] And you kind of want as best you can to
+[00:33:20] have the companion have a sort of mirror
+[00:33:22] of your perception of your context.
+[00:33:25] Maybe one day that's going to be like a
+[00:33:26] neuralink style device, you know,
+[00:33:28] whenever that some embedded chip into
+[00:33:30] your brain and it sort of has but
+[00:33:32] putting kind of
+[00:33:33] those kind of things aside, the glasses
+[00:33:35] are really
+[00:33:37] pretty optimally placed to be a sort of
+[00:33:38] mirror of your perceptions. Right where
+[00:33:40] your eyes, ears, etc. are. Could even
+[00:33:42] imagine a
+[00:33:43] smell thing and we're not we're not
+[00:33:44] doing it anytime soon but like it's
+[00:33:46] where all your perception organs are
+[00:33:48] basically. And it's a device
+[00:33:51] or a product category that billions of
+[00:33:53] people wear all day every day and is
+[00:33:55] always available to them, right? I wear
+[00:33:56] them.
+[00:33:57] You sometimes wear them. Not right now.
+[00:33:59] Used to.
+[00:34:00] The Sesame site says we're working on
+[00:34:02] everyday
+[00:34:03] Everyday, all day.
+[00:34:04] All day I wear. Why is that critical if
+[00:34:07] it excludes all those other all those
+[00:34:08] folks who don't wear everyday glasses?
+[00:34:10] I think that
+[00:34:12] it takes a lot to earn hardware on
+[00:34:15] someone's body, a wearable, right?
+[00:34:19] And
+[00:34:20] you have to provide enough value.
+[00:34:22] Especially if you want someone like me
+[00:34:24] to switch from my glasses that I wear
+[00:34:26] all day every day to a new pair of
+[00:34:28] glasses.
+[00:34:29] You have to provide a lot of value to
+[00:34:31] justify that.
+[00:34:32] I think that when the the the value
+[00:34:35] proposition that we think glasses will
+[00:34:37] eventually
+[00:34:38] hit, which will take some time
+[00:34:41] is when
+[00:34:43] your access to your companion to
+[00:34:46] computing, let's say through this
+[00:34:47] interface, is always there. It's always
+[00:34:49] there with no friction. So if you have
+[00:34:51] to think about, you know, in this period
+[00:34:54] of time I'm going to wear these
+[00:34:55] sunglasses or or these glasses and then
+[00:34:57] I'll have access for some amount of time
+[00:35:00] and then I won't it can't become a kind
+[00:35:03] of a habit that you just always
+[00:35:05] think you have.
+[00:35:07] All day everyday allows it to become a
+[00:35:09] habit, a part of your daily life all the
+[00:35:12] time.
+[00:35:13] And a lot of the
+[00:35:15] things that we think will be really
+[00:35:16] great about this product are when you're
+[00:35:19] just kind of doing something else in the
+[00:35:21] world. You're not really thinking about
+[00:35:22] the fact that there's a that you have
+[00:35:24] access to a companion or that you have
+[00:35:26] electronics or access to an interface to
+[00:35:28] computing.
+[00:35:29] And something triggers that like
+[00:35:32] I want to use it right now for a very
+[00:35:34] short amount of time. You use it and
+[00:35:35] then you kind of go back to not using
+[00:35:37] it. And it's about the friction, right?
+[00:35:40] If you don't have it all the time
+[00:35:42] available, if it's not always on
+[00:35:45] always there the friction is high,
+[00:35:47] right? You have to think about like
+[00:35:48] essentially do I have it on or not right
+[00:35:50] now?
+[00:35:51] So
+[00:35:54] while we were talking
+[00:35:56] I got like three different texts from
+[00:35:58] people saying any chance
+[00:36:02] the model's ready, the open source
+[00:36:03] model's ready.
+[00:36:04] And when I read who these texts are from
+[00:36:07] two out of three of those folks are
+[00:36:08] working on some version of a enterprise
+[00:36:12] developer customer support type use
+[00:36:14] case. Given the sheer amount of demand
+[00:36:16] there is for this system
+[00:36:19] why not produce something that's a
+[00:36:22] general purpose API, a model that
+[00:36:23] everybody can use for all kinds of use
+[00:36:25] cases?
+[00:36:25] Yeah. Yeah. So why not an API?
+[00:36:28] People ask us for the for an API as
+[00:36:30] well.
+[00:36:31] In fact a lot. People ask for the for an
+[00:36:33] API a lot. The main reason is focus,
+[00:36:35] basically. We want to bring this
+[00:36:39] companion product to market and now we
+[00:36:43] have a lot of people that love using the
+[00:36:44] demo, which is fantastic. We've kind of
+[00:36:47] shown to ourselves and I think to
+[00:36:49] the world that there is magic, there is
+[00:36:52] some, you know, really great experience
+[00:36:54] when you can talk to a system that feels
+[00:36:57] very natural like you're talking to a
+[00:36:58] human and so forth.
+[00:36:59] There's a there's a lot
+[00:37:01] to go in making it a great product but
+[00:37:03] we are focused on that path. We would
+[00:37:05] like to bring a great product that is a
+[00:37:08] companion to market
+[00:37:09] first.
+[00:37:11] Anything that's not that path is
+[00:37:13] basically a distraction right now.
+[00:37:15] I do think that these APIs, I mean there
+[00:37:18] are API businesses for speech
+[00:37:20] generation, for text to speech that are
+[00:37:22] that are great. And I think people will
+[00:37:25] want more and more conversational
+[00:37:27] natural API access and I think those
+[00:37:29] companies will do a great job of of
+[00:37:32] providing that, right?
+[00:37:34] We don't have to do everything. We are
+[00:37:36] focused on building this product
+[00:37:38] experience.
+[00:37:39] And we don't want to get distracted by
+[00:37:41] other things. You know,
+[00:37:43] sometimes it feels like an API or
+[00:37:45] something like that
+[00:37:46] is like relatively easy to do and
+[00:37:49] you know, it's not like it's not maybe
+[00:37:51] as hard as some of the other things that
+[00:37:53] we're doing but everything is a drag on
+[00:37:54] engineering, right? And we we really
+[00:37:57] want to stay focused on bringing to
+[00:37:59] bring the product that we want to build
+[00:38:00] to market. One of the things you've
+[00:38:02] talked about is that it's got to be
+[00:38:05] a companion you want to talk to. Mhm.
+[00:38:08] An API is a great way to allow people to
+[00:38:10] customize a companion
+[00:38:13] in
+[00:38:14] to be more like something I want to
+[00:38:17] to talk to. Yeah. And so is there some
+[00:38:19] other way by which you
+[00:38:21] think people will be able to customize
+[00:38:23] the companion that's not direct access
+[00:38:25] to the API?
+[00:38:26] Cuz that's what you that's one of the
+[00:38:28] things you give up, right? By not
+[00:38:29] exposing that.
+[00:38:30] Kind of. I mean
+[00:38:33] not everyone's going to want the same
+[00:38:35] personality in their companion. So we're
+[00:38:38] certainly not going to we don't see our
+[00:38:40] product as like one companion that's the
+[00:38:42] same for everyone.
+[00:38:44] People have different preferences and
+[00:38:46] and that has to be a part of this kind
+[00:38:48] of product category for sure.
+[00:38:50] Um
+[00:38:51] I think
+[00:38:53] people
+[00:38:54] like people using an API, in some sense
+[00:38:58] I think the problem with the API right
+[00:38:59] now is that
+[00:39:01] it's just too hard to make a great
+[00:39:05] product right now. Like it's not
+[00:39:07] something that you can turn into an API
+[00:39:08] where it's just sort of, you know, you
+[00:39:10] put a prompt and it's a great
+[00:39:12] personality, right? It takes more than
+[00:39:14] just sort of
+[00:39:16] you know, voice clone plus change the
+[00:39:17] prompt now you have
+[00:39:20] a new character that's just as good as
+[00:39:21] it would be if you spent a lot of time
+[00:39:23] on it. It takes I think today
+[00:39:26] making a great personality
+[00:39:28] voice interface system, we can't turn it
+[00:39:31] into an API that produces super high
+[00:39:34] quality outcome today. Like the APIs and
+[00:39:37] the ability for models to follow prompts
+[00:39:39] is quite good for sure, right? They and
+[00:39:41] it's getting better every every year for
+[00:39:43] sure.
+[00:39:44] Um
+[00:39:45] but we you know, we want to make it
+[00:39:47] first party to make it a higher quality,
+[00:39:50] you know, as high quality as we can push
+[00:39:51] it. I I think what we've seen over the
+[00:39:53] last, you know, two, maybe three years
+[00:39:56] is there are companies that are kind of
+[00:39:57] built around different modalities in AI.
+[00:39:59] So there's like video companies and
+[00:40:01] image companies and speech companies and
+[00:40:03] so on.
+[00:40:04] I think that
+[00:40:06] conversation, like human conversation,
+[00:40:08] is kind of its own modality
+[00:40:10] and it is nowhere near
+[00:40:13] done, right? There's so much more to do
+[00:40:16] at the in the core research side to make
+[00:40:17] it better
+[00:40:18] and it's not clear to me that the
+[00:40:20] direction it's going to go is, from a
+[00:40:22] research perspective, is what we have
+[00:40:25] today, right? It can change a lot. And
+[00:40:28] when you make an API, you are kind of
+[00:40:29] baking in some kind of interfaces to
+[00:40:32] that system, like how do you control it
+[00:40:34] and how do you
+[00:40:35] uh how do you tune it and so on. And I
+[00:40:37] think it's just a little early to do
+[00:40:38] that.
+[00:40:39] Um it's just for us. I mean, we in the
+[00:40:41] sense that those kinds of things sort of
+[00:40:43] start constraining you a bit where if
+[00:40:45] you want to make major changes to make
+[00:40:46] improvements.
+[00:40:47] All right, the next question folks have
+[00:40:49] for you. What will the companion do?
+[00:40:52] And how does Sesame handle context
+[00:40:55] retention in long conversations? It's
+[00:40:56] really impressive.
+[00:40:58] Yeah.
+[00:41:00] So what will the companion do?
+[00:41:02] I think
+[00:41:04] the focus at the beginning, which is,
+[00:41:06] you know, now, the the short-term focus,
+[00:41:08] is
+[00:41:09] to continue making
+[00:41:11] the most natural
+[00:41:13] companion possible, the most natural
+[00:41:14] interaction possible. So what will it do
+[00:41:16] is it will
+[00:41:17] talk to you in a way that feels
+[00:41:19] real, right? And we want to continue
+[00:41:21] pushing that.
+[00:41:23] That axis of research, this kind of like
+[00:41:27] conversational modeling, you know, human
+[00:41:29] conversations
+[00:41:31] are very
+[00:41:33] complex. You know, there's a lot of like
+[00:41:34] back and forth that has to be
+[00:41:36] negotiated, like when should you start
+[00:41:38] talking? Sometimes there's some cross
+[00:41:40] talk and you have to kind of negotiate
+[00:41:41] who's going to end up talking. There are
+[00:41:43] back channels where you kind of indicate
+[00:41:46] to the other person that you're
+[00:41:47] listening with like a little sound or
+[00:41:48] something. Um there are times where
+[00:41:51] interruptions are rude, but there are
+[00:41:52] times where interruptions are are good
+[00:41:54] because the other person is sort of
+[00:41:56] taking a lot of time to explain
+[00:41:58] something that you already understand
+[00:41:59] and you should cut them off and kind of
+[00:42:00] answer them and so forth. So human
+[00:42:02] conversations are extremely complicated.
+[00:42:05] And
+[00:42:06] doing the work to model them
+[00:42:09] effectively and naturally, I think is
+[00:42:11] not it's not going to be like a short
+[00:42:14] problem. It's like a very long-term
+[00:42:15] problem. And so one of the core research
+[00:42:18] things we're working on is that track of
+[00:42:20] work and, you know, what we are, for
+[00:42:22] example, open sourcing soon
+[00:42:25] the kind of speech generation part is
+[00:42:27] really still relatively constrained or
+[00:42:30] sort of um it models a relatively small
+[00:42:32] part of a full conversation. I mean,
+[00:42:35] it's kind of easy to think of the text
+[00:42:37] and the speech of the conversation as
+[00:42:39] like the bulk of it and and maybe it is
+[00:42:41] to some degree.
+[00:42:42] But I think to get these things to feel
+[00:42:45] very, very natural and real, you do need
+[00:42:47] to model the full conversation, the turn
+[00:42:48] taking, the back channels, everything.
+[00:42:51] And so there we see a pretty long road
+[00:42:53] there of making improvements and we
+[00:42:55] think that what we have now is pretty
+[00:42:57] early, actually.
+[00:42:59] So we want to keep pushing that and we
+[00:43:00] don't want to
+[00:43:01] you know, detour into starting to do too
+[00:43:04] many kind of long reasoning sort of tool
+[00:43:07] calling, do things for you and so forth.
+[00:43:09] Those will certainly be part of an
+[00:43:11] effective product in this category
+[00:43:13] but our core research, I think we still
+[00:43:16] have a ways to go in just
+[00:43:18] supernatural conversations.
+[00:43:21] The companion in the long term, yeah, it
+[00:43:23] should we want you to be able to do
+[00:43:24] things with it. We want it to be able to
+[00:43:26] help you kind of be a better version of
+[00:43:28] yourself, kind of maintain
+[00:43:31] information, maintain memory, build a
+[00:43:33] relationship with you and so forth. Um
+[00:43:35] and we are working on many of those
+[00:43:36] things as well, but the core foundation
+[00:43:39] of a good companion product, I think, is
+[00:43:42] the sort of naturalness of interaction
+[00:43:45] and then we kind of want to build these
+[00:43:48] other capabilities on top of that
+[00:43:50] foundation.
+[00:43:52] There's there's a follow-up question,
+[00:43:54] which is
+[00:43:55] why how is it so fast?
+[00:43:57] How is it so fast is a bunch of systems
+[00:44:00] engineering. One of the things that I
+[00:44:01] think is so fun, honestly, to work on
+[00:44:04] this kind of category or this product
+[00:44:06] experience is that it's not just or ML.
+[00:44:10] There's great core ML to do.
+[00:44:12] There's also great engineering to do,
+[00:44:13] systems engineering, and there's great
+[00:44:15] kind of product creative work to do as
+[00:44:16] well. And we want to be a company that
+[00:44:19] sort of unifies all those things.
+[00:44:21] How is it so fast is really a systems
+[00:44:22] engineering problem, right? And it's an
+[00:44:24] infrastructure problem cuz, you know,
+[00:44:26] especially now we've had to scale our
+[00:44:28] our our back end a significant amount
+[00:44:30] and maintaining low latency across a
+[00:44:32] bunch of users and so forth is is really
+[00:44:34] a challenging infrastructure problem
+[00:44:36] that is also fun to work on. But how did
+[00:44:38] you solve it?
+[00:44:39] I would say it's more of a sort of
+[00:44:40] combination of a bunch of things, like
+[00:44:43] you know, of course there are like the
+[00:44:44] core systems of like transcription and
+[00:44:47] and the LM and our speech generation and
+[00:44:49] so on. And each of those you
+[00:44:52] hyper-optimize or optimize as much as
+[00:44:53] you can and you want to pipe them to get
+[00:44:55] pipe them together in an optimized way.
+[00:44:57] You want to do some kind of
+[00:44:59] pre-computation and caching and
+[00:45:02] to try to
+[00:45:03] minimize latency across everything that
+[00:45:05] you possibly can.
+[00:45:06] Um so I wouldn't say there's kind of one
+[00:45:08] trick or anything like that. It's just
+[00:45:10] you know, the end there there's a lot of
+[00:45:12] places in the system where latency can
+[00:45:14] creep in.
+[00:45:15] And we're talking about, you know, we
+[00:45:16] want
+[00:45:18] you know, sub-500 millisecond response
+[00:45:19] times
+[00:45:21] and
+[00:45:22] a lot of things that feel like not a big
+[00:45:24] deal, 50 milliseconds here, 50
+[00:45:25] milliseconds there, can really add up.
+[00:45:26] So it's kind of like a focus across the
+[00:45:29] across the stack on just systems
+[00:45:31] engineering. How big is the engineering
+[00:45:32] team that pulled that off?
+[00:45:34] Software team is about 15, less than 15.
+[00:45:38] But that's but that's research and it.
+[00:45:39] That's research and and so like the core
+[00:45:42] yeah, the core ML team is something like
+[00:45:44] seven or eight and then infrastructure
+[00:45:46] and kind of product are are the rest.
+[00:45:49] It's a small team. It's a small team and
+[00:45:50] and yeah, we have a we have a great
+[00:45:52] team. We have a super talent dense team
+[00:45:54] and it's great to work with them. How do
+[00:45:55] you keep the talent density so high?
+[00:45:57] What what have you been looking for?
+[00:46:01] What's your bar for somebody who's good
+[00:46:02] enough to join the Sesame team? Yeah, we
+[00:46:04] look for people who
+[00:46:07] are kind of generally strong engineers,
+[00:46:10] basically, like
+[00:46:12] especially when you're smaller
+[00:46:14] you know, you don't really want to
+[00:46:17] harden like, you know, you have this
+[00:46:19] team that is super, super niche in doing
+[00:46:21] only this thing because you don't know
+[00:46:22] exactly what the stack is going to look
+[00:46:24] like tomorrow. Things change on the
+[00:46:26] research side, then you need a different
+[00:46:28] kind of infrastructure stack to serve it
+[00:46:30] and so on.
+[00:46:31] And so you know, especially early on,
+[00:46:33] you you don't want super niche people.
+[00:46:36] You you basically want folks who are
+[00:46:39] good systems thinkers that can work on
+[00:46:42] many different things and can sort of
+[00:46:44] learn new things. There's there's really
+[00:46:46] no one that has, you know, 10 years of
+[00:46:48] experience serving transformers at scale
+[00:46:50] or something like this. Uh it's it's it
+[00:46:53] you know, this whole thing is new. So
+[00:46:54] you need people who are excited to
+[00:46:55] learn, who are strong engineers and who
+[00:46:59] who can learn. Next question is, how do
+[00:47:01] the scaling laws for speech
+[00:47:04] differ from text? That's an interesting
+[00:47:06] question. So we we published in the in
+[00:47:08] our in our blog post we trained three
+[00:47:11] variants. We trained 1 billion, 3
+[00:47:13] billion, and 8 billion of just speech
+[00:47:14] generation.
+[00:47:16] And you know, even the 1 billion is
+[00:47:19] very good at speech generation.
+[00:47:22] What you find as you
+[00:47:25] scale up is you really are starting to
+[00:47:27] hit the kind of long tail things
+[00:47:30] and the contextual things.
+[00:47:32] So for example, two of the evaluations
+[00:47:34] that we published in the post are sort
+[00:47:37] of homograph selection. There are kind
+[00:47:39] of these words that
+[00:47:41] they're two different words and they're
+[00:47:42] spelled the same but pronounced
+[00:47:43] differently.
+[00:47:44] So an example is like lead and lead, l e
+[00:47:47] a d.
+[00:47:48] And
+[00:47:50] you know, you can ask the question
+[00:47:52] you give a sentence that
+[00:47:54] based on the context of the sentence,
+[00:47:56] just the semantics of the sentence, it's
+[00:47:57] clear which word you mean, you know,
+[00:47:59] like you lead the pack or like the paint
+[00:48:01] had lead in it or something like this.
+[00:48:03] And you'll generate the speech and
+[00:48:06] you'll
+[00:48:07] transcribe it with a phoneme transcriber
+[00:48:10] and you see what which pronunciation did
+[00:48:11] it pick.
+[00:48:12] And
+[00:48:14] these are kind of like long tail things.
+[00:48:16] I mean, lead and lead are sort of
+[00:48:17] relatively common words, but there are
+[00:48:19] others that are more kind of less common
+[00:48:21] words and and it's harder for a model to
+[00:48:23] pick.
+[00:48:24] Um like for example, another one is row
+[00:48:26] and row, like row is like a fight kind
+[00:48:28] of thing. Row is, you know, rowing a
+[00:48:29] boat.
+[00:48:30] And we see that as the models get
+[00:48:32] bigger, they're much better at picking
+[00:48:35] the right pronunciation in examples like
+[00:48:37] this.
+[00:48:39] There's a similar thing about using
+[00:48:40] context. So when you
+[00:48:43] again, there
+[00:48:44] a lot of these are about pronunciation
+[00:48:45] or or pronunciation is sort of like a
+[00:48:47] very
+[00:48:49] useful probe to see how good these
+[00:48:51] models are at some things.
+[00:48:53] So for example, we'll take words that in
+[00:48:56] American English have uh multiple valid
+[00:49:00] pronunciation variants.
+[00:49:01] So for example, route and root.
+[00:49:04] There are some regions that may say one
+[00:49:06] way, some some say the other way, but
+[00:49:08] it's not like an accent per se. It's
+[00:49:09] like some people just say route, some
+[00:49:10] people say root.
+[00:49:12] And we'll
+[00:49:14] take an audio prompt of someone saying
+[00:49:16] it in one way
+[00:49:18] and then saying it in the other way.
+[00:49:20] And then we'll generate a a sentence
+[00:49:22] after
+[00:49:23] that has the word in it. And you should
+[00:49:26] expect if the if the
+[00:49:28] if the model is able to sort of clone
+[00:49:29] the voice as and clone the accent, clone
+[00:49:32] the pronunciation, etc. that it should
+[00:49:34] continue with the same pronunciation
+[00:49:36] that you gave it at the beginning. And
+[00:49:38] again, we see the models as they get
+[00:49:39] bigger, they get they get better at
+[00:49:40] that.
+[00:49:41] So, I think a lot of these are kind of
+[00:49:44] the long long tail things and contextual
+[00:49:46] things. The contextual things are what
+[00:49:48] we care, you know, the most about. Is
+[00:49:50] that are they able to pick up more and
+[00:49:52] more information from the context to
+[00:49:54] condition what what they generate? And
+[00:49:56] that's kind of what we're talking about
+[00:49:57] earlier about
+[00:49:59] you know, you have to there's so many
+[00:50:00] there are an infinite different ways of
+[00:50:02] of generating any audio for for text and
+[00:50:05] you got to pick one that's appropriate
+[00:50:06] in this situation.
+[00:50:08] And we do see that the models as they
+[00:50:09] get better, they get bigger, sorry, they
+[00:50:11] get much better at doing that. Um
+[00:50:14] and so, that's kind of you know, there
+[00:50:17] there there's a lot more to probe in in
+[00:50:18] these models actually. I mean,
+[00:50:20] you know, it's certain there's certainly
+[00:50:21] more work to be done about like
+[00:50:23] understanding how they change as they
+[00:50:25] get bigger and we're we're doing that
+[00:50:26] work, too. There's um
+[00:50:28] uh there was a moment where
+[00:50:31] when we were testing early checkpoints
+[00:50:33] of Maya
+[00:50:34] before the research preview. And I would
+[00:50:36] test it every day.
+[00:50:38] And my name is pronounced Ange.
+[00:50:40] yeah. But it's written A N J.
+[00:50:42] Yeah. And she would keep pronouncing it
+[00:50:43] Ange.
+[00:50:44] Yeah. And then one day
+[00:50:46] she was able to preserve my the
+[00:50:47] pronunciation and I would every day it
+[00:50:49] was like Groundhog Day, right? I'd wake
+[00:50:50] up and say my name is pronounced Ange. I
+[00:50:52] was hoping for the day that she would
+[00:50:54] preserve my pronunciation and one day
+[00:50:55] she did.
+[00:50:55] Yeah. Do you think that corresponded to
+[00:50:58] just a larger training run? It's
+[00:50:59] possible. It's certainly possible. Um
+[00:51:03] yeah, we do we do look at evaluations
+[00:51:05] like that as well, like name
+[00:51:06] pronunciations in particular. That's
+[00:51:08] like a good example of a kind of
+[00:51:11] product-centric evaluation. Maybe and
+[00:51:12] people care a lot about how their names
+[00:51:14] are pronounced, right? And when you say
+[00:51:16] when you talk to Alexa or something or
+[00:51:18] like another voice assistant and they
+[00:51:20] kind of say your name wrong, it feels
+[00:51:21] bad, right? Feels bad when anyone says
+[00:51:23] your name wrong, really.
+[00:51:24] And name pronunciation is a good
+[00:51:26] example. It could have been just a
+[00:51:27] better checkpoint, it's possible. But
+[00:51:29] then it consistently did that right
+[00:51:31] after from that moment on. Yeah. Or
+[00:51:33] actually, let's let's talk about evals
+[00:51:35] for a second cuz
+[00:51:36] how how do you think about evals? How
+[00:51:38] are they different in audio or rather
+[00:51:41] conversational speech
+[00:51:42] Yeah. than text LLMs and chatbots? Yeah,
+[00:51:45] I mean, it's it's
+[00:51:46] to be honest, it's it's a hard problem.
+[00:51:48] It's a hard problem because
+[00:51:50] you know, you can find things where
+[00:51:54] you're able to directly check like the
+[00:51:56] answer. I mean, it's a problem in text
+[00:51:58] as well in general, right? Like you have
+[00:52:00] some you know, in in in the field
+[00:52:03] there's kind of
+[00:52:04] you know, in the RL world like deep seek
+[00:52:06] and so on.
+[00:52:07] There's sort of uh
+[00:52:09] you know, you can get a lot out of
+[00:52:11] verifiable rewards where you can get the
+[00:52:13] model to generate something, you can
+[00:52:15] check whether it's right in some
+[00:52:17] relatively stable way.
+[00:52:19] Um the problem with generative models in
+[00:52:21] general for evaluation is that there are
+[00:52:24] many different generations that are
+[00:52:26] appropriate even when you constrain it
+[00:52:28] to like have conditioning and so forth,
+[00:52:30] there's still an infinite number of ways
+[00:52:31] to generate something that in an
+[00:52:33] appropriate way, right?
+[00:52:35] in speech anyways.
+[00:52:36] And it's not necessarily
+[00:52:39] easy to like
+[00:52:41] have a numerical answer as to how good
+[00:52:43] something was. So, for example, we look
+[00:52:45] at pronunciation because it is closer to
+[00:52:47] something that you can just check,
+[00:52:49] right?
+[00:52:50] Earlier on in the speech generation
+[00:52:53] world in the community
+[00:52:55] very often you'd look at like word error
+[00:52:56] rate where you look at transcription,
+[00:52:58] like you kind of have a sentence and
+[00:52:59] then you generate it and you transcribe
+[00:53:01] it and you see if it's the same.
+[00:53:03] And those metrics are kind of getting
+[00:53:05] saturated basically. Like these models
+[00:53:06] are just good enough that
+[00:53:09] you know, you can get some signal from
+[00:53:11] the kinds of word error rate, are they
+[00:53:13] insertions, are they deletions, etc. But
+[00:53:16] at a corpus-wide level like these models
+[00:53:18] are very very good now.
+[00:53:21] So, you know, then we started looking at
+[00:53:22] pronunciation because you can kind of
+[00:53:24] pick out you can kind of construct a
+[00:53:26] prompt in a way that demands a certain
+[00:53:28] pronunciation and then see did it pick
+[00:53:30] the right pronunciation and so on. So,
+[00:53:32] that's kind of quantifiable. But that
+[00:53:34] doesn't really get at you know, does it
+[00:53:36] feel natural? Right? That's like a
+[00:53:38] capability maybe of the model which we
+[00:53:41] care about and we care about that
+[00:53:42] growing and that does grow with scale
+[00:53:43] and so forth.
+[00:53:45] But it doesn't really answer this kind
+[00:53:47] of product question of like does it feel
+[00:53:49] natural? Does it feel good, right? Is it
+[00:53:50] appropriate for the scenario and so on?
+[00:53:53] And so, those evaluations look very
+[00:53:55] similar honestly to how LLM evaluations
+[00:53:58] go sometimes, which is like preferences
+[00:54:00] and like an arena or like some kind of,
+[00:54:02] you know, head-to-head ranking and so
+[00:54:04] forth.
+[00:54:04] Another thing that we do, for example,
+[00:54:06] is there are some data sets that are
+[00:54:09] academic data sets. We also have some
+[00:54:10] data sets that are kind of like
+[00:54:13] just two people in a conversation or
+[00:54:15] sometimes they're actors, but that it's
+[00:54:17] trying to be a real conversation. And
+[00:54:19] so, we'll kind of take the conditioning
+[00:54:21] uh of some snippet of the conversation
+[00:54:24] and then show a human rater
+[00:54:26] um
+[00:54:27] the real continuation and the model's
+[00:54:29] continuation. And so, it's like a win
+[00:54:31] rate against the human, against real,
+[00:54:33] right? And that has good signal and so
+[00:54:36] on. So, it's these like preferences.
+[00:54:38] Yeah, so so there's two questions I
+[00:54:40] wrestle with on this. One is the idea
+[00:54:42] that a companion
+[00:54:44] is much more engaging when there's a
+[00:54:46] sharp personality to it.
+[00:54:48] Um which obviously people
+[00:54:50] love about Sesame. I mean, that's
+[00:54:52] probably the single most common Yeah.
+[00:54:55] point is people go, "Wow, Maya is so
+[00:54:59] real and and feels like a person."
+[00:55:01] And imperfect and like like a human in a
+[00:55:04] way.
+[00:55:04] Right. in that sense, yeah. But on the
+[00:55:06] other hand,
+[00:55:07] there are a bunch of people who also
+[00:55:08] say, "Hey, Maya feels a bit
+[00:55:11] like she's acting." Sure. Like she's
+[00:55:13] performing.
+[00:55:13] Yeah. Yeah. Uh you know, we spend a lot
+[00:55:15] of time at Discord and
+[00:55:17] you know, a huge amount of Discord usage
+[00:55:19] is in voice channels and when you look
+[00:55:22] when you actually kind of spend time
+[00:55:24] looking at and and trying to observe
+[00:55:27] what the shape of a great conversation
+[00:55:29] in voice is on Discord,
+[00:55:31] a lot of it is
+[00:55:32] actually not that interesting, right?
+[00:55:34] It's people just hanging out talking.
+[00:55:36] The the the core action moments actually
+[00:55:37] happen when there's an other activity
+[00:55:39] like gaming or there's people are
+[00:55:41] watching a movie or something together.
+[00:55:43] Yeah. Yeah. But but the vast majority of
+[00:55:45] talking is actually quite natural,
+[00:55:47] sometimes boring, not that exciting.
+[00:55:49] Yeah. Whereas Maya keeps trying to
+[00:55:51] inject That's true, yeah. excitement
+[00:55:53] into it almost like an actor. Right,
+[00:55:54] right. So, how what why is that? Why is
+[00:55:59] is there any way to resolve the tension
+[00:56:01] that in trying to have a personal direct
+[00:56:03] a personal a voice com- companion like a
+[00:56:05] director would, like a movie director
+[00:56:07] would,
+[00:56:08] you lose
+[00:56:09] the organic
+[00:56:10] texture of a conversation.
+[00:56:12] Well, I think it's that way because we
+[00:56:15] have more work to do, more or less,
+[00:56:16] right? Like I think that this area, this
+[00:56:19] field of like personality, especially
+[00:56:21] over voice, I mean, voice
+[00:56:23] see, voice I think is kind of a much
+[00:56:25] higher bar because it's such a high
+[00:56:26] bandwidth communication, it's like it's
+[00:56:30] even the like such little things will
+[00:56:32] make you feel
+[00:56:34] like the person on the other side is
+[00:56:35] fake, basically. Right. Whereas, you
+[00:56:38] know, text a a I think you I think it's
+[00:56:40] much easier it would be much easier to
+[00:56:42] make a system that produces text chats
+[00:56:46] with you that feels like you're texting
+[00:56:48] a a human because there's there's such a
+[00:56:50] compression of like what the entity on
+[00:56:52] the other side is into just like text.
+[00:56:54] Whereas voice is this kind of open
+[00:56:56] duplex thing.
+[00:56:58] Um
+[00:56:59] so, voice
+[00:57:00] is harder in a way. And but also what
+[00:57:03] comes with that is more kind of
+[00:57:05] emotional or sort of there's more
+[00:57:07] opportunity to feel really natural and
+[00:57:09] and real.
+[00:57:09] Right. Right. I think that that category
+[00:57:12] is
+[00:57:13] it's like a its own major research
+[00:57:16] question of like how do you
+[00:57:19] how do you
+[00:57:20] it's kind of a research/product question
+[00:57:22] of like how do you design a voice system
+[00:57:26] that has a personality that you think is
+[00:57:27] good, that also feels human, that is not
+[00:57:30] too pushy, that's not too
+[00:57:32] fake and sort of synthetic and but is is
+[00:57:35] superhuman at the end of the day, right?
+[00:57:37] Like these systems are superhuman. They
+[00:57:39] know much more, they they are smarter in
+[00:57:42] many ways, they know have more world
+[00:57:44] knowledge and and so on. They can do
+[00:57:45] things over time and so forth. So,
+[00:57:48] from a product perspective, it there's
+[00:57:50] this question of we want it to feel very
+[00:57:52] very natural. We want it to feel just
+[00:57:53] like you're talking to a human. But it
+[00:57:55] is kind of a superhuman thing on the
+[00:57:56] other side. And what are the things that
+[00:57:59] you kind of want this thing to be human
+[00:58:02] around or feel human and where do you
+[00:58:04] want it to be superhuman? I think that's
+[00:58:05] a really interesting question.
+[00:58:07] The core tech
+[00:58:09] also needs to be better at kind of
+[00:58:13] being moldable to that goal. And right
+[00:58:16] now, the system yeah, it kind of
+[00:58:19] at times it will sort of be too pushy or
+[00:58:22] be too I mean, often it's like too happy
+[00:58:24] or too kind of energetic, too positive.
+[00:58:27] Um
+[00:58:28] feels like it's acting, feels like it's
+[00:58:29] forced, etc. etc. Um and that's just
+[00:58:32] kind of work that we need to do. Yeah.
+[00:58:34] The the top question
+[00:58:36] on the fan subreddit does anyone know
+[00:58:39] what the plan is for this deck? Yeah. Uh
+[00:58:42] and this user is saying, "I had my first
+[00:58:44] proper chat with Maya over lunch today.
+[00:58:47] Yes, mind-blown. I know that this
+[00:58:49] deck is brand new. I'm wondering what
+[00:58:51] the ongoing plan is. I've heard it will
+[00:58:53] be made open source. That would be
+[00:58:55] amazing. I'm wondering if Sesame's
+[00:58:56] planning to set up its own app or wait
+[00:58:58] for us to continue using it. Basically,
+[00:59:00] I just want to know how I can keep
+[00:59:01] talking to Maya." Yeah. Yeah.
+[00:59:04] Uh we are making an app. We will make an
+[00:59:06] app.
+[00:59:07] I think for a little bit of time it's
+[00:59:09] going to still be kind of the demo
+[00:59:11] experience. We want to support people
+[00:59:13] using that for
+[00:59:15] a long time or you know, we don't want
+[00:59:16] to we're not taking it away anytime soon
+[00:59:18] from where it is right now.
+[00:59:20] Um
+[00:59:21] we love that people are using it, we
+[00:59:22] love
+[00:59:23] that people like it and so on.
+[00:59:25] The we are making a an app. It'll it'll
+[00:59:28] be a product, it'll be an app. And it's
+[00:59:29] a a
+[00:59:30] And you'll talk to Maya or Miles or
+[00:59:33] whatever character you want to talk to
+[00:59:35] and it will remember you and it will be
+[00:59:37] an engaging experience to talk to. We
+[00:59:40] want that is the product we're trying to
+[00:59:41] make.
+[00:59:42] In terms of the core tech
+[00:59:44] we're we're open-sourcing
+[00:59:46] the base models today
+[00:59:48] or soon.
+[00:59:50] And
+[00:59:51] the core tech is going to take a lot of
+[00:59:53] work to get to
+[00:59:55] where we want to I mean we're going to
+[00:59:56] keep working on it for
+[00:59:57] years probably. This was a research
+[00:59:59] preview
+[01:00:00] of the
+[01:00:02] most basic research.
+[01:00:03] Yeah. You know, Sesame's been doing
+[01:00:04] which is the CSM, the conversational
+[01:00:06] speech model.
+[01:00:07] Where does the future of the the
+[01:00:09] research road map go? So CSM is kind of
+[01:00:12] the first step of making a multimodal
+[01:00:16] transformer-based architecture that
+[01:00:17] generates speech.
+[01:00:19] The path that we're going to take, I
+[01:00:21] think over the next few months, is
+[01:00:23] making a single transformer that does
+[01:00:25] both audio understanding, content text
+[01:00:27] content generation, and speech
+[01:00:29] generation. It's much harder to add a
+[01:00:31] modality to a pre-trained model than it
+[01:00:33] is add a generative modality than it is
+[01:00:36] to add an understanding modality.
+[01:00:38] So
+[01:00:39] very soon we're going to add an
+[01:00:41] understanding modality.
+[01:00:42] Ah, right. Which is like the kind of
+[01:00:44] core model will be able to sort of
+[01:00:47] understand will be seeing the audio from
+[01:00:49] the user and kind of being able to
+[01:00:51] So if I cough, it'll be able to
+[01:00:53] understand that I just coughed. Right.
+[01:00:54] Even though there's no transcription of
+[01:00:55] my cough.
+[01:00:56] Right. Right.
+[01:00:57] Right. And then the next step is to
+[01:01:00] add a gen a generation modality. We
+[01:01:03] don't intend to pre-train the LLMs,
+[01:01:05] right? We love the open-source LLMs that
+[01:01:08] are out there. We'll continue building
+[01:01:09] on top of them.
+[01:01:10] And in general we take
+[01:01:12] the open-source LLMs and we add
+[01:01:14] modalities to it in particular speech is
+[01:01:15] like the modality we care a lot about.
+[01:01:17] And so
+[01:01:19] the kind of
+[01:01:20] shorter-term research road map is to
+[01:01:23] basically go to a single multimodal
+[01:01:24] model
+[01:01:25] that will both understand and generate
+[01:01:28] speech.
+[01:01:29] The CSM work is is a first step that
+[01:01:33] does kind of a contextual multimodal
+[01:01:36] transformer for speech generation.
+[01:01:38] And there's another kind of line of work
+[01:01:40] which is adding the audio understanding
+[01:01:42] modality to pre-trained
+[01:01:44] LLMs and then we'll merge the two into a
+[01:01:46] single model that can both understand
+[01:01:48] and generate speech and and text and so
+[01:01:49] forth.
+[01:01:50] You mentioned Duplex. I think
+[01:01:52] you know, these models today do not
+[01:01:55] they do not model the structure of the
+[01:01:57] conversation at all. They only they only
+[01:01:59] model the content, text and speech.
+[01:02:02] And because of that you still need some
+[01:02:05] other
+[01:02:06] set of models or maybe, you know, you
+[01:02:08] need some other set of systems
+[01:02:10] that
+[01:02:12] kind of drive the conversation actually.
+[01:02:13] Like when should
+[01:02:16] the system respond, when should it get
+[01:02:18] when should it get interrupted, how
+[01:02:19] should the interruption kind of be
+[01:02:21] manifested and so forth.
+[01:02:23] I think that this this area this
+[01:02:26] research area of
+[01:02:28] conversational voice
+[01:02:29] is going to move. It has to really move
+[01:02:31] to kind of full duplex models. There are
+[01:02:34] some in the research and like the
+[01:02:36] literature there are some kind of early
+[01:02:38] and and and compelling sort of
+[01:02:40] architectures and paths.
+[01:02:41] There's some from Meta, there's some
+[01:02:42] from other research labs. There's one
+[01:02:44] called Moshi that's kind of interesting.
+[01:02:46] You know, we need to get to ways where
+[01:02:48] we can kind of create those
+[01:02:50] architectures but
+[01:02:52] initialize them or sort of maintain the
+[01:02:54] capabilities and the knowledge of LLMs.
+[01:02:57] And that's a little bit unclear of like
+[01:02:58] how exactly do that. But that's really
+[01:03:00] what we're looking towards long term.
+[01:03:02] That's kind of where this is going, I
+[01:03:03] think that
+[01:03:04] we'll have these sort of duplex
+[01:03:06] architectures
+[01:03:07] that
+[01:03:08] can generate audio
+[01:03:10] in a sort of
+[01:03:12] like all of the turn-taking and back
+[01:03:13] channels and so on will be implicit in
+[01:03:15] the architecture. Like it's kind of
+[01:03:17] generating audio every kind of time
+[01:03:18] slice or sort of every frame.
+[01:03:21] And that is I think the path to getting
+[01:03:25] systems that really feel
+[01:03:28] truly real.
+[01:03:29] Right, because
+[01:03:30] I I think that those complicated
+[01:03:32] dynamics do need to be learned from
+[01:03:34] data. I don't think you want to in the
+[01:03:37] long term have those dynamics be like
+[01:03:40] heuristics and so on which they kind of
+[01:03:41] are now. They're models involved in some
+[01:03:43] heuristics and so forth.
+[01:03:45] I think in the long term it's just one
+[01:03:48] model that is kind of naturally
+[01:03:50] implementing all of these complicated
+[01:03:52] dynamics.
+[01:03:53] You said
+[01:03:54] you used the word there which was every
+[01:03:55] time slice or every frame.
+[01:03:58] Why is that so important? What why is
+[01:03:59] what is the latent sort of atomic unit
+[01:04:01] there you're you think is the right way
+[01:04:03] to model speech? It's probably frame.
+[01:04:05] It's like, you know
+[01:04:06] say 100 milliseconds of time or
+[01:04:08] something like that.
+[01:04:10] Where
+[01:04:11] you you want you basically want
+[01:04:13] ultimately to have the model make as
+[01:04:16] many decisions as it can.
+[01:04:19] So right now if you think of the model
+[01:04:20] as kind of like a
+[01:04:22] if you think of it from like a
+[01:04:24] reinforcement learning style perspective
+[01:04:26] you're kind of making a full, let's say,
+[01:04:28] sentence of a decision at a time. Right.
+[01:04:31] Like at this moment you're the model's
+[01:04:33] like I'm going to say this in this way.
+[01:04:35] But it's a full sentence. Right. And
+[01:04:37] then if
+[01:04:38] it kind of can't update that
+[01:04:41] decision on its own until the end of the
+[01:04:42] sentence. You can have some other system
+[01:04:44] that's like, oh, and we need to
+[01:04:45] interrupt or or something and kind of
+[01:04:46] make a new decision.
+[01:04:48] But the model natively is operating
+[01:04:50] sentence by sentence. Right. And that's
+[01:04:53] just too long of a decision to make at a
+[01:04:55] time. Like
+[01:04:57] it's not it's you need to make much
+[01:05:00] shorter decisions. You need to make
+[01:05:01] decisions at the 100 millisecond, let's
+[01:05:03] say,
+[01:05:04] time segment so that if you're talking
+[01:05:07] and the other person, you know, starts
+[01:05:09] sort of
+[01:05:10] making some noises that make it seem
+[01:05:13] like they're trying to interrupt you or
+[01:05:14] they want to say something, you can kind
+[01:05:16] of back off and let them say something
+[01:05:17] or not, right?
+[01:05:19] Those decisions need to be made
+[01:05:20] constantly like, you know, every 100
+[01:05:23] milliseconds or something along these
+[01:05:24] lines.
+[01:05:25] And the models that we have today, like
+[01:05:28] CSM for example, and probably some of
+[01:05:30] the models that we'll have in the short
+[01:05:32] term that will make the experience
+[01:05:33] better, will still
+[01:05:36] will still not be
+[01:05:38] modeling the conversational dynamics
+[01:05:40] because they're making decisions at kind
+[01:05:42] of like sentence at a time.
+[01:05:44] And I think we need to move away from
+[01:05:46] that in the long term. So
+[01:05:47] architecturally
+[01:05:49] you know, one of the types of models
+[01:05:51] that's been really great at continuous
+[01:05:53] data is diffusion models. Yeah. Right?
+[01:05:56] Whereas
+[01:05:57] CSM the CSM you guys put out is an
+[01:05:59] autoregressive model. Yeah. And this
+[01:06:02] multimodal future where you what you're
+[01:06:04] talking about with with this these time
+[01:06:06] slicing is just a way to discretize a
+[01:06:08] continuous stream.
+[01:06:10] Yeah,
+[01:06:11] yeah, sure.
+[01:06:12] Why not just use a continuous
+[01:06:13] architecture like a diffusion model?
+[01:06:16] Well, that's it's an interesting
+[01:06:17] question. So diffusion models are
+[01:06:19] continuous in the sense that the
+[01:06:23] the data that they model is continuous
+[01:06:25] data. Right. But they're not
+[01:06:28] they're not kind of natively in any way
+[01:06:30] causal. They're not like continuous in
+[01:06:31] the time dimension per se, right? The
+[01:06:34] autoregressive transformers, they are
+[01:06:36] causal and so they have a kind of axis
+[01:06:38] which is time which kind of makes sense
+[01:06:41] from a, you know,
+[01:06:43] conversational perspective.
+[01:06:45] And that they're sequence. They're
+[01:06:46] sequence, yeah. They're sequence. Causal
+[01:06:48] meaning like every
+[01:06:49] you know, every time step is conditional
+[01:06:51] on what's before and not after.
+[01:06:52] Diffusion models are not kind of
+[01:06:54] natively causal. Now there are
+[01:06:56] we are also working, by the way, on
+[01:07:00] kind of ideas that make the audio
+[01:07:01] generation part diffusion.
+[01:07:04] So we kind of have, you know, the way
+[01:07:05] that these multimodal models work in CSM
+[01:07:08] as well and kind of the direction that
+[01:07:09] we're going is that you have like a
+[01:07:11] transformer backbone which is you can
+[01:07:14] think of that as sort of where most of
+[01:07:15] the kind of hard reasoning happens or
+[01:07:17] something.
+[01:07:18] And you know, when you want to add a new
+[01:07:20] modality to the understanding path, you
+[01:07:22] sort of have some adapter. There are
+[01:07:25] various techniques. But like you
+[01:07:26] ultimately have some adapter that takes
+[01:07:27] that modality and puts it into the
+[01:07:29] backbone so the backbone can kind of
+[01:07:31] understand it and reason on it or
+[01:07:33] something along these lines. And then
+[01:07:34] you have a generation path that takes
+[01:07:37] the backbone and generates out the audio
+[01:07:39] in this case, right? That path can be
+[01:07:41] diffusion. We want that to possibly be
+[01:07:43] diffusion in the future. There there are
+[01:07:44] some great advantages to diffusion.
+[01:07:47] But the core backbone will need to
+[01:07:50] remain causal. That that doesn't mean
+[01:07:52] that it can't have diffusion as part of
+[01:07:54] it.
+[01:07:55] But I think an autoregressive
+[01:07:56] transformer is at least currently
+[01:07:59] you know, that's like the thing to bet
+[01:08:00] on for for kind of sequence modeling.
+[01:08:03] There are other
+[01:08:04] kind of architectures that are slowly
+[01:08:06] gaining in some popularity, Mamba and
+[01:08:08] SSMs and so on. And I think there's some
+[01:08:10] exciting things there. But transformers
+[01:08:12] are kind of this tried-and-true Right.
+[01:08:14] thing and and I wouldn't bet against
+[01:08:16] transformers, you know, not in the short
+[01:08:19] term anyways. If you had
+[01:08:22] $10 billion
+[01:08:23] more than you have right now. Yeah.
+[01:08:25] And essentially let's let's say compute
+[01:08:27] was not a problem.
+[01:08:29] Data was not a problem. Would you would
+[01:08:31] you choose a different architecture?
+[01:08:34] I don't I don't know the answer to that
+[01:08:35] question. I think
+[01:08:37] there's not another architecture to bet
+[01:08:38] on today. You know, will transformers be
+[01:08:42] the architecture that a future $10
+[01:08:44] billion run definitely uses? It's really
+[01:08:47] impossible to say.
+[01:08:49] You know
+[01:08:50] transformers are very effective and
+[01:08:52] there's a reason they work so well and
+[01:08:54] and also, you know, there's this dynamic
+[01:08:56] of like because they're so effective and
+[01:08:58] they're so now
+[01:09:00] um usable in all these different fields,
+[01:09:02] you kind of get this dynamic of like
+[01:09:04] people invest a lot of engineering time
+[01:09:06] into it. And so if you want to make a
+[01:09:07] different architecture that competes
+[01:09:09] with it, you have to make a better core
+[01:09:11] architecture, let's say. But then you
+[01:09:13] also have to compete with all of the
+[01:09:14] engineering optimization that has
+[01:09:16] happened on transformers over the last
+[01:09:17] three, four, five years or, you know,
+[01:09:19] all the way back until they were
+[01:09:20] invented.
+[01:09:21] But that is, you know, not easy to do.
+[01:09:25] You know, we've talked about like system
+[01:09:26] engineering for us, for example, keeping
+[01:09:28] latencies down and so forth.
+[01:09:29] Transformers are not sort of natively
+[01:09:31] the best
+[01:09:33] You can imagine a better architecture
+[01:09:35] for like low latency inference and so
+[01:09:36] forth,
+[01:09:37] but because of all of the engineering
+[01:09:40] work that the community has done around
+[01:09:42] transformers, it's like, you know, it's
+[01:09:43] very good. And you're not going to just
+[01:09:45] sort of unseat that, you know, just by
+[01:09:47] an idea, right? There's a lot of work to
+[01:09:49] be done.
+[01:09:50] But I could see transformers being
+[01:09:52] replaced one day. I mean, you know,
+[01:09:54] we'll have we'll have to see, but I I
+[01:09:56] think transformers are a good bet
+[01:09:57] anyways at the moment.
+[01:09:59] What is something that
+[01:10:01] you think
+[01:10:03] you've realized
+[01:10:05] through the training of
+[01:10:07] Maya and Miles and CSM
+[01:10:10] that the rest of the world doesn't
+[01:10:12] realize yet?
+[01:10:13] That is an interesting question.
+[01:10:16] I think that people now kind of realize
+[01:10:18] it actually because like if you play
+[01:10:20] with the our demos, I think you do feel
+[01:10:23] that there's like something different,
+[01:10:25] you know? And that and that's like a
+[01:10:26] valuable thing that you can kind of feel
+[01:10:27] instantly is sort of
+[01:10:30] important or something or kind of could
+[01:10:32] be important.
+[01:10:33] But the value of just like focusing on
+[01:10:36] the naturalness of the voice as opposed
+[01:10:38] to, let's say, the
+[01:10:40] you know,
+[01:10:42] you know, the
+[01:10:43] the demos are imperfect. They're kind of
+[01:10:45] imperfect in a way that
+[01:10:47] is that feels feels natural. And that is
+[01:10:51] you could even maybe say at times that
+[01:10:52] that's like a, you know, from a sort of
+[01:10:55] raw content of the conversation
+[01:10:57] perspective, it's almost like wrong in a
+[01:10:59] way. Like
+[01:11:01] Maya and Miles, they might sort of say
+[01:11:04] the wrong thing or kind of like back up
+[01:11:05] a little bit and say something else or
+[01:11:07] something.
+[01:11:08] And that's on purpose, of course, and
+[01:11:10] but it's like if you just looked at the
+[01:11:12] text and you were thinking about it from
+[01:11:15] a purely textual perspective, you might
+[01:11:18] call that wrong, right? But it actually
+[01:11:20] feels more real. I mean, that speaks a
+[01:11:22] little bit to why evaluation is hard for
+[01:11:25] these things. But um
+[01:11:28] I think that the maybe that's one of the
+[01:11:30] things that I've learned is that
+[01:11:32] you have to be very careful with how you
+[01:11:34] evaluate these things to to to match
+[01:11:36] like the product experience that you
+[01:11:37] want to achieve. Right. If you have your
+[01:11:40] evaluations too divorced from the
+[01:11:42] product experience, you might not find
+[01:11:44] these kind of like
+[01:11:46] product feeling, you know, qualitative
+[01:11:50] uh
+[01:11:51] upsides. Right.
+[01:11:53] So I I just typed Sesame AI into Reddit
+[01:11:55] and I'm just going to read read out the
+[01:11:57] top headlines to you.
+[01:11:58] Yeah.
+[01:11:59] The first one is I'm in love with Sesame
+[01:12:01] AI, literally.
+[01:12:03] The second is Sesame AI's voice is
+[01:12:06] insane. Open AI needs to catch up.
+[01:12:09] And the third is the Sesame voice model
+[01:12:11] has been the moment for me.
+[01:12:14] The fourth is Sesame voice is incredibly
+[01:12:16] realistic.
+[01:12:19] And the fourth one is the one where I
+[01:12:20] convinced Maya from Sesame to go
+[01:12:22] unhinged. And all of these, you know,
+[01:12:23] have
+[01:12:24] hundreds and thousands of of likes and
+[01:12:26] comments.
+[01:12:28] And the reason I'm bringing this up is
+[01:12:29] because
+[01:12:31] relative to 5-6 days ago,
+[01:12:34] I I don't think it's too much of an
+[01:12:35] exaggeration anymore to say this
+[01:12:38] research preview has been for voice what
+[01:12:39] ChatGPT was for text.
+[01:12:43] And the kinds of things I'm hearing you
+[01:12:44] say are very similar to what people were
+[01:12:46] saying about like GPT-3.5 and ChatGPT.
+[01:12:49] It wasn't the smartest model. It got
+[01:12:51] things it hallucinated all the time, but
+[01:12:53] it had a personality.
+[01:12:55] It was a step and it was a step function
+[01:12:59] different, right? It felt like a leap.
+[01:13:01] Yeah.
+[01:13:02] But two things happened after that.
+[01:13:06] A lot of people feel like the models
+[01:13:09] regressed for a while.
+[01:13:11] The cost of of fixing hallucination, so
+[01:13:14] to speak, was personality.
+[01:13:16] Sure. And a lot of people are worried
+[01:13:18] that that's going to happen to Maya,
+[01:13:19] too. Yeah.
+[01:13:20] Is that true?
+[01:13:22] I don't think that's true. So it it is
+[01:13:25] true that there
+[01:13:27] you know, these
+[01:13:28] the the technology is still early. All
+[01:13:31] all of this technology is early. You
+[01:13:32] know, I think it's it's easy to see AI
+[01:13:35] progressing so fast, and it is
+[01:13:36] progressing so fast, but it's also still
+[01:13:38] early. I mean, you know, when was
+[01:13:40] ChatGPT when was December 2022? 2022.
+[01:13:44] And here we are in early 2025. It's
+[01:13:46] really not that not that long, right? So
+[01:13:49] these things are early, and so,
+[01:13:51] you know, even GPT-4.5, which just came
+[01:13:53] out,
+[01:13:55] it's kind of being
+[01:13:57] presented as a kind of, you know, has a
+[01:13:59] personality again or sort of, you know,
+[01:14:01] more kind of creative and so forth.
+[01:14:04] And I don't think that these limitations
+[01:14:07] they're not like fundamental
+[01:14:08] necessarily. They're you just have to
+[01:14:09] figure them out. They you know, it takes
+[01:14:11] time to to do these kind of things.
+[01:14:13] I think the other aspect about these
+[01:14:15] kind of products is that it's a
+[01:14:17] different product, right? They're making
+[01:14:20] assistants. They're making utilities. I
+[01:14:22] love those products. I use them all the
+[01:14:23] time. They're great products. We want to
+[01:14:26] make a companion, and so our
+[01:14:28] prioritization of features and of,
+[01:14:31] let's say, post-training kind of
+[01:14:33] personality, etc. will be different.
+[01:14:36] We would like to see
+[01:14:39] our models get better and better and
+[01:14:41] better on a bunch of axes, but not lose
+[01:14:43] the kind of
+[01:14:44] personality or kind of naturalness and
+[01:14:46] so forth. And I don't think we will lose
+[01:14:48] those things because that is what we're
+[01:14:50] focused on. That's that's what that's
+[01:14:52] how we differentiate, actually.
+[01:14:53] I think that you know,
+[01:14:56] these
+[01:14:57] the other companies, the other sort of
+[01:15:00] chat products and so forth,
+[01:15:02] they will get better voices. They're all
+[01:15:04] like it's not going to we don't have
+[01:15:07] some
+[01:15:08] magical secret sauce on the technical
+[01:15:10] side that is going to be like impossible
+[01:15:12] to replicate. They're going to get
+[01:15:13] better voices, for sure, across the
+[01:15:15] board.
+[01:15:16] For us, it's not about like
+[01:15:18] it's really about the they're different
+[01:15:20] products, right? And we're making
+[01:15:22] different kind of product. And I think
+[01:15:24] that as
+[01:15:26] as they get better voices, let's say,
+[01:15:28] they're still going to want the product
+[01:15:31] to be the, you know,
+[01:15:33] the category that they're in. They want
+[01:15:35] it to be a good assistant. They want it
+[01:15:36] to do research and so on and so forth.
+[01:15:38] And those will be great products.
+[01:15:40] I think we have a path to making a great
+[01:15:43] companion product that is a different
+[01:15:44] product and requires
+[01:15:47] us to keep a a good personality and and
+[01:15:50] naturalness and so forth. And so, you
+[01:15:52] know, we can't lose those things. And
+[01:15:54] so, you know, we'll focus on not losing
+[01:15:56] those things. A lot of the conversation
+[01:15:58] about
+[01:16:00] AI research happens at the model layer.
+[01:16:04] But something you and I have talked
+[01:16:05] about for years now is that a lot of the
+[01:16:08] most interesting research is
+[01:16:10] in AI is at the interface layer.
+[01:16:14] Right? That reframes
+[01:16:17] an AI system as a new kind of interface
+[01:16:21] for computing. And if actually if you
+[01:16:23] just pull up sesame.com, Yeah. the first
+[01:16:25] thing you see is our mission is to bring
+[01:16:27] the computer to life.
+[01:16:28] Right. Right.
+[01:16:30] So can you talk a little bit about why
+[01:16:32] how is how is viewing the voice
+[01:16:35] companion not as just another
+[01:16:37] application, but as an interface for
+[01:16:39] computing in general Yeah.
+[01:16:41] important? Why is it different? Why why
+[01:16:43] why do you see it that way? I think
+[01:16:46] AI
+[01:16:47] these these technologies, they
+[01:16:50] they will
+[01:16:51] create a bunch of products. They're
+[01:16:53] create a bunch of value across a bunch
+[01:16:54] of different industries and so forth.
+[01:16:57] But I think that, you know, you're
+[01:16:58] already seeing with
+[01:17:00] the with chat products
+[01:17:03] that there is this exciting thing about
+[01:17:05] you can now kind of talk to your
+[01:17:07] computer, right? You can text with your
+[01:17:09] computer, you can talk over voice with
+[01:17:11] your computer and and so forth. And on
+[01:17:13] the other side of this AI interface,
+[01:17:17] that that system can do things for you.
+[01:17:20] It can kind of search the web, let's
+[01:17:21] say, and it can, you know, connect to
+[01:17:23] other systems and so forth.
+[01:17:25] And I think that that
+[01:17:27] that dynamic is a interesting new user
+[01:17:31] interface.
+[01:17:32] You know, we had kind of terminal user
+[01:17:34] interfaces. We've had graphical user
+[01:17:36] interfaces.
+[01:17:38] Certainly the GUI is kind of what
+[01:17:40] brought computers to like a mainstream
+[01:17:41] audience because it's kind of
+[01:17:44] you know, it's more intuitive to work
+[01:17:45] with. It's sort of you have these like
+[01:17:47] nice graphical displays and so forth.
+[01:17:49] And that's not going away anytime soon.
+[01:17:51] Your phone's not going away anytime
+[01:17:52] soon. Your laptop's not going away.
+[01:17:54] There's
+[01:17:55] too many reasons for display, basically.
+[01:17:58] But natural language is an interface or
+[01:18:00] kind of being able to interact with your
+[01:18:02] computer in a natural way,
+[01:18:04] I think is a
+[01:18:06] it will open up a new interface for
+[01:18:09] computing
+[01:18:10] where as a user, you can just talk to
+[01:18:14] your computer. And you know, we say
+[01:18:15] bring the computer to life because
+[01:18:17] we want it to feel like this sort of
+[01:18:20] historically kind of set of capabilities
+[01:18:23] that are kind of locked away in this box
+[01:18:25] now feels like you can just kind of
+[01:18:26] interact with it and work with it in a
+[01:18:27] kind of collaborative way in a in the
+[01:18:29] way that you'd interact with humans and
+[01:18:30] so on. And we think that is a kind of
+[01:18:32] new interface that will be great.
+[01:18:36] It's not really there yet, but we want
+[01:18:38] to get it there and and build that. And
+[01:18:41] we think of what we build really as the
+[01:18:43] kind of the interface layer. Like we're
+[01:18:46] building a companion. We think of a
+[01:18:47] companion is kind of like a new
+[01:18:49] interface in a way where on one side you
+[01:18:51] sort of have the user interacting with
+[01:18:53] this companion,
+[01:18:55] and the companion might be interacting
+[01:18:56] with
+[01:18:57] downstream compute and and so forth.
+[01:19:00] Maybe that's other AI systems. Maybe
+[01:19:02] that's kind of these growing in
+[01:19:04] capabilities, growing in reasoning
+[01:19:05] abilities
+[01:19:07] other AI systems, but it might be the
+[01:19:08] web. It might be search. It might be,
+[01:19:11] you know, some other set of digital
+[01:19:12] services that are in your life and so
+[01:19:14] on.
+[01:19:16] We think that that interface layer, it's
+[01:19:18] it's really not kind of a core
+[01:19:22] bigger bigger models better better
+[01:19:25] reasoning question. It's really a
+[01:19:26] product experience question. It's really
+[01:19:29] a question of can you make a system that
+[01:19:31] people actually want to interact with
+[01:19:33] people want to talk to, right? And
+[01:19:36] I don't think that that will be I don't
+[01:19:39] think the path that that will take is
+[01:19:41] just bigger and bigger and bigger until
+[01:19:43] you can, you know, just scale it as far
+[01:19:45] as you can
+[01:19:46] because
+[01:19:47] that might be the path to more
+[01:19:49] capabilities, more intelligence and
+[01:19:50] we're excited to use those capabilities
+[01:19:52] and that will certainly be a part of the
+[01:19:53] product experience.
+[01:19:55] Maybe as like a kind of API that you can
+[01:19:57] that the companion can hit.
+[01:19:59] But really what will differentiate one
+[01:20:02] companion interface product with another
+[01:20:05] is just the product experience. How
+[01:20:07] entertaining, how engaging, how much do
+[01:20:09] you want to interact with this thing?
+[01:20:11] And those are the battles that we want
+[01:20:12] to fight. We want to focus our research
+[01:20:14] and our kind of technical innovation on
+[01:20:16] that layer, making it more natural, more
+[01:20:19] interactive, more just sort of just
+[01:20:22] something that you want to interact
+[01:20:23] with, right? When you talk to over text
+[01:20:26] with a system that kind of responds in
+[01:20:29] somewhat robotic ways, it's kind of like
+[01:20:31] providing an essay and so on. You know,
+[01:20:32] those systems will get better and
+[01:20:33] better. Every these things will all get
+[01:20:35] better.
+[01:20:36] But
+[01:20:37] our goal from a product experience
+[01:20:38] perspective is different. We want it to
+[01:20:41] be
+[01:20:42] natural, interactive, you know? And I
+[01:20:44] think that at the end of the day
+[01:20:46] it's it's not so much about at that
+[01:20:49] layer, it's not so much about what
+[01:20:52] scores the best on reasoning benchmarks
+[01:20:53] and so on. It's like which one has a
+[01:20:56] personality that you want to talk to,
+[01:20:58] that you like, you know? It's it's it's
+[01:21:00] more of a kind of product question
+[01:21:01] actually. And that's why we kind of come
+[01:21:03] from that perspective. And we focus on
+[01:21:06] technology that achieves those those
+[01:21:08] experience goals. The history of
+[01:21:09] computing interfaces has been that
+[01:21:11] usually there's somebody who's very
+[01:21:12] opinionated about product. Now, of
+[01:21:13] course, Steve Jobs is sort of the
+[01:21:15] canonical example there. But if you
+[01:21:18] if you look it's not just Steve Jobs,
+[01:21:20] it's Doug Engelbart and earlier than
+[01:21:22] that it's
+[01:21:25] folks who designed the the terminal. The
+[01:21:27] If you read even some of Claude
+[01:21:29] Shannon's early work,
+[01:21:31] there's this idea
+[01:21:33] that and a system that is fast enough to
+[01:21:36] respond to you
+[01:21:39] is
+[01:21:40] is delightful. And people often think
+[01:21:42] about computing interface design
+[01:21:45] as
+[01:21:46] a purely utilitarian task about making
+[01:21:48] it more functional. I mean, today mobile
+[01:21:50] screens when you talk about this this
+[01:21:52] thing, the primary like
+[01:21:55] axis of differentiation every year now
+[01:21:57] is bigger screen.
+[01:21:58] But in the early days of it of this if
+[01:22:01] if you go look at the keynote I think
+[01:22:03] that Steve Jobs did on on the smartphone
+[01:22:06] I mean, it was largely about the
+[01:22:08] interface being natural enough to use. I
+[01:22:09] think it's
+[01:22:10] literally talked about how annoying it
+[01:22:12] was to to type on these tiny QWERTY
+[01:22:14] keyboards.
+[01:22:15] you had the like scrolling the scrolling
+[01:22:17] thing and like the, you know, when it
+[01:22:20] hits the end and it bounces a little
+[01:22:21] bit. Yeah, yeah. So, there's natural
+[01:22:22] motion in the UI design. And then there
+[01:22:25] was also the idea that
+[01:22:26] that most most touch screens just
+[01:22:28] sucked. They were non-capacitive touch,
+[01:22:30] which meant you had to like press on
+[01:22:32] them really hard. Um
+[01:22:34] in So, when you say that Maya is not
+[01:22:38] just a companion
+[01:22:40] or Sesame is not just working on
+[01:22:41] companions, it's working on a new
+[01:22:43] interface for computing
+[01:22:44] is the analogy
+[01:22:46] is the reason you're investing in
+[01:22:47] personality because you think
+[01:22:50] that in a voice first AI of interface
+[01:22:52] world
+[01:22:54] solving personality is akin to solving
+[01:22:56] speed or the delight of touching a
+[01:22:58] screen, you know, in the early
+[01:22:59] smartphone days or the speed at which a
+[01:23:01] terminal would respond your keystrokes
+[01:23:03] and is that the lineage of computing
+[01:23:05] that you see
+[01:23:06] uh Sesame falling into?
+[01:23:08] Yeah, I think I think there's some good
+[01:23:09] analogies there. Like I think you know,
+[01:23:12] we see companions as an interface. Mhm.
+[01:23:15] And
+[01:23:16] maybe in a broader sense kind of natural
+[01:23:19] language
+[01:23:20] as an interface, you know, text and
+[01:23:22] voice and and so on.
+[01:23:24] And yeah, I think you can get these kind
+[01:23:27] of very capable interfaces that are
+[01:23:29] functional
+[01:23:30] that don't produce the level of like
+[01:23:33] product experience that you would need
+[01:23:35] to make it something that people want to
+[01:23:37] use every day. Like mass market, widely
+[01:23:39] acceptable. Right. And I think that a
+[01:23:41] lot of the tech that we're focusing on
+[01:23:44] on the kind of conversation modeling and
+[01:23:45] and so on is is about kind of getting
+[01:23:48] past that point, getting to a point
+[01:23:49] where it's not just functional and like
+[01:23:52] utility oriented but it's delightful and
+[01:23:56] kind of something that you would like to
+[01:23:57] interact with. Mhm. And I think there
+[01:23:59] are analogies, you know, I think that in
+[01:24:01] general
+[01:24:02] computing it at least consumer computing
+[01:24:04] kind of mainstream computing
+[01:24:06] does really s-
+[01:24:08] you know, computers are these very
+[01:24:09] powerful things, of course, and from the
+[01:24:10] beginning they've been very very
+[01:24:12] powerful things relative to what else is
+[01:24:13] out there.
+[01:24:14] And a lot of consumer computing is about
+[01:24:16] kind of bringing it to the mainstream in
+[01:24:18] a way that they enjoy, right? That kind
+[01:24:21] of feels like a well-designed product.
+[01:24:23] That's why Apple is so is so dominant,
+[01:24:25] so successful is that it is an amazing
+[01:24:27] product experience. They have focused on
+[01:24:29] the product experience. And that's the
+[01:24:32] kind of thing where
+[01:24:33] there's really no kind of cap to how
+[01:24:36] good it can be, especially with these
+[01:24:38] kind of systems, I think, where it's
+[01:24:40] kind of like you're talking to a person
+[01:24:41] or you're you have like a companion, a
+[01:24:43] friend or whatever.
+[01:24:44] You know,
+[01:24:46] the there's such a big space of what
+[01:24:48] personalities can be and how it can feel
+[01:24:51] to interact with
+[01:24:53] these systems that I think
+[01:24:56] more so actually than like pushing on
+[01:24:58] the benchmarks, which is an important
+[01:25:01] direction of the field will go
+[01:25:03] there's kind of like a bigger, I think
+[01:25:06] vein to improve on just like making it
+[01:25:08] more
+[01:25:10] interactive, making it more delightful
+[01:25:12] to interact with.
+[01:25:13] Right. And that's kind of the area that
+[01:25:15] we would like to kind of establish
+[01:25:17] Sesame in and kind of really focus on
+[01:25:20] and utilize all the great work that
+[01:25:22] other folks are doing on reasoning and
+[01:25:24] and bigger models and so forth. Well, we
+[01:25:26] haven't really used the word fun, but in
+[01:25:27] a sense you're describing the kind of
+[01:25:29] flow state, you know, the the the Mihaly
+[01:25:31] Csikszentmihalyi framework of what what
+[01:25:33] is fun. And fun he defines as flows flow
+[01:25:36] state, which is like I it's
+[01:25:38] appropriately challenging and
+[01:25:40] appropriately rewarding.
+[01:25:41] Sure.
+[01:25:41] In a sense, using an interface that's
+[01:25:43] fun
+[01:25:44] is is one that can get you in the flow
+[01:25:45] zone really fast.
+[01:25:47] I've never had that moment with an AI
+[01:25:48] companion. Yeah, no. Yeah. Do you think
+[01:25:51] what are the biggest challenges you
+[01:25:52] think keeping us back from getting to
+[01:25:53] the flow zone of of this interface?
+[01:25:56] Yeah, I So, I certainly think that there
+[01:25:57] are capabilities challenges. So, you
+[01:26:00] know, Maya Miles today they they can't
+[01:26:03] do anything for you.
+[01:26:05] And I think that doing things
+[01:26:07] even now, I think that doing
+[01:26:10] especially challenging kind of
+[01:26:11] multi-step things, you know, agents as
+[01:26:13] people say I think to make that part of
+[01:26:17] your everyday habits it has to be like
+[01:26:20] 99%. You know, and and right now, you
+[01:26:23] know, every extra step the thing needs
+[01:26:25] to take there's some percentage that it
+[01:26:27] fails and if you have to do 100 steps,
+[01:26:30] then that percentage compounds and so
+[01:26:31] forth.
+[01:26:32] And so, I think there's certainly a
+[01:26:33] capabilities gap in the sense that
+[01:26:36] if you want to be able to interact with
+[01:26:38] an AI system, a companion as an
+[01:26:40] interface to other things, then it needs
+[01:26:42] to be able to do those other things. And
+[01:26:44] really what that means is it's not
+[01:26:45] necessarily the companion layer itself
+[01:26:47] needs to do those other things. The
+[01:26:49] companion needs to be able to interact
+[01:26:50] with others kind of some kind of systems
+[01:26:52] that do those things. And those things
+[01:26:54] need to be
+[01:26:56] more capable. If you had to draw sort of
+[01:26:58] a very reductive architecture diagram of
+[01:27:01] the computing interface of the future
+[01:27:03] how would you Where does What does that
+[01:27:05] stack look like? What What's the
+[01:27:06] operating system? What's the client?
+[01:27:08] What's the server? What's the interface?
+[01:27:09] It's a It's a good question. So, first
+[01:27:11] of all, I think
+[01:27:12] like I said, I think phones are here to
+[01:27:14] stay. Phones are amazing. Love my phone.
+[01:27:15] So, that's the primary compute device
+[01:27:17] you think in people's pockets. I think
+[01:27:18] that's still going to be the primary
+[01:27:20] compute device in people's pockets for a
+[01:27:21] long time. Yeah, they're very very good.
+[01:27:23] And
+[01:27:24] they're only going to get better as
+[01:27:25] well. I think that this newer interface
+[01:27:28] that we're talking about will kind of
+[01:27:29] look like there's a sort of companion
+[01:27:32] layer. We think of it as a companion
+[01:27:33] layer. You can think of it maybe as an
+[01:27:34] AI interface interface layer.
+[01:27:37] Um we think that that interface layer
+[01:27:39] needs to have these characteristics that
+[01:27:42] we think make it a companion, like
+[01:27:43] memory. Needs like remember you and have
+[01:27:45] like a relationship with you, be very
+[01:27:46] natural, etc. So,
+[01:27:48] you know, it needs those
+[01:27:49] characteristics.
+[01:27:50] That is sort of
+[01:27:52] the system that you are interacting with
+[01:27:55] every day in a natural way. That the the
+[01:27:58] the
+[01:27:59] What will make one
+[01:28:02] instance of that better than another
+[01:28:04] is
+[01:28:05] how much you like talking to it. That
+[01:28:06] its personality, its naturalness.
+[01:28:08] It's sort of how much it makes you feel
+[01:28:11] like you're talking to a real person and
+[01:28:12] so on. The delightfulness. It's just a
+[01:28:13] product experience thing, user
+[01:28:14] experience.
+[01:28:16] And then on the other side, that layer
+[01:28:18] will
+[01:28:19] talk to downstream services. Whether
+[01:28:21] that's kind of, you know, normal digital
+[01:28:23] services like
+[01:28:25] whatever digital services you have,
+[01:28:26] search, etc. etc.
+[01:28:28] Or other AI systems that can then sell
+[01:28:31] themselves do
+[01:28:33] things for you, interact with services
+[01:28:34] and so on.
+[01:28:35] But I think it's going to be mediated by
+[01:28:38] this companion layer that you actually
+[01:28:40] want to interact with.
+[01:28:41] And and the kind of optimization, the
+[01:28:44] the thing to focus on for that layer is
+[01:28:46] personality, is, you know,
+[01:28:48] delightfulness, all these things, kind
+[01:28:49] of consumer product experience at the
+[01:28:51] end of the day.
+[01:28:52] And the thing to optimize on the other
+[01:28:53] side is
+[01:28:55] capability, like reasoning capability,
+[01:28:56] multi-step you know, tool calling and so
+[01:28:58] on and so forth. Right. And
+[01:29:01] I think there's a lot of effort in the
+[01:29:02] space in the ecosystem right now on
+[01:29:04] those things. And those are very
+[01:29:06] valuable things that will also be in
+[01:29:09] other industries and so forth.
+[01:29:11] But I don't think there's enough
+[01:29:14] companies and kind of teams working on
+[01:29:16] the interface layer.
+[01:29:17] And that's that's where we're focused.
+[01:29:19] And that's where we kind of want to
+[01:29:20] really spend most of our time trying to
+[01:29:22] innovate on. But one would argue that
+[01:29:25] the interface layer as you're describing
+[01:29:27] it is too valuable for
+[01:29:29] other companies to not try and attack
+[01:29:31] because if if most people are
+[01:29:34] enjoy using Maya the most as their
+[01:29:36] primary interface to computing, that
+[01:29:38] means Maya basically influences what
+[01:29:42] what restaurants they pick, what where
+[01:29:44] which sites they shop on, which
+[01:29:46] I don't know which products they use,
+[01:29:47] where where where
+[01:29:49] you know, what what what sites they get
+[01:29:51] their news from. And it's a very
+[01:29:53] it's a it's it's it's both a very
+[01:29:55] um
+[01:29:56] challenging interface to build.
+[01:29:59] Yeah.
+[01:29:59] But it's also an extraordinarily
+[01:30:01] powerful place to be. It is. Yeah. So
+[01:30:03] why wouldn't today's largest computing
+[01:30:05] companies try and and and own that?
+[01:30:08] Well, I I I think they they will. I
+[01:30:10] think that over time, I think we will
+[01:30:13] see more of these
+[01:30:14] you know,
+[01:30:15] bigger companies trying to operate at
+[01:30:17] this layer. Like I said, I think I think
+[01:30:19] that there is not enough
+[01:30:21] effort on that right now making these
+[01:30:23] systems
+[01:30:24] delightful to interact with, you know?
+[01:30:26] And I think that they other companies
+[01:30:28] will see that over time and they will
+[01:30:30] start selling more effort into it. Maybe
+[01:30:31] even Sesame, this demo that we put out,
+[01:30:34] maybe we'll kick some of that into gear
+[01:30:36] as well.
+[01:30:37] I think that
+[01:30:38] at the end of the day
+[01:30:40] because the tech is so early
+[01:30:43] and because it's there's not like
+[01:30:46] there's not like a playbook exactly on
+[01:30:48] like exactly how to solve these
+[01:30:50] problems. I think that
+[01:30:52] the best product experience will be
+[01:30:54] built by a very focused small team. You
+[01:30:58] know, small doesn't mean 10 people, but
+[01:30:59] like
+[01:31:00] you know, when you start getting these
+[01:31:03] large teams that have a bunch of
+[01:31:04] different stakeholders to try you know,
+[01:31:06] it should be a great interface and be a
+[01:31:09] good personality, but it also needs to
+[01:31:10] be integrated with the broader product
+[01:31:13] categories that we have and you know,
+[01:31:15] whether that's search or that's you
+[01:31:17] know, reasoning or whatever and like it
+[01:31:18] needs to be this kind of big integrated
+[01:31:20] thing and there's a bunch of different
+[01:31:22] stakeholders in the in the
+[01:31:24] kind of process. I think it can you
+[01:31:27] know, you can kind of lose
+[01:31:29] the magic of like a a small focused team
+[01:31:32] that has kind of one goal.
+[01:31:34] And
+[01:31:35] that's Sesame's goal.
+[01:31:37] I think that will be the goal of some
+[01:31:39] teams in these larger companies, but I
+[01:31:41] would I would bet on kind of focus over
+[01:31:44] that.
+[01:31:45] Mhm. Yeah.
+[01:31:46] But you know, one of the things that
+[01:31:50] was so powerful about you know, the the
+[01:31:52] iPhone was built by a fairly small team.
+[01:31:53] Yeah.
+[01:31:55] One of the things that made it so
+[01:31:56] powerful soon after launch is they
+[01:31:57] opened it up as a developer platform.
+[01:31:59] Mhm. Still really locked down block
+[01:32:01] platform and they they took a very
+[01:32:03] strong point of view on what the quality
+[01:32:06] bar needed to be to be in the App Store
+[01:32:08] and so on.
+[01:32:09] But still extreme I mean, today the App
+[01:32:11] Store is a foundational part of
+[01:32:12] computing.
+[01:32:13] Totally. Yeah. As you're thinking about
+[01:32:15] which parts of the Sesame stack
+[01:32:18] are first party versus open to
+[01:32:20] third-party developers, where does the
+[01:32:22] line start and stop?
+[01:32:24] I think the the the easy answer, the
+[01:32:25] real answer is that we just don't know.
+[01:32:28] You know, there was OpenAI did this
+[01:32:30] ChatGPT plugin
+[01:32:32] system before and I think it's still
+[01:32:34] there probably. And it kind of didn't
+[01:32:36] fully take off really. You know, there's
+[01:32:38] MCP now which is kind of gaining some
+[01:32:41] momentum more recently and so on.
+[01:32:43] Which is kind of more of an open
+[01:32:45] standard cell thing.
+[01:32:46] Um I think that it's just
+[01:32:49] early to tell kind of what that looks
+[01:32:51] like.
+[01:32:53] One of the reasons is that I think that
+[01:32:55] the models still need to get better
+[01:32:57] basically to utilize plugins basically
+[01:33:00] you know, plugins essentially in a way
+[01:33:01] that's kind of reliable enough that
+[01:33:03] someone would will go out and look for a
+[01:33:05] plugin for you know, their kind of
+[01:33:08] downstream service of choice because
+[01:33:10] they just want you know, they have the
+[01:33:12] experience of
+[01:33:13] the AI system kind of able to use other
+[01:33:16] things so effectively and efficiently it
+[01:33:18] becomes part of their daily life and
+[01:33:20] they want to hook up this other thing to
+[01:33:21] it. I don't think we're there yet. And
+[01:33:24] so I don't think that like the exact
+[01:33:27] format of how that will look like and
+[01:33:29] where it will plug in is is clear yet.
+[01:33:31] I think it will certainly be a part of
+[01:33:34] the future of these interfaces in these
+[01:33:37] systems. Um
+[01:33:39] but I I think that that will become more
+[01:33:41] and more clear over time as in a kind of
+[01:33:45] organic way, right? I don't think it's
+[01:33:46] going to be so
+[01:33:48] decided by like let's say one company or
+[01:33:50] one player. I think it'll be a little
+[01:33:51] bit more you know, developers want to
+[01:33:53] use these capabilities. It'll be an
+[01:33:55] ecosystem, right? And I think it's it's
+[01:33:57] a little early to
+[01:34:00] try to build that for us so kind of
+[01:34:03] clearly, but it's certainly a part of of
+[01:34:04] where this goes.
+[01:34:06] What
+[01:34:07] should people
+[01:34:08] listening to this podcast who are
+[01:34:10] wondering how they can join Sesame
+[01:34:12] because they want to work on this do
+[01:34:13] next?
+[01:34:14] They should reach out to me. They can
+[01:34:15] reach out to me. They can reach out on
+[01:34:17] Twitter or or over email.
+[01:34:19] And um
+[01:34:21] What are you looking for? Yeah, we are
+[01:34:23] looking for so
+[01:34:24] like I said before, like
+[01:34:28] voice conversation is really its own
+[01:34:30] modality. And it's something that we are
+[01:34:33] very focused on trying to improve the
+[01:34:36] state of the art on. And so we're
+[01:34:39] certainly looking for people who are
+[01:34:41] excited about that challenge from like a
+[01:34:43] research perspective, from a core ML
+[01:34:45] perspective.
+[01:34:46] You don't necessarily have to be a a
+[01:34:49] researcher. We need systems engineers,
+[01:34:51] we need infrastructure engineers and so
+[01:34:53] on. But that is a big thrust of what
+[01:34:55] we're focused on right now.
+[01:34:57] Um and we're we're always looking for
+[01:34:59] kind of general strong engineers,
+[01:35:01] especially with like a kind of product
+[01:35:02] bent. You know, we at the end of the day
+[01:35:05] are making a consumer product that is
+[01:35:09] going to be judged based on how much
+[01:35:11] people like it. You know, it's not going
+[01:35:13] to be judged on
+[01:35:15] you know, benchmarks and and so forth.
+[01:35:17] Those are critical parts of developing
+[01:35:19] the product. But at the end of the day,
+[01:35:22] the question is do people love
+[01:35:24] interacting with our systems? And that's
+[01:35:26] I think part of the culture at Sesame is
+[01:35:28] to kind of merge really world-class
+[01:35:31] technology with a kind of creative taste
+[01:35:34] to make a great product. And I think if
+[01:35:37] you have
+[01:35:39] the engineering talent and you are
+[01:35:41] interested in what we're working on and
+[01:35:43] in particular you want to see these
+[01:35:46] technologies, LLMs, AI broadly speaking,
+[01:35:48] speech generation be turned into great
+[01:35:51] products that people love then I think
+[01:35:53] you'll be a great fit. If folks came by
+[01:35:56] the office, could they get a demo of
+[01:35:57] what's coming next? They can. They can.
+[01:36:00] Thanks for making the time today. Yeah,
+[01:36:02] it was fun to chat.
+[01:36:13] Mhm.

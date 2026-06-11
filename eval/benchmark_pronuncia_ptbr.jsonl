@@ -1,0 +1,27 @@
+{"id": "hom_01", "text": "O gato comeu o que estava na tigela.", "probe": "comeu", "expect": "verbo (cô-meu), não substantivo", "tipo": "homógrafo"}
+{"id": "hom_02", "text": "Eu como pão de queijo todo dia de manhã.", "probe": "como", "expect": "verbo (cô-mo)", "tipo": "homógrafo"}
+{"id": "hom_03", "text": "Faça como eu mando, não como eu faço.", "probe": "como", "expect": "advérbio (cô-mo)", "tipo": "homógrafo"}
+{"id": "hom_04", "text": "A empresa fica na sede da avenida central.", "probe": "sede", "expect": "sé-de (lugar)", "tipo": "homógrafo"}
+{"id": "hom_05", "text": "Depois da corrida, bateu uma sede danada.", "probe": "sede", "expect": "sê-de (vontade de beber)", "tipo": "homógrafo"}
+{"id": "hom_06", "text": "Vou colher os tomates antes que estraguem.", "probe": "colher", "expect": "verbo (co-lhér)", "tipo": "homógrafo"}
+{"id": "hom_07", "text": "Me passa a colher pra mexer o feijão.", "probe": "colher", "expect": "substantivo (co-lhér, objeto)", "tipo": "homógrafo"}
+{"id": "hom_08", "text": "Eu jogo bola na quadra todo sábado.", "probe": "jogo", "expect": "verbo (jô-go)", "tipo": "homógrafo"}
+{"id": "hom_09", "text": "O jogo do Flamengo começa às nove.", "probe": "jogo", "expect": "substantivo (jô-go)", "tipo": "homógrafo"}
+{"id": "hom_10", "text": "Ela governa o estado com mão firme.", "probe": "governo", "expect": "vogal aberta vs fechada por contexto", "tipo": "homógrafo"}
+{"id": "hom_11", "text": "O acordo foi fechado depois que todos acordaram cedo.", "probe": "acordo/acordaram", "expect": "substantivo vs verbo", "tipo": "homógrafo"}
+{"id": "hom_12", "text": "Aquele apito do juiz parou o jogo na hora.", "probe": "apito", "expect": "substantivo", "tipo": "homógrafo"}
+{"id": "hom_13", "text": "Eu apito o jogo amanhã, sou o árbitro.", "probe": "apito", "expect": "verbo", "tipo": "homógrafo"}
+{"id": "hom_14", "text": "A força de vontade dela força todo mundo a melhorar.", "probe": "força", "expect": "substantivo vs verbo", "tipo": "homógrafo"}
+{"id": "hom_15", "text": "O olho do furacão passou bem em cima da cidade.", "probe": "olho", "expect": "substantivo (ô-lho)", "tipo": "homógrafo"}
+{"id": "hom_16", "text": "Eu olho pro mar e esqueço dos problemas.", "probe": "olho", "expect": "verbo (ó-lho)", "tipo": "homógrafo"}
+{"id": "num_01", "text": "A conta deu mil duzentos e trinta e sete reais e noventa centavos.", "probe": "número longo", "expect": "1237,90 por extenso correto", "tipo": "número"}
+{"id": "num_02", "text": "O voo das catorze e quarenta e cinco atrasou duas horas e meia.", "probe": "horas", "expect": "14:45 falado natural", "tipo": "número"}
+{"id": "num_03", "text": "Em 1998 o Brasil perdeu a final pra França por três a zero.", "probe": "ano + placar", "expect": "mil novecentos e noventa e oito; 3 a 0", "tipo": "número"}
+{"id": "num_04", "text": "O CEP é vinte e dois mil, duzentos e quarenta, traço cento e dez.", "probe": "CEP", "expect": "22240-110 falado", "tipo": "número"}
+{"id": "sig_01", "text": "Preciso resolver isso no INSS antes de pagar o IPTU.", "probe": "INSS/IPTU", "expect": "siglas soletradas/ditas certo", "tipo": "sigla"}
+{"id": "sig_02", "text": "O Wi-Fi caiu e o e-mail não carrega de jeito nenhum.", "probe": "Wi-Fi/e-mail", "expect": "estrangeirismos ditos como no BR", "tipo": "estrangeirismo"}
+{"id": "sig_03", "text": "Manda o PDF por WhatsApp que eu vejo no Uber.", "probe": "PDF/WhatsApp/Uber", "expect": "marcas/siglas naturais", "tipo": "sigla"}
+{"id": "nom_01", "text": "Fui de Niterói até Jacarepaguá passando pela Lagoa Rodrigo de Freitas.", "probe": "topônimos cariocas", "expect": "Niterói, Jacarepaguá, Lagoa pronunciados certo", "tipo": "nome-próprio"}
+{"id": "nom_02", "text": "O Joaquim e a Heloísa moram em Higienópolis há anos.", "probe": "nomes próprios", "expect": "Joaquim, Heloísa, Higienópolis", "tipo": "nome-próprio"}
+{"id": "har_01", "text": "Três bruxas olham três relógios suíços; qual bruxa olha qual relógio?", "probe": "encontros consonantais", "expect": "clareza em cluster difícil", "tipo": "difícil"}
+{"id": "har_02", "text": "O rato roeu a roupa do rei de Roma e a rainha raivosa rasgou o resto.", "probe": "/χ/ múltiplos", "expect": "erres claros sem embolar", "tipo": "difícil"}

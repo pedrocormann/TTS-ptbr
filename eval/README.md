@@ -20,6 +20,13 @@ to be reused by every Phase-0 spike and every later phase.
 - `benchmark_ptbr.jsonl` — **frozen** pt-BR text set: neutral + warm/enthusiastic/
   empathetic/sad/surprise × {neutral, carioca} + 2 "hard" lines (numbers/named).
   Versioned. Every run synthesizes THIS set so numbers are comparable over time.
+- `benchmark_sotaque_carioca.jsonl` — 18 sondas dos traços cariocas (ʃ/ʒ/tʃ/dʒ/χ/w)
+  com o campo `traits` (o que escutar). Para eval de sotaque.
+- `benchmark_pronuncia_ptbr.jsonl` — **sonda de pronúncia** (a métrica que NÃO
+  satura — Sesame usa, dossiê 86): homógrafos (sede/colher/jogo/olho…), números,
+  siglas, estrangeirismos, topônimos cariocas, casos difíceis. Cada item tem
+  `probe` (o que testar) + `expect` (resposta certa). Avaliação: escuta humana
+  (acertou a pronúncia contextual? sim/não) — objetivo e não-saturável.
 
 ## Protocol (what a run reports)
 1. Synthesize `benchmark_ptbr.jsonl` with the spine under test → `gen/`.

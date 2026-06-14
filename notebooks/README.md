@@ -7,7 +7,8 @@
 |---|---|---|---|---|
 | **0** | `0_dataset_prep` | transcrever/exportar gravações (roda sempre que houver áudio novo) | T4 | ✅ feito local p/ os 48min (import ElevenLabs) |
 | 0.x | *(local, M2)* | zero-shot CSM/Pocket + smoke finetune → voz nos pesos ✓, língua ✗ | — | ✅ eval/results/2026-06-1*.md |
-| **1** | `1_csm_lingua_pt` ⭐ **PRÓXIMO** | **Estágio A: ensinar PORTUGUÊS ao CSM** (A1-cml smoke → A3-tagarela; matriz em specs/EXPERIMENTS.md) | **A100** | ⬜ |
+| **1** | `1_csm_lingua_pt` ⭐ | **Estágio A interativo**: 1 experimento por vez (smoke → cheio) | **A100/T4** | ⬜ |
+| **1b** | `1b_bateria_lingua_overnight` 🌙 | **modo "rodar e voltar em 3h"**: roda A1/A3/A2 em sequência compute-matched, tabela comparativa no Drive | **A100** | ⬜ |
 | **2** | `2_csm_voz_pedro` | Estágio B: a voz do Pedro sobre a BASE-PT do passo 1 (B1: WER≤15% + spk-sim≥0.95 sem âncora) | T4 | ⬜ |
 | **3** | `3_eval_comparativo` | bench do nosso modelo vs Chatterbox-pt-br/Pocket zero-shot (gate F0.5/F1 com números) | T4 | ⬜ |
 | **4** | `4_alt_qwen3tts` | braço alternativo da Trilha A (Qwen3-TTS LoRA) — só se o caminho CSM decepcionar | **L4/A100** | ⬜ opcional |

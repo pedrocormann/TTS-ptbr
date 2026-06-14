@@ -1,6 +1,25 @@
 # SESSION-STATE — 2026-06-10/11 (sessão "resgate + replan + kit + primeiro treino")
 
-## ⚡ ÚLTIMO ESTADO (2026-06-11 00:10)
+## ⏳ EM ANDAMENTO (2026-06-11 noite) — bateria overnight no Colab
+
+Pedro rodou o **notebook 1b (bateria overnight)** no Colab A100 e foi dormir.
+Roda sozinha ~3h: A1_cml (leitura limpa 30h) vs A3_tagarela (espontâneo 25h) vs
+A2_mix (40h), compute-matched (time-cap 50min cada, budget global 160min).
+Pergunta: qual fonte ensina português melhor ao CSM (Estágio A).
+
+**AMANHÃ, retomar por aqui:**
+1. Pedir o `Drive/TTS-ptbr-data/runs/BATERIA_results.md` (tabela WER por fonte + 🏆).
+2. Ouvir os `runs/battery_<exp>/gen/*.wav` (14 frases iguais em cada = A/B; julgar
+   QUALIDADE DO PORTUGUÊS, não timbre — Estágio A usa voz do corpus, não do Pedro).
+3. Registrar resultado em specs/EXPERIMENTS.md + eval/results/ + VIGIL-LOG.
+4. Vencedor = BASE-PT → **notebook 2 (Estágio B)**: voz do Pedro por cima
+   (trocar model_name pra runs/battery_<vencedor>/final). Precisa subir o dataset
+   do Pedro (data/raw/elevenlabs2024 ou gravar G0) pro Drive antes.
+5. Secrets: resolvido — eram no Colab (🔑), não no GitHub Actions. GH_TOKEN/HF_TOKEN OK.
+
+Setup secrets que funcionou: painel 🔑 do Colab (não GitHub Actions secrets).
+
+## ⚡ ESTADO ANTERIOR (2026-06-11 00:10)
 
 - **Finetune smoke CONCLUÍDO no M2**: voz do Pedro ENTROU NOS PESOS (spk-sim
   0.97-0.98 sem âncora ✓); português ainda embolado (undertraining esperado —

@@ -5,6 +5,10 @@
 set -euo pipefail
 
 export HF_HUB_ENABLE_HF_TRANSFER=1
+# Pod RunPod (Ubuntu 24.04) marca o Python do sistema como "externally managed" (PEP 668).
+# O torch do template já vive nesse Python; instalamos nossas deps ao lado dele. Pod é
+# descartável, então "quebrar" o Python do sistema é ok e evita venv + reinstalar torch.
+export PIP_BREAK_SYSTEM_PACKAGES=1
 
 # transformers 4.52.3 = versão EXATA do checkpoint csm-1b (5.x renomeia pesos →
 # "embed_audio_tokens MISSING"). bitsandbytes p/ adamw_8bit. faster-whisper p/ eval.

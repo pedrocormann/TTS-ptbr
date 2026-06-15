@@ -306,6 +306,9 @@ def main():
     open(f'{cfg.out_root}/runs/BATERIA_results.md','w').write("# Bateria de língua\n\n" + "\n".join(lines) + "\n" + note)
     print(f"📄 salvo: {cfg.out_root}/runs/BATERIA_results.md")
     if cfg.push_hub: push_to_hub(cfg.out_root, cfg.push_hub)
+    # saída dura: o PyAV/torchcodec às vezes segfaulta na finalização do interpretador
+    # (depois de tudo salvo). os._exit evita o core dump e garante exit-code 0.
+    sys.stdout.flush(); os._exit(0)
 
 
 if __name__ == '__main__':

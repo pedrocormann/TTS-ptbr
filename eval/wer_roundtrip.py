@@ -38,9 +38,12 @@ def wer(reference: str, hypothesis: str) -> float:
 
 
 def asr_model(model: str = "medium"):
-    import torch
+    import os
     from faster_whisper import WhisperModel
-    dev = "cuda" if torch.cuda.is_available() else "cpu"
+    # CPU por padrão: o eval transcreve poucas frases (~1-2 min) e na GPU o
+    # ctranslate2/cuDNN9 pode CRASHAR o kernel no Colab (não é exceção — abort do
+    # processo, derruba a sessão). CPU é à prova de bala. Force GPU com WER_DEVICE=cuda.
+    dev = os.environ.get("WER_DEVICE", "cpu")
     ct = "float16" if dev == "cuda" else "int8"
     return WhisperModel(model, device=dev, compute_type=ct)
 

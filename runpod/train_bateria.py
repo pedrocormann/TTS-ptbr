@@ -75,33 +75,33 @@ def heavy_imports():
 
 
 # ───────────────────────── helpers (VERBATIM do notebook 1b) ─────────────────────────
+def _stream_take(name, cfg, text_key, target_s):
+    """STREAMING: itera o dataset e acumula clipes até `target_s` segundos de áudio.
+    Baixa só o que usamos (não o dataset inteiro) — essencial no volume pequeno do pod.
+    Mesmo padrão que já funcionava pro TAGARELA, generalizado pras 3 fontes."""
+    st = load_dataset(name, cfg, split='train', streaming=True) if cfg \
+         else load_dataset(name, split='train', streaming=True)
+    rows, tot = [], 0.0
+    for ex in st:
+        a = ex['audio']
+        txt = ex.get(text_key) or ex.get('text') or ex.get('sentence') or ex.get('transcript') or ''
+        rows.append({'audio': a, 'text': txt})
+        tot += len(a['array']) / a['sampling_rate']
+        if tot >= target_s:
+            break
+    return rows
+
+
 def load_source(source, hours):
+    tgt = hours * 3600
     if source == 'cml':
-        ds = load_dataset('ylacombe/cml-tts', 'portuguese', split='train')
+        rows = _stream_take('ylacombe/cml-tts', 'portuguese', 'text', tgt)
     elif source == 'mix':
-        cml = load_dataset('ylacombe/cml-tts', 'portuguese', split='train')
-        mls = load_dataset('facebook/multilingual_librispeech', 'portuguese', split='train')
-        norm = []
-        for p in [cml, mls]:
-            tcol = 'text' if 'text' in p.column_names else ('transcript' if 'transcript' in p.column_names else 'sentence')
-            if tcol != 'text': p = p.rename_column(tcol, 'text')
-            norm.append(p.remove_columns([c for c in p.column_names if c not in ('audio','text')]))
-        ds = concatenate_datasets(norm)
+        rows = _stream_take('ylacombe/cml-tts', 'portuguese', 'text', tgt / 2)          # metade CML
+        rows += _stream_take('facebook/multilingual_librispeech', 'portuguese', 'transcript', tgt / 2)  # metade MLS
     elif source == 'tagarela':
-        st = load_dataset('freds0/TAGARELA', split='train', streaming=True)
-        rows, tot, tgt = [], 0.0, hours*3600
-        for ex in st:
-            a = ex['audio']; rows.append({'audio': a, 'text': ex['sentence']})
-            tot += len(a['array'])/a['sampling_rate']
-            if tot >= tgt: break
-        ds = Dataset.from_list(rows)
-    ds = ds.cast_column('audio', Audio(sampling_rate=24000)).shuffle(seed=42)
-    if source != 'tagarela':
-        idx, tot = [], 0.0
-        for i, ex in enumerate(ds):
-            tot += len(ex['audio']['array'])/24000; idx.append(i)
-            if tot >= hours*3600: break
-        ds = ds.select(idx)
+        rows = _stream_take('freds0/TAGARELA', None, 'sentence', tgt)
+    ds = Dataset.from_list(rows).cast_column('audio', Audio(sampling_rate=24000)).shuffle(seed=42)
     return ds
 
 
@@ -228,7 +228,10 @@ def run_experiment(exp, deadline_global, cfg):
             return c
     tr = CSMTrainer(model=model, train_dataset=ds, args=TrainingArguments(
         per_device_train_batch_size=cfg.batch, gradient_accumulation_steps=cfg.accum,
-        num_train_epochs=99, learning_rate=cfg.lr, lr_scheduler_type='cosine', warmup_ratio=0.03,
+        num_train_epochs=99, learning_rate=cfg.lr, lr_scheduler_type='cosine', warmup_steps=20,
+        # warmup_steps FIXO (não ratio): com num_train_epochs=99 o warmup_ratio=0.03 dava
+        # 1188 steps de warmup, mas o time-cap para em ~300-540 → a run inteira ficava no
+        # warmup com LR ~0 e não aprendia. 20 steps: LR atinge o alvo cedo e treina de verdade.
         bf16=BF16, fp16=not BF16, logging_steps=10, optim='adamw_8bit', weight_decay=0.01,
         seed=3407, output_dir=out, report_to='none', save_steps=100, save_total_limit=1,
         remove_unused_columns=False), callbacks=[TimeCap(cap_min)])

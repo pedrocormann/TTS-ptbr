@@ -26,13 +26,11 @@ import time
 from pathlib import Path
 
 import numpy as np
+import soundfile as sf
 
-try:
-    import sounddevice as sd
-    import soundfile as sf
-except ImportError:
-    print("Instale as dependências:  pip install sounddevice soundfile numpy", file=sys.stderr)
-    raise
+# sounddevice (PortAudio) é importado PREGUIÇOSAMENTE dentro das funções que gravam:
+# assim qc_report.py pode fazer `from record import qc_take, SR` no Colab (onde não há
+# PortAudio) sem quebrar. Só quem realmente grava precisa do sounddevice instalado.
 
 SR = 48_000
 CHANNELS = 1
@@ -84,6 +82,7 @@ def qc_take(audio: np.ndarray) -> dict:
 
 def record_until_enter(device: int | None) -> np.ndarray:
     """Grava até o usuário apertar ENTER."""
+    import sounddevice as sd
     chunks: list[np.ndarray] = []
 
     def cb(indata, frames, t, status):
@@ -109,6 +108,7 @@ def load_done(meta_path: Path) -> set[str]:
 
 
 def main() -> None:
+    import sounddevice as sd
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--plan", help="plano de sessão (.jsonl do build_session.py)")
     ap.add_argument("--session", default="ses01", help="nome da sessão (vira pasta)")

@@ -248,4 +248,23 @@ investimento → receita 2 estágios volta ao centro (Estágio A = língua com
 ~416h CC abertas no Colab; Estágio B = LoRA da voz, provado hoje). Criar
 notebook 06 (Estágio A). Infra ponta-a-ponta validada num MacBook.
 
+### 2026-06-15 — rodada de melhorias preventiva (revisão adversarial dos notebooks)
+
+Workflow de review (1 agente/notebook + web) pegou bloqueantes em TODOS antes de
+rodar. Corrigido e commitado:
+- **record.py**: import de sounddevice PREGUIÇOSO (qc_report.py quebrava no Colab — sem PortAudio).
+- **nb0**: LD_LIBRARY_PATH p/ cuDNN9 (crash nº1 do faster-whisper no Colab) + ordem
+  de sync do Drive (segments/) + clone sem 2>/dev/null.
+- **nb1/1b/2**: já migrados p/ HF puro (transformers 4.52.3, torchao removido,
+  guard de pesos missing) nas rodadas anteriores; preflight do 1b agora testa geração.
+- **nb3**: pocket-tts `portuguese_24l` (não existe 6L pt) + gate guard + **chatterbox
+  exige transformers 5.2 → runtime SEPARADO do CSM (4.52.3)** + CSM weight guard.
+- **nb4**: ATTN_IMPL=sdpa (flash-attn ausente) + env completo no subprocess +
+  caminhos absolutos + setup sem %%capture.
+- **nb5**: `uv sync` (uv.lock evita conflito sphn/moshi + downgrade torch) +
+  overwrite_run_dir (train.py não tem resume).
+Padrão dos bugs: ambiente/versão não-testada em GPU. Mitigação estrutural: receita
+HF-pura uniforme nos CSM + preflight + guards. **Lição: 'pip install <pkg>' sem pin
+no Colab é a fonte nº1 de quebra** (pkg arrasta transformers/torch incompatíveis).
+
 Next scan: 2026-06-17 (weekly). Next hard review: **2026-07-17**.

@@ -16,9 +16,13 @@ export PIP_BREAK_SYSTEM_PACKAGES=1
 # peft/accelerate/bitsandbytes ficam sem pin de propósito (paridade com o notebook 1b,
 # que funcionou assim); depois que o pod validar, congelo as versões reais com
 # `pip freeze > runpod/requirements.lock.txt` pra reprodutibilidade.
+# torchcodec==0.7 casa com o torch 2.8 do template "RunPod PyTorch" atual. Sem pin, o
+# pip pega o torchcodec mais novo (0.14, pra CUDA 13) e o import quebra com
+# 'libnvrtc.so.13 not found'. Se um template futuro mudar o torch, o guard abaixo
+# avisa e você re-pina (0.7=torch2.8, 0.6=torch2.7, 0.4=torch2.6 ...).
 pip install --no-input \
     "transformers==4.52.3" peft accelerate "datasets>=3.4.1,<4.0.0" \
-    soundfile jiwer librosa soxr bitsandbytes torchcodec \
+    soundfile jiwer librosa soxr bitsandbytes "torchcodec==0.7" \
     faster-whisper==1.1.0 hf_transfer huggingface_hub
 
 # torchao do ambiente (se vier) é rejeitado pelo peft (quer >0.16) e não usamos.

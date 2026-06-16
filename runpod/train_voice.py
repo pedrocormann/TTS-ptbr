@@ -65,7 +65,7 @@ def main():
         print("⚠️ sem BASE-PT (CSM cru) — voz entra mas português vem só dos 48min do Pedro")
 
     ds = raw.map(tb.build_prep(processor, MAX_AUDIO), with_indices=True,
-                 remove_columns=raw.column_names, desc='tok')
+                 remove_columns=raw.column_names, desc='tok', load_from_cache_file=False)
     model = tb.add_lora(model, args.lora_r, args.lora_r)
 
     # --- treino (time-capped, warmup fixo — mesmos fixes do grid) ---

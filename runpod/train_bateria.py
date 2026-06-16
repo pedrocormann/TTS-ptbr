@@ -212,7 +212,7 @@ def preflight(cfg):
     raw = Dataset.from_list(rows).cast_column('audio', Audio(sampling_rate=24000))
     max_audio = 288000 + 1   # 12s fixo
     model, processor = load_csm()
-    ds = raw.map(build_prep(processor, max_audio), with_indices=True, remove_columns=raw.column_names)
+    ds = raw.map(build_prep(processor, max_audio), with_indices=True, remove_columns=raw.column_names, load_from_cache_file=False)
     model = add_lora(model, 8, 16)
     tr = CSMTrainer(model=model, train_dataset=ds, args=TrainingArguments(
         per_device_train_batch_size=cfg.batch, gradient_accumulation_steps=1, max_steps=1,
@@ -242,7 +242,7 @@ def run_experiment(exp, deadline_global, cfg):
     MAX_AUDIO = 288000 + 1   # 12s fixo (áudio cortado a 12s no preprocess)
     print(f"  {len(raw)} clipes · max_audio={MAX_AUDIO/24000:.0f}s")
     model, processor = load_csm()
-    ds = raw.map(build_prep(processor, MAX_AUDIO), with_indices=True, remove_columns=raw.column_names, desc='tok')
+    ds = raw.map(build_prep(processor, MAX_AUDIO), with_indices=True, remove_columns=raw.column_names, desc='tok', load_from_cache_file=False)
     model = add_lora(model, cfg.lora_r, cfg.lora_alpha)
     cap_min = min(cfg.per_exp_min, (deadline_global - time.time())/60 - 8)
     if cap_min < 5:

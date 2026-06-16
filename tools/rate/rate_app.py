@@ -576,7 +576,7 @@ class H(BaseHTTPRequestHandler):
             r = json.loads(self.rfile.read(n))
             with _RLOCK:
                 data = load_ratings()
-                data[(r['run'], r['id'])] = r
+                data.setdefault((r['run'], r['id']), {}).update(r)   # merge defensivo (não apaga campos de POST parcial)
                 tmp = RATINGS.with_suffix('.tmp')
                 with open(tmp, 'w', encoding='utf-8') as f:
                     for v in data.values():

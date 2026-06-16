@@ -65,6 +65,14 @@ A aba **Insights** mostra a **cobertura** (quantos clipes/instantes marcados, po
 
 > Essas categorias mapeiam direto pros alvos de correção: cada uma vira "minerar/gravar mais dado deste fonema" ou "regra de G2P/lexicon".
 
+### Mapeamento store ↔ export (pra agente não ler campo errado)
+O `ratings.jsonl` (store) grava em PT; o `feedback.jsonl` (export, via `feedback_records`) normaliza:
+- `problemas` (store) → **`problems`** (export)
+- `ts` → **`rated_ts`**
+- `carioca` (store, julgamento sim/não) → fica em **`ratings.carioca`**; **`accent`** no export é o sotaque-alvo do *benchmark* (objetivo), NÃO o julgamento — são coisas diferentes, não confundir.
+- `wer_ops`, `markers`, `wer`, `dur_s` passam iguais.
+Regra: o store fica em PT (não renomear dados antigos); o **export é o contrato canônico** que o agente lê.
+
 ## Como um agente futuro consome isto
 1. Filtra `markers` por `tag` (ex.: todos os `fonema errado`).
 2. Para cada um: abre `audio`, **recorta** `[t-0.3s, t+0.3s]` (janela de contexto), opcionalmente alinha com `ref_text` (forced alignment) pra achar o grafema/fonema.
@@ -73,15 +81,16 @@ A aba **Insights** mostra a **cobertura** (quantos clipes/instantes marcados, po
 
 ## A pergunta aberta (Pedro): esse pool é o ideal ou falta sinal?
 
-**Já aplicado (v1):** `severity` por marcador · taxonomia **pt-BR-aware** de fonema · `wer_ops` (WER decomposto) · `schema_version`.
+**Veredito de um painel adversarial (4 lentes: arquiteto-do-agente, fonético pt-BR, metodologia, robustez):** pra ESTA fase (preparar o terreno, não rodar agentes) **o pool já é suficiente**. O que falta **não é schema, é DADO** — hoje 1 avaliador, ~4/14 frases, **zero marcadores salvos**. O único furo real pra ação autônoma é o **alinhamento texto↔tempo** (qual fonema cai em t=2.3s), e isso é **forced-alignment offline, depois** — não pesa a anotação de hoje. Ação: fazer a 1ª leva (14/14, marcando o tempo) → medir cobertura no Insights → só então decidir v2. **Não inflar o schema antes disso.**
 
-**Candidatos a v2** — decidir **depois da 1ª leva real de anotação** (medindo a cobertura no Insights), pra não inflar o schema cedo demais:
-- **região `[t_start, t_end]`** em vez de ponto — pra erros que duram (chiado, corte). Hoje é ponto + janela fixa de ±0.3s.
-- **`expected` / `heard`** totalmente estruturados (IPA) pra fonema — hoje aproximado pela tag pt-BR + nota livre.
-- **alinhamento do marcador ao `ref_text`** (índice da palavra/caractere no instante) — liga tempo↔texto sem forced-alignment posterior.
-- **concordância entre avaliadores** (multi-rater) — saber se um erro é consenso ou gosto de 1 pessoa (hoje só o Pedro avalia → viés a vigiar).
-- **exemplos positivos** ("aqui ficou ótimo") — ancora o que preservar, não só o que consertar.
-- **mais frases/áudios** — 14 frases × poucos runs dá sinal direcional, não estatístico; ampliar o benchmark quando o foco virar ranking fino.
+**Já aplicado (v1):** `severity` · taxonomia **pt-BR-aware** de fonema · `wer_ops` · `schema_version` · merge defensivo no save.
+
+**Candidatos a v2** — decidir **depois da 1ª leva real**, por ordem de desbloqueio:
+- **forced-alignment offline** (`enrich_markers.py`, roda 1×/dia): injeta `expected_grapheme/phoneme` em cada `marker.t`. É o que de fato **destrava o agente AGIR**, mas é pós-captura — captura rápida hoje, alinhamento overnight depois.
+- **taxonomia — watch-list** (adicionar só se a 1ª leva mostrar frequência; até lá, usar `fonema errado` + nota): `Z/ʒ` sonora (z→ʒ, j/g em "já/queijo") · **sândi/ligação** entre palavras ("café é") · **epêntese** ("adIvogado", "rItimo") · separar `/ʁ/` inicial vs coda. Ligar as tags aos `traits` de `eval/benchmark_sotaque_carioca.jsonl` (gabarito de escuta).
+- **`context`** como sub-campo opcional do marcador (intervocálico/onset/coda/pós-nasal/sândi), só aparece quando a tag é fonética — mantém o dropdown enxuto.
+- **multi-rater**: hoje só o Pedro avalia (viés a vigiar). 1º passo barato = convidar 2-3 cariocas + campo `rater` no POST; **formal (ICC/Kappa) é v2** e exige re-keyar o store por `(run,id,rater)`.
+- **região `[t_start,t_end]`** · **`expected/heard` em IPA** · **exemplos positivos** (`valence`) · **`audio_sha1`/backup** · **+frases** (25-30, conversacional) — todos quando o volume/foco pedir.
 
 Princípio: **enxuto e versionado**. Mede a cobertura → adiciona só o que a anotação real provar necessário → bumpa `schema_version`.
 

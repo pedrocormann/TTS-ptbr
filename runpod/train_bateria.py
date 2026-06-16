@@ -109,23 +109,79 @@ def load_source(source, clips):
 
 
 def build_prep(processor, max_audio):
-    CLIP = 288000   # 12s @ 24kHz — TODO áudio vira EXATAMENTE isto (crop + zero-pad). Sem isso,
-                    # áudio curto/variável (TAGARELA/MLS/voz do Pedro) dá nº de frames do codec ≠
-                    # nº de placeholders → "shape mismatch [300,2048] vs [290,2048]" no forward.
+    # FIX DO BALBÚCIO (2026-06-16): áudio REAL, só CROP a 12s, SEM zero-pad.
+    #
+    # O bug: o zero-pad a 288000 fazia o processor encodar 12s INTEIROS (fala + silêncio)
+    # → SEMPRE 150 placeholders/labels de áudio, independente da duração real. O modelo
+    # aprendia "encher 12s" e o token de fim (<|audio_eos|>) nunca virava transição natural.
+    # (Confirmado lendo processing_csm.py: `input_values_cutoffs = audio.shape[-1]`, então o
+    #  codec encoda [0:cutoff]=12s inteiros; e o label do <|audio_eos|> é sempre -100.)
+    #
+    # Com áudio real: cutoff = comprimento real → o codec encoda só [0:real] → nº de frames
+    # == nº de placeholders POR CONSTRUÇÃO (o processor deriva os placeholders do MESMO cutoff
+    # via _get_encoded_length). Logo NÃO há shape mismatch [300,2048]≠[290,2048]: aquilo só
+    # acontecia se cutoff e placeholders divergissem, o que não ocorre quando ambos vêm do
+    # mesmo áudio. As durações variáveis entre exemplos são resolvidas pelo CsmDataCollator
+    # (padda input_values por-batch SEM mexer no cutoff → o merge ignora além do cutoff).
+    CLIP = 288000   # 12s @ 24kHz — TETO (crop). Áudio mais curto fica curto (escala os labels).
     def spk(ex, i):
         return str(int(hashlib.md5(str(ex.get('speaker_id', i)).encode()).hexdigest(), 16) % 10)
     def prep(ex, idx):
-        arr = np.asarray(ex['audio']['array'], dtype=np.float32)[:CLIP]
-        if arr.shape[0] < CLIP:
-            arr = np.pad(arr, (0, CLIP - arr.shape[0]))   # zero-pad clipes curtos → comprimento fixo
+        arr = np.asarray(ex['audio']['array'], dtype=np.float32)[:CLIP]   # só crop ao teto; SEM zero-pad
         conv = [{'role': spk(ex, idx), 'content': [{'type':'text','text':str(ex['text']).strip()},
                                                    {'type':'audio','path':arr}]}]
         o = processor.apply_chat_template(conv, tokenize=True, return_dict=True, output_labels=True,
-            text_kwargs={'padding':'max_length','max_length':256,'truncation':True,'pad_to_multiple_of':8,'padding_side':'right'},
-            audio_kwargs={'sampling_rate':24000},   # áudio já é uniforme → sem padding aqui
+            # max_length 384 (era 256): com áudio real, um clipe de 12s = ~150 placeholders de áudio;
+            # + texto longo (TAGARELA chega a ~124 tokens) + especiais ≈ 320 > 256 → o truncation
+            # cortava os placeholders de ÁUDIO no fim (audio fica por último na conv) → shape mismatch
+            # [150]≠[140]. 384 cabe qualquer clipe ≤12s (≤~155 tokens de texto) sem truncar o áudio.
+            text_kwargs={'padding':'max_length','max_length':384,'truncation':True,'pad_to_multiple_of':8,'padding_side':'right'},
+            audio_kwargs={'sampling_rate':24000},   # cutoff = comprimento real → codec encoda só a fala
             common_kwargs={'return_tensors':'pt'})
         return {k: v[0] for k, v in o.items()}
     return prep
+
+
+def make_collator():
+    """Data collator p/ áudio de comprimento VARIÁVEL (parte 2 do fix do balbúcio).
+
+    Pós-`build_prep` (áudio real, sem zero-pad), os campos de TEXTO já são uniformes
+    (input_ids/attention_mask/labels todos (256,) por causa do padding='max_length'),
+    mas `input_values` é (1, N) com N = nº de samples reais, que VARIA por exemplo.
+    O collator default do HF faria torch.stack e quebraria (shapes diferentes).
+
+    Este collator:
+      • stack direto dos campos de texto (já uniformes a 256);
+      • PADDA `input_values` a (batch, 1, N_max) com zeros — MAS mantém
+        `input_values_cutoffs` no comprimento REAL de cada exemplo. No forward, o
+        merge encoda só `input_values[..., 0:cutoff]` (slice por cutoff), então o
+        zero-pad por-batch é IGNORADO: não vira frame, não vira label, não treina.
+      • `input_values_cutoffs` (1,) por exemplo → empilha a (batch, max_num_audio)
+        com pad -1 (o forward já trata -1 como "sem áudio").
+
+    Resultado: nº de frames do codec == nº de placeholders por exemplo (invariante
+    preservada → sem shape mismatch), e o silêncio NUNCA é alvo de loss.
+    """
+    def collate(features):
+        batch = {}
+        # campos de texto: já uniformes (256,) → stack simples
+        for key in ('input_ids', 'attention_mask', 'labels'):
+            if key in features[0]:
+                batch[key] = torch.stack([torch.as_tensor(f[key]) for f in features], dim=0)
+
+        # input_values: (1, N) variável → pad a (batch, 1, N_max)
+        ivs = [torch.as_tensor(f['input_values']) for f in features]
+        max_len = max(iv.shape[-1] for iv in ivs)
+        batch['input_values'] = torch.stack(
+            [torch.nn.functional.pad(iv, (0, max_len - iv.shape[-1])) for iv in ivs], dim=0)
+
+        # input_values_cutoffs: (num_audio,) por exemplo → pad a (batch, max_num_audio) com -1
+        cuts = [torch.as_tensor(f['input_values_cutoffs']) for f in features]
+        max_n = max(c.shape[-1] for c in cuts)
+        batch['input_values_cutoffs'] = torch.stack(
+            [torch.nn.functional.pad(c, (0, max_n - c.shape[-1]), value=-1) for c in cuts], dim=0)
+        return batch
+    return collate
 
 
 def load_csm():
@@ -150,6 +206,14 @@ def add_lora(model, r, alpha):
 
 def make_trainer_cls():
     class CSMTrainer(Trainer):   # garante o codec Mimi sempre em eval (não treina)
+        def __init__(self, *args, **kwargs):
+            # injeta o collator de áudio variável por default (fix do balbúcio). Assim
+            # train_voice.py — que usa tb.make_trainer_cls() sem passar data_collator —
+            # herda o fix automaticamente. Se alguém passar data_collator explícito, respeita.
+            if kwargs.get('data_collator') is None:
+                kwargs['data_collator'] = make_collator()
+            super().__init__(*args, **kwargs)
+
         def training_step(self, model, inputs, *args, **kwargs):
             bm = model.get_base_model() if hasattr(model, 'get_base_model') else model
             if hasattr(bm, 'codec_model'): bm.codec_model.eval()
@@ -163,18 +227,24 @@ def eval_wer(model, processor, ref, out):
     model.eval()
     bench = [json.loads(l) for l in open(REPO_ROOT/'eval/benchmark_ptbr.jsonl', encoding='utf-8') if l.strip()]
     gd = pathlib.Path(f'{out}/gen'); gd.mkdir(exist_ok=True, parents=True)
+    # Teto ALTO de propósito: pós-fix, o modelo deve emitir <|audio_eos|> e PARAR sozinho
+    # antes do teto. Com teto baixo (160=13s) não dá pra distinguir "aprendeu a parar" de
+    # "foi cortado pelo teto". 256 tokens ≈ 20.5s >> qualquer frase do benchmark → bater no
+    # teto agora = balbúcio genuíno; parar antes = aprendeu o EOS.
+    GEN_CAP_TOKENS = 256
+    cap_sec = GEN_CAP_TOKENS * 0.08 - 0.4   # ~12.5ms/token (80 frames/s); margem p/ ruído de borda
     gen_durs = []
     for i, it in enumerate(bench):
         conv = [{'role':'0','content':[{'type':'text','text':str(ref['text'])},{'type':'audio','path':ref['audio']['array']}]},
                 {'role':'0','content':[{'type':'text','text':it['text']}]}]
         inp = processor.apply_chat_template(conv, tokenize=True, return_dict=True).to('cuda')
         with torch.no_grad():
-            au = model.generate(**inp, output_audio=True, max_new_tokens=160)   # ~13s teto (antes 375=30s)
+            au = model.generate(**inp, output_audio=True, max_new_tokens=GEN_CAP_TOKENS)
         wav = au[0].to(torch.float32).cpu().numpy()
         gen_durs.append(len(wav) / 24000)
         sf.write(gd / f"{it.get('id', i)}.wav", wav, 24000)
-    cap_hits = sum(1 for d in gen_durs if d >= 12.8)   # bateu no teto = NÃO aprendeu a parar (balbucio)
-    print(f"  gen: dur média {float(np.mean(gen_durs)):.1f}s · {cap_hits}/{len(gen_durs)} no teto "
+    cap_hits = sum(1 for d in gen_durs if d >= cap_sec)   # bateu no teto = NÃO aprendeu a parar (balbúcio)
+    print(f"  gen: dur média {float(np.mean(gen_durs)):.1f}s (teto {cap_sec:.1f}s) · {cap_hits}/{len(gen_durs)} no teto "
           f"({'⚠️ balbuciando' if cap_hits > len(gen_durs)//2 else 'aprendeu a parar ✓'})")
     asr = WhisperModel('small', device='cpu', compute_type='int8')  # cpu: evita crash cuDNN
     norm = jiwer.Compose([jiwer.ToLowerCase(), jiwer.RemovePunctuation(), jiwer.RemoveMultipleSpaces(), jiwer.Strip()])
@@ -238,7 +308,7 @@ def run_experiment(exp, deadline_global, cfg):
     os.makedirs(out, exist_ok=True); t0 = time.time()
     print(f"\n{'='*64}\n▶ {name}  ({exp['source']}, {exp['clips']} clipes)  {time.strftime('%H:%M')}\n{'='*64}")
     raw = load_source(exp['source'], exp['clips'])
-    raw = raw.filter(lambda ex: 1.5 <= len(ex['audio']['array'])/24000 <= 20 and len(str(ex['text']).split()) >= 3)
+    raw = raw.filter(lambda ex: 1.5 <= len(ex['audio']['array'])/24000 <= 12 and len(str(ex['text']).split()) >= 3)   # ≤12s: áudio não é cropado → texto casa com áudio (sem drift) + cabe em 384
     MAX_AUDIO = 288000 + 1   # 12s fixo (áudio cortado a 12s no preprocess)
     print(f"  {len(raw)} clipes · max_audio={MAX_AUDIO/24000:.0f}s")
     model, processor = load_csm()

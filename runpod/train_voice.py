@@ -45,7 +45,7 @@ def main():
     print(f"Pedro: {len(data)}/{len(rows)} clipes com áudio+texto")
     assert data, '❌ nenhum clipe válido — confere /workspace/pedro_data/segments e transcribed.jsonl'
     raw = Dataset.from_list(data).cast_column('audio', Audio(sampling_rate=24000))
-    raw = raw.filter(lambda ex: 1.0 <= len(ex['audio']['array']) / 24000 <= 20 and len(str(ex['text']).split()) >= 2)
+    raw = raw.filter(lambda ex: 1.0 <= len(ex['audio']['array']) / 24000 <= 12 and len(str(ex['text']).split()) >= 2)   # ≤12s: casa texto/áudio + cabe em 384
     raw = raw.shuffle(seed=42)
     print(f"após filtro: {len(raw)} clipes")
     if args.load_only:

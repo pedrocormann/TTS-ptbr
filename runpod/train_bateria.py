@@ -50,6 +50,8 @@ def parse_args():
     p.add_argument('--preflight-only', action='store_true')
     p.add_argument('--push-hub', default=g('PUSH_HUB', ''),
                    help='repo_id do HF Hub p/ empurrar resultados+adapters (ex: user/tts-ptbr-bateria)')
+    p.add_argument('--run-tag', default=g('RUN_TAG', ''),
+                   help='sufixo único pro folder/resultados — evita colisão entre runs do grid overnight')
     return p.parse_args()
 
 
@@ -208,7 +210,8 @@ def preflight(cfg):
 
 def run_experiment(exp, deadline_global, cfg):
     CSMTrainer = make_trainer_cls()
-    name, out = exp['name'], f"{cfg.out_root}/runs/battery_{exp['name']}"
+    tag = f"_{cfg.run_tag}" if cfg.run_tag else ""
+    name, out = exp['name'], f"{cfg.out_root}/runs/battery_{exp['name']}{tag}"
     os.makedirs(out, exist_ok=True); t0 = time.time()
     print(f"\n{'='*64}\n▶ {name}  ({exp['source']}, {exp['clips']} clipes)  {time.strftime('%H:%M')}\n{'='*64}")
     raw = load_source(exp['source'], exp['clips'])
@@ -241,6 +244,7 @@ def run_experiment(exp, deadline_global, cfg):
     model.save_pretrained(f'{out}/final'); processor.save_pretrained(f'{out}/final')
     wer = eval_wer(model, processor, raw[0], out)
     r = {'name': name, 'source': exp['source'], 'clips': exp['clips'],
+         'lr': cfg.lr, 'rank': cfg.lora_r, 'tag': cfg.run_tag or '-',
          'steps': steps, 'wer': wer, 'min': round((time.time()-t0)/60)}
     del model, processor, tr, ds, raw; gc.collect(); torch.cuda.empty_cache()
     print("  ✅", r); return r
@@ -279,6 +283,7 @@ def main():
         print("preflight-only: encerrando."); return
 
     exps = [ALL_EXPS[n.strip()] for n in cfg.experiments.split(',') if n.strip() in ALL_EXPS]
+    _sfx = f"_{cfg.run_tag}" if cfg.run_tag else ""   # sufixo dos arquivos de resultado (grid)
     results = []
     deadline = time.time() + cfg.time_budget_min*60
     for exp in exps:
@@ -288,7 +293,7 @@ def main():
             r = run_experiment(exp, deadline, cfg)
             if r:
                 results.append(r)
-                json.dump(results, open(f'{cfg.out_root}/runs/BATERIA_parcial.json','w'), ensure_ascii=False, indent=1)
+                json.dump(results, open(f'{cfg.out_root}/runs/BATERIA_parcial{_sfx}.json','w'), ensure_ascii=False, indent=1)
                 if cfg.push_hub: push_to_hub(cfg.out_root, cfg.push_hub)   # salva a cada exp
         except Exception as e:
             traceback.print_exc(); print(f"  ❌ {exp['name']}: {e}")
@@ -304,8 +309,8 @@ def main():
     else:
         note = "\n(nenhum experimento concluiu — ver erros)\n"
     print(note)
-    open(f'{cfg.out_root}/runs/BATERIA_results.md','w').write("# Bateria de língua\n\n" + "\n".join(lines) + "\n" + note)
-    print(f"📄 salvo: {cfg.out_root}/runs/BATERIA_results.md")
+    open(f'{cfg.out_root}/runs/BATERIA_results{_sfx}.md','w').write("# Bateria de língua\n\n" + "\n".join(lines) + "\n" + note)
+    print(f"📄 salvo: {cfg.out_root}/runs/BATERIA_results{_sfx}.md")
     if cfg.push_hub: push_to_hub(cfg.out_root, cfg.push_hub)
     # saída dura: o PyAV/torchcodec às vezes segfaulta na finalização do interpretador
     # (depois de tudo salvo). os._exit evita o core dump e garante exit-code 0.

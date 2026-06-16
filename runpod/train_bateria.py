@@ -124,6 +124,10 @@ def build_prep(processor, max_audio):
     # mesmo áudio. As durações variáveis entre exemplos são resolvidas pelo CsmDataCollator
     # (padda input_values por-batch SEM mexer no cutoff → o merge ignora além do cutoff).
     CLIP = 288000   # 12s @ 24kHz — TETO (crop). Áudio mais curto fica curto (escala os labels).
+    # FIX EOS (parte 3 do balbúcio): o processor deixa o <|audio_eos|> com label -100 → o modelo
+    # NUNCA recebe gradiente no token de "parar" → não aprende a emiti-lo (no smoke, 10/14 colavam
+    # no teto). Supervisionamos esse token nos labels pra ensinar a PARAR após o áudio real.
+    AUDIO_EOS = processor.tokenizer.convert_tokens_to_ids('<|audio_eos|>')
     def spk(ex, i):
         return str(int(hashlib.md5(str(ex.get('speaker_id', i)).encode()).hexdigest(), 16) % 10)
     def prep(ex, idx):
@@ -138,6 +142,9 @@ def build_prep(processor, max_audio):
             text_kwargs={'padding':'max_length','max_length':384,'truncation':True,'pad_to_multiple_of':8,'padding_side':'right'},
             audio_kwargs={'sampling_rate':24000},   # cutoff = comprimento real → codec encoda só a fala
             common_kwargs={'return_tensors':'pt'})
+        if AUDIO_EOS is not None and AUDIO_EOS >= 0:
+            ids = o['input_ids']
+            o['labels'][ids == AUDIO_EOS] = AUDIO_EOS   # supervisiona o "parar"
         return {k: v[0] for k, v in o.items()}
     return prep
 

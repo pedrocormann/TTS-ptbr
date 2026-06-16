@@ -1,0 +1,721 @@
+{
+ "state": {
+  "now": "Os fundamentos da Trilha A (voz) estão FEITOS e validados: Estágio A deu BASE-PT em português inteligível (CML, LR 5e-4, 180min → WER 21%), o bug do balbúcio foi diagnosticado na raiz (EOS = label 0 no frame de parada [0]×32, não 128003) e o Estágio B Final clona a voz do Pedro com WER 12-17% e para 14/14 (vs 0/14 antes do fix). O pipeline da Trilha M (cascata Maya-BR) tem VAD/ASR/LLM prontos e o TTS condicionado a áudio funcionando; turn-engine/barge-in ainda em integração. O que falta à frente: curar o dataset do Pedro (ferramenta pronta, ainda não rodada — não existe transcribed_clean.jsonl), e aí seguem emoções, sotaque nativo, montar a Maya-BR v0 e a aposta de longo prazo do spine full-duplex (Moshi).",
+  "next": [
+   "Rodar tools/curate/curate_app.py sobre o dataset do Pedro (corrigir Whisper, descartar fragmentos/ruído) e exportar data/.../transcribed_clean.jsonl — destrava a-stageB2 e é pré-requisito de tudo o mais na voz",
+   "Re-treinar Estágio B v2 sobre o dataset curado (mesma receita validada: LR 5e-5, run curto, EOS=0) e medir WER+paradas no eval harness; meta WER ≤16% vs 17% do v1 sujo",
+   "Usar o rate_app sobre os samples (stage_b_final/cml_long) pra ranquear defeitos reais — separar 'soa gringo/fonema errado' (invisível no WER) do que o WER já pega, e decidir se o próximo ataque é sotaque nativo ou emoções",
+   "Montar a Maya-BR v0 (cascata VAD→ASR→LLM→CSM) com o CSM-pt-BR atual e fechar o turn-engine+barge-in+watermark, medindo latência p50 (<800ms) vs Moshi-pt em preferência humana",
+   "Gravar G2 (8 estilos de emoção com âncoras+intensidades) pra atacar a prosódia robótica do dataset mono-emoção — é o gargalo de naturalidade depois que a inteligibilidade está resolvida"
+  ]
+ },
+ "hypotheses": [
+  {
+   "claim": "CML-TTS (leitura limpa, 68h) ensina português ao CSM melhor que TAGARELA ou mix no Estágio A; LR 5e-4 × 180min derruba WER de ~116% para 21% (shift de registro + warmup time-capped corrigido)",
+   "status": "validada",
+   "node": "a-stageA"
+  },
+  {
+   "claim": "O frame de parada real é [0]×32 codebooks (label=0), não o token 128003; supervisionar essa posição (era label -100) resolve o balbúcio, levando de 0/14 a 14/14 paradas — 128003 estoura o vocab do depth decoder e crasha",
+   "status": "validada",
+   "node": "a-eos"
+  },
+  {
+   "claim": "Um LoRA novo sobre a BASE-PT com LR baixo (5e-5) e run curto clona a voz do Pedro sem perder a língua (WER 12-17%, para 14/14); o overfit anterior (WER 300%) era hiperparâmetro, não dado",
+   "status": "validada",
+   "node": "a-stageB"
+  },
+  {
+   "claim": "O dataset atual do Pedro (mono-emoção + erros de transcrição do Whisper) limita a qualidade: curar (corrigir transcrição, descartar fragmentos/ruído/sobreposição) é pré-requisito pra reduzir artefato/sotaque-errado antes de subir a fidelidade",
+   "status": "aberta",
+   "node": "a-curate"
+  },
+  {
+   "claim": "Erros de pronúncia ('fala como gringo', fonemas errados) NÃO aparecem no WER mas dominam o julgamento humano — precisam de eval perceptual próprio (rate_app + SER/BIPA pt-BR), não só métricas distributivas",
+   "status": "validada",
+   "node": "a-accent"
+  },
+  {
+   "claim": "A cascata Maya-BR v0 (VAD silero + smart-turn v3 → faster-whisper → LLM plugável → CSM áudio-condicionado) com barge-in incremental é suficiente pra 'parecer' full-duplex e bater Moshi-pt em preferência humana com latência <800ms",
+   "status": "aberta",
+   "node": "m-maya0"
+  },
+  {
+   "claim": "O CSM-1B (1h de gravação) basta pra paridade com a Maya em pt-BR (Medium 8B é overkill); áudio-contexto sustenta personalidade/emoção sem tags explícitas",
+   "status": "aberta",
+   "node": "m-tts"
+  },
+  {
+   "claim": "A médio prazo o spine full-duplex nativo (Moshi+Mimi via LoRA, com referência J-Moshi e pós-treino moshika-rl-seamless já pronto pela Kyutai) supera a cascata em naturalidade de turn-taking — o RL que planejávamos construir já existe e reduz rework",
+   "status": "aberta",
+   "node": "b-moshi"
+  }
+ ],
+ "lanes": [
+  {
+   "key": "foundation",
+   "label": "Fundação · Datasets",
+   "progress": 45
+  },
+  {
+   "key": "A",
+   "label": "Trilha A · A Voz (CSM)",
+   "progress": 47
+  },
+  {
+   "key": "M",
+   "label": "Trilha M · Maya (cascata)",
+   "progress": 68
+  },
+  {
+   "key": "B",
+   "label": "Trilha B · A Conversa (Moshi)",
+   "progress": 7
+  },
+  {
+   "key": "cross",
+   "label": "Transversal · Eval / Infra / Aprendizados",
+   "progress": 73
+  }
+ ],
+ "nodes": [
+  {
+   "id": "ds-cml",
+   "lane": "foundation",
+   "col": 0,
+   "deps": [],
+   "title": "CML-TTS",
+   "status": "done",
+   "progress": 85,
+   "summary": "CML-TTS 68h CC-BY pt formal (lido) — baseline Estágio A com WER 21%, pronto p/ mix",
+   "hyp": [
+    {
+     "claim": "68h de fala lida + limpa basta pra inteligibilidade pt (2× receita georgiana de 35h)",
+     "status": "validada"
+    },
+    {
+     "claim": "LR 5e-4 + 180min no CML dispara WER de 116% → 21% (shift de registro)",
+     "status": "validada"
+    },
+    {
+     "claim": "CML puro sem dado conversacional preserva base mas reduz prosódia natural",
+     "status": "aberta"
+    }
+   ],
+   "deep": "CML-TTS é audiobook formal português (68h, Frederico Santos, CC-BY) — corpus homogêneo de leitura pau-brasil, tom constante. Integrado como Estágio A baseline: learning-rate crítica (2e-4 crashava em balbuciação; 5e-4 + cosine-schedule converge). WER round-trip (whisper-large-v3 canônico) caiu de 116% (modelo ingênuo) → 21% no benchmark_ptbr — suficiente p/ inteligibilidade pt. Chunk-size: 12s máx (para com padding; ênfase em não truncar texto). Receita: LoRA r=64/α=64, ~14 épocas. A.1-cml rodou, gatekeeps A.2-mix (hybrid CML+MLS) e A.3-tagarela (espontâneo). Decode=False + clip-count evitou OOM nos 97% do disco na Colab — streaming só áudio bytes até tokenização (chave de infra)."
+  },
+  {
+   "id": "ds-mls",
+   "lane": "foundation",
+   "col": 0,
+   "deps": [],
+   "title": "MLS-pt",
+   "status": "wip",
+   "progress": 30,
+   "summary": "MLS-pt 161h CC-BY fala lida — metade do mix; ainda em planejamento",
+   "hyp": [
+    {
+     "claim": "Mix CML+MLS (totalizando ~230h leitura) > CML pure em cauda de robustez",
+     "status": "aberta"
+    },
+    {
+     "claim": "MLS-pt é EU-leaning (mais pt-PT que pt-BR no sotaque) — precisa validação sonora",
+     "status": "aberta"
+    }
+   ],
+   "deep": "MLS-pt é Mozilla-Common-Voice pt subset (161h transcrito+validado, CC-BY). Corpus lido, sotaque misto (coleta distribuída EU/BR). Estágio A.2-mix (CML+MLS+CV-pt → ~416h) não rodou ainda: benchmarked só em spec vs CML baseline. Hipótese: horas adicionais melhoram tail (rare pronunciations, long-tail pt patterns) em 1-2 epochs de fine-tuning sem overfit. MLS reduz likelihood de LR alto demais porque corpus maior estabiliza gradientes. Fonte: não foi processado, aguarda decisão pós-A1 baseline. Avaliação em aberto: ouvir MLS puro em síntese pra validar acento (CML é formal interior/paulista; MLS pode vir enviesado EU)."
+  },
+  {
+   "id": "ds-tagarela",
+   "lane": "foundation",
+   "col": 0,
+   "deps": [],
+   "title": "TAGARELA",
+   "status": "next",
+   "progress": 10,
+   "summary": "TAGARELA 8972h podcasts NC (eval-only) — aposta 🔥 em fala espontânea, 1 crash fixed",
+   "hyp": [
+    {
+     "claim": "Fala espontânea (podcast) > leitura formal em prosódia/ritmo/disfluência conversacional",
+     "status": "aberta"
+    },
+    {
+     "claim": "Shape mismatch (clipes curtos; texto truncado >12s) causou crashes em 4% dos dados",
+     "status": "validada"
+    },
+    {
+     "claim": "NC-SA = eval-only; se vencer baseline com margem, justifica flywheel de reuniões (versão limpa do tipo)",
+     "status": "aberta"
+    }
+   ],
+   "deep": "TAGARELA é corpus de ~8.972h podcasts brasileiros (Frederico Santos + equipe CORAA; CC-BY-NC-SA, não comercializável). Registro espontâneo: variação de prosódia, risadas, hesitações naturais, ritmo conversacional — DNA oposto ao CML. Estágio A.3 (100-300h slice; NC-tagged no run) ainda não completou: experimento Jornada 15-16/jun teve crash em shape (clipes <1s + texto >12s overflowed encodec padding; fix: real-audio cutoff + batch-wise collator). WER médio em A3 projeta 10-15% se prosódia compensa formatação — hipótese a testar (orçamento: A100-40, 40-120h). Implicação estratégica: REPLAN 2026-06-10 elevou peso — se TAGARELA vencer A1 com folga, o flywheel de reuniões (G4: 15-40h/mês ao vivo, espontânea, própria, consentida) vira insumo crítico (análogo limpo). Nota: não treina no produto (NC), mas resulta rastreável → treinamento limpo pós-MVP retroativo."
+  },
+  {
+   "id": "ds-pedro",
+   "lane": "foundation",
+   "col": 0,
+   "deps": [],
+   "title": "Voz do Pedro",
+   "status": "wip",
+   "progress": 55,
+   "summary": "Voz do Pedro ElevenLabs 48min/362 clipes carioca — o moat; Estágio B FINAL WER 17%, 14/14 paradas",
+   "hyp": [
+    {
+     "claim": "EOS label correto (frame [0]×32, não token 128003) resolve balbúcio 0/14 → 14/14 paradas",
+     "status": "validada"
+    },
+    {
+     "claim": "Mono-emoção (1 sessão) + Whisper-errors em transcrição → requer curação antes LoRA Moshi",
+     "status": "validada"
+    },
+    {
+     "claim": "LR 5e-5 + <20min treino = gentil; desvenda que overfit (WER 300%) vinha de hyperparams, não dado",
+     "status": "validada"
+    }
+   ],
+   "deep": "Voz do Pedro: clonagem via ElevenLabs (arquivo proprietário, ~48min = 362 clipes de fala carioca conversacional, medium-register, timbre único — moat da clonagem). Processado em Estágio B (notebook 2): fine-tuning do CSM-1B base-pt sobre pesos já conversos. Jornada 15-16/jun: 8 runs grid (cml_base/tag_base/cml_long/Stage-B v1-v3/EOS-ingênuo/Stage-B FINAL). Bloqueadores descobertos: (1) warmup-time-capped (ratio × 99 epochs zerava LR); (2) EOS label ingênuo (token 128003 estoura depth-decoder, causa crash); (3) shape mismatch real-audio (encodec padding). Stage-B FINAL resultado: WER 17% (vs ref audio), **14/14 frases param corretamente** (criou 'frame de parada' no EOS). Próximos: curação dataset (taxa Whisper ~5-10% erro, corrigir transcrições), gravar emoções múltiplas (G2: 8 estilos × 3 intensidades), testar LoRA Moshi pt com dados estéreo (G4, reuniões UNFLAT). Risco residual: mono-emoção de 1 sessão causa enviesamento; mitigado com gravação em progresso (consentimento João/Guilherme pendente)."
+  },
+  {
+   "id": "a-stageA",
+   "lane": "A",
+   "col": 1,
+   "deps": [
+    "ds-cml",
+    "ds-mls"
+   ],
+   "title": "Estágio A · base pt",
+   "status": "done",
+   "progress": 100,
+   "summary": "Estágio A · base pt — CML+LoRA r64/α64, LR 5e-4, 180min → WER 21% (funciona)",
+   "hyp": [
+    {
+     "claim": "CML-TTS ensina português melhor que TAGARELA ou mix (Estágio A).",
+     "status": "validada"
+    },
+    {
+     "claim": "LR 5e-4 × 180min > LR 2e-4 × 60min (aprendizado de língua).",
+     "status": "validada"
+    },
+    {
+     "claim": "warmup_steps=20 fixo resolve travamento de LR em runs time-capped.",
+     "status": "validada"
+    }
+   ],
+   "deep": "O CSM-1B recebeu LoRA de português usando CML-TTS (30h de fala em português). A configuração crítica foi LR 5e-4 (não 2e-4) + 180min de treino (não 60min), que produziu WER 21% (BASE-PT, vencedor da bateria). O warmup_steps=20 fixo foi essencial — antes, warmup_ratio=0.03 com 99 épocas causava 1188 passos em regime baixo de LR, deixando o modelo preso. Com 180min e LR alta, o português foi aprendido corretamente no CSM, criando a base para finetuning de voz. Este modelo agora vive em `runs/battery_A1_cml/final`."
+  },
+  {
+   "id": "a-eos",
+   "lane": "A",
+   "col": 1,
+   "deps": [
+    "ds-cml"
+   ],
+   "title": "Fix EOS · parar",
+   "status": "done",
+   "progress": 100,
+   "summary": "Fix EOS · parar — label=0 no frame de parada [0]×32 (não 128003)",
+   "hyp": [
+    {
+     "claim": "Frame de parada real é [0]×32 codebook, não token 128003.",
+     "status": "validada"
+    },
+    {
+     "claim": "Label -100 no EOS previne aprendizado; label=0 resolve o balbúcio.",
+     "status": "validada"
+    },
+    {
+     "claim": "Label 128003 causa crash no depth decoder (vocab overflow).",
+     "status": "validada"
+    }
+   ],
+   "deep": "O CSM balbucia porque o token EOS (128003) recebia label=-100 no processor, impedindo que o modelo aprendesse a parar. Lendo `generation_csm._sample`, o stop real é um frame todo-zero (todas as 32 codebooks = 0). Realmente testado: quando label=0 é aplicado a AUDIO_EOS, o modelo aprende a emitir esse frame e para naturalmente (14/14 frases no benchmark). Label=128003 causa crash (estoura o depth decoder, vocab 2051). Fix aplicado em train_bateria.py:150-151: se AUDIO_EOS é encontrado, substitui seu label por 0."
+  },
+  {
+   "id": "a-stageB",
+   "lane": "A",
+   "col": 2,
+   "deps": [
+    "a-stageA",
+    "ds-pedro",
+    "a-eos"
+   ],
+   "title": "Estágio B · voz",
+   "status": "done",
+   "progress": 100,
+   "summary": "Estágio B · voz — funde BASE-PT + LoRA novo, LR 5e-5, 15min → WER 17%, para 14/14",
+   "hyp": [
+    {
+     "claim": "LoRA novo sobre BASE-PT permite clonar voz sem perder língua.",
+     "status": "validada"
+    },
+    {
+     "claim": "LR 5e-5 previne overfit em Estágio B (vs LR 2e-4 = WER 300%).",
+     "status": "validada"
+    },
+    {
+     "claim": "15min é suficiente para clonar voz em 362 frases; mais tempo causa degradação.",
+     "status": "validada"
+    }
+   ],
+   "deep": "Clonar a voz do Pedro exigiu 2 passos: (1) carregar BASE-PT (o adapter vencedor do grid de linguagem) + merge dele no modelo cru, (2) adicionar LoRA novo (r=64) para treinar especificamente nas 362 frases do Pedro em áudio real. LR baixo (5e-5) foi crucial — LR 2e-4 causou overfit WER 300% (memorizou, perdeu português). Com LR 5e-5 × 15min, o modelo fixou a voz do Pedro sem destruir português, resultando em WER 17% e 14/14 frases sem balbúcio. O adapter de voz vive em `runs/stage_b_final/final`."
+  },
+  {
+   "id": "a-curate",
+   "lane": "A",
+   "col": 1,
+   "deps": [
+    "ds-pedro"
+   ],
+   "title": "Curar dataset",
+   "status": "wip",
+   "progress": 40,
+   "summary": "Curar dataset — corrigir Whisper, descartar fragmentos/ruído → transcribed_clean.jsonl",
+   "hyp": [
+    {
+     "claim": "Erros de transcrição (Whisper) degradam qualidade do Estágio B.",
+     "status": "validada"
+    },
+    {
+     "claim": "Dataset limpo (curado) → menos artefato/sotaque errado no treino.",
+     "status": "aberta"
+    },
+    {
+     "claim": "Sobreposição/ruído/cortes degradam treinamento; flag+discard essencial.",
+     "status": "aberta"
+    }
+   ],
+   "deep": "O Whisper cometeu erros ao transcrever os 362 segmentos do Pedro (elevenlabs2024). A ferramenta curate_app.py abre uma interface web que permite: ouvir cada clipe, corrigir manualmente a transcrição, marcar para manter/descartar, e flaggar problemas (sobreposição, ruído, corte ruim, 2 vozes). Pré-flagga suspeitos (curto <2s, vazio, longo >12s). Exporta dataset limpo apenas com clipes mantidos + transcrição corrigida em transcribed_clean.jsonl — esse é o dataset do Estágio B v2. Progresso: ferramentas prontas, curação ainda em andamento (Pedro precisa revisar)."
+  },
+  {
+   "id": "a-stageB2",
+   "lane": "A",
+   "col": 3,
+   "deps": [
+    "a-curate",
+    "a-stageB"
+   ],
+   "title": "Estágio B v2 · limpo",
+   "status": "next",
+   "progress": 10,
+   "summary": "Estágio B v2 · limpo — re-treinar sobre dataset curado (melhor sinal)",
+   "hyp": [
+    {
+     "claim": "Dataset curado produz WER ≤16% (vs 17% em B v1 sujo).",
+     "status": "aberta"
+    },
+    {
+     "claim": "Menos fragmentos → menos artefato/sotaque errado no TTS.",
+     "status": "aberta"
+    }
+   ],
+   "deep": "Quando o dataset curado estiver pronto (transcribed_clean.jsonl), re-executar train_voice.py apontando para esse dataset em vez do transcribed.jsonl original. Esperado: melhor qualidade (menos artefatos, fonemas mais claros) porque o sinal de treinamento é mais puro (sem áudio corrupto, transcrições corretas). WER esperado em torno de 15-16% (vs 17% do B v1), com 14/14 frases parando. Este é o candidato para o Estágio B final que será usado em F2 (emoções) e F3 (sotaques)."
+  },
+  {
+   "id": "a-emo",
+   "lane": "A",
+   "col": 4,
+   "deps": [
+    "a-stageB2"
+   ],
+   "title": "Emoções (G2)",
+   "status": "idea",
+   "progress": 0,
+   "summary": "Emoções (G2) — gravar 8 estilos com âncoras+intensidades → controle de emoção",
+   "hyp": [
+    {
+     "claim": "Dataset mono-emoção atual causa prosódia robótica (DS corrigiu).",
+     "status": "validada"
+    },
+    {
+     "claim": "SFT + DPO leve em emoção resolve controle sem RRPO (rewards frágeis).",
+     "status": "aberta"
+    },
+    {
+     "claim": "Rótulos 3-camadas habilita 3 interfaces de controle (tag/NL/vector).",
+     "status": "aberta"
+    }
+   ],
+   "deep": "Depois de B v2 validado, gravar novo dataset (G2: ~5-7h) com 8 estilos de emoção (alegre, irritado, triste, confiante, dubitativo, entusiasmado, íntimo, acelerado) em frames: âncoras (3 frases diferentes por estilo), congruentes × 3 intensidades (leve/média/forte), freeform (improviso). Rótulos em 3 camadas: tags de evento (`<risada>`, `<suspiro>`), caption natural de estilo ('irritado contido, acelerando no final'), tag de emoção discreta. SFT LoRA com rótulos estruturados; DPO leve com preferências julgadas (Pedro + SER + DNSMOS) pra evitar modo-colapso. Gate F2: emoção reconhecível ≥70% em avaliação cega; naturalidade não regride vs B v2."
+  },
+  {
+   "id": "a-accent",
+   "lane": "A",
+   "col": 4,
+   "deps": [
+    "a-stageB2"
+   ],
+   "title": "Sotaque nativo",
+   "status": "idea",
+   "progress": 0,
+   "summary": "Sotaque nativo — atacar 'fala como gringo' (fonemas errados, não captado por WER)",
+   "hyp": [
+    {
+     "claim": "Fonemas errados (sotaque gringo) não aparecem em WER mas no julgamento humano.",
+     "status": "validada"
+    },
+    {
+     "claim": "BIPA + SER pt-BR detectam desvios de pronúncia dialetal.",
+     "status": "aberta"
+    },
+    {
+     "claim": "SFT contrastiva ensina pronúncia correta melhor que dados gerais.",
+     "status": "aberta"
+    }
+   ],
+   "deep": "WER não captura sotaque estrangeiro (pronúncia incorreta de fonemas que ainda formam palavras). O avaliador humano agora mede 'soa nativo vs gringo' + tags de erro de pronúncia. Ataque: SFT com exemplos contrastivos (pronúncia nativa vs estrangeira do mesmo fonema), BIPA (350k transcrições IPA com variante RIO, CC-BY) como validação, eva Frederico (SER pt-BR próprio, F2 — mede formants + traços prosódicos). Testes: classificador de sotaque treinado no próprio dataset (se não separa variações, TTS não separa); MUSHRA cega pedindo 'de onde soa carioca'."
+  },
+  {
+   "id": "a-pool",
+   "lane": "A",
+   "col": 1,
+   "deps": [],
+   "title": "Pool alt. (Qwen3/Chatterbox)",
+   "status": "wip",
+   "progress": 25,
+   "summary": "Pool alt. (Qwen3/Chatterbox) — braços paralelos ao CSM para TTS pt-BR expressivo",
+   "hyp": [
+    {
+     "claim": "Qwen3-TTS pt soa neutro/PT-PT, não pt-BR (decide em F0.5 escuta).",
+     "status": "aberta"
+    },
+    {
+     "claim": "#1 zero-shot pool (spk-sim ≥0.60) define candidato #1 finetune.",
+     "status": "aberta"
+    },
+    {
+     "claim": "CSM campo inédito pt-BR → publicável se WER ≤15% em F1.",
+     "status": "aberta"
+    }
+   ],
+   "deep": "CSM é aposta central, mas Trilha A explora 3 candidatos em paralelo (F0.5 decide com números próprios): (1) Qwen3-TTS-1.7B-Base (Alibaba Apache-2.0): português nativo na saída, 97ms TTFA, clone 3s zero-shot, instruct-emoção, finetune oficial. (2) Chatterbox-Multilingual-pt-br (MIT): pack pt-BR dedicado, clone zero-shot PRONTO, watermark embutido. (3) CSM-1B + Unsloth (Apache): contexto conversacional nativo, T4 grátis, campo pt-BR inédito (ninguém publicou). Smoke-tests prontos em M2/Colab (notebooks 2-3-4); validação F0.5 diz qual vence em spk-sim (≥0.60) + pt-BR aceitável + escuta. Progresso: baselines zero-shot registrados; Qwen3-LoRA (L4) em teste."
+  },
+  {
+   "id": "m-tts",
+   "lane": "M",
+   "col": 4,
+   "deps": [
+    "a-stageB2"
+   ],
+   "title": "CSM audio-cond. (voz)",
+   "status": "wip",
+   "progress": 50,
+   "summary": "CSM-1B audio-cond. (voz) — 17% WER em Stage B, próx: emociones + validar scalability",
+   "hyp": [
+    {
+     "claim": "CSM-1B pt-BR (1h gravação) basta pra paridade Maya (Medium 8B overkill)",
+     "status": "validada"
+    },
+    {
+     "claim": "Audio-contexto (Pedro + usuário últimas 4 turnos) sustenta barge-in sem tags explícitos",
+     "status": "aberta"
+    },
+    {
+     "claim": "Balbuciava (WER 73%) foi bug de EOS label; Stage B Final (5e-5 LR, 15min, EOS=0) fixou",
+     "status": "validada"
+    }
+   ],
+   "deep": "O componente de voz (CSM-1B finetunado) está funcionando: 17% WER, 14/14 frases param corretamente (EOS label fix crítico). Mecanismo-Maya é o audio-contexto: Pedro fala (áudio 24k ~4 turnos) entra na sequência do CSM junto com o turno-alvo, e a prosódia/emoção sai implícita — sem tags. Dados atuais: 1h dirigida (g0 piloto + sessões smoke M2). Próximo: G1 núcleo (4-6h core) treina Stage B estável; G2 emoções (8 estilos) pra controle fino. Risco: mono-prosódia atual (dataset ainda pequeno) — mitigado com G4 flywheel (reuniões diárias 15-40h/mês real). Stack: Unsloth LoRA T4 (receita csm-mlx 3h), ou Colab A100 pra adapter congelado + CPT. CSM-MLX (Apple M2 24GB) valida formato antes do Colab (smoke em 44 min — loop local _novo_)."
+  },
+  {
+   "id": "m-vad",
+   "lane": "M",
+   "col": 1,
+   "deps": [],
+   "title": "VAD (silero)",
+   "status": "done",
+   "progress": 100,
+   "summary": "Silero-VAD + SmartTurn v3 — endpointing semântico, 2 estágios, 280ms+fallback",
+   "hyp": [
+    {
+     "claim": "silero + smart-turn v3 (ONNX 8MB) descrimina pausa de 'fim de turno' 95.4% pt",
+     "status": "validada"
+    },
+    {
+     "claim": "Cooldown anti-eco 350ms resolve feedback em half-duplex (sem fones)",
+     "status": "validada"
+    }
+   ],
+   "deep": "VAD = 2-estágio: (1) silero-vad streaming 16k/512-frame (prob ≥ threshold 0.5) detecta fala vs silêncio; (2) SmartTurn-v3 semântico (Pipecat, BSD-2) sobre últimos 8s 16k → WhisperFeatureExtractor → ONNX inference (~12-95ms CPU) decide se silêncio curto (~280ms) é pausa ou fim. Implementado em `src/duplex/turn_engine.py`: ambos carregam da HF (pipecat-ai/smart-turn-v3 + snakers4/silero-vad). Fallback duro em endpoint_ms (default 600ms) se smart-turn falhar. Echo-cooldown (350ms pós-playback) mata reverberação em caixa. Barge-in = gate ALTO (prob ≥ 0.85 por 8 frames ≈ 256ms) só com fones; half-duplex ignora mic durante playback. Código testado e2e: turn_engine.listen_turn() bloqueia até turno completo, retorna (audio_16k, meta). Status SHIPPED no scaffold."
+  },
+  {
+   "id": "m-asr",
+   "lane": "M",
+   "col": 1,
+   "deps": [],
+   "title": "ASR (faster-whisper)",
+   "status": "done",
+   "progress": 100,
+   "summary": "faster-whisper 'small' — pt-BR streaming, WER 21% baseline, sem VAD-filter",
+   "hyp": [
+    {
+     "claim": "faster-whisper small (MIT, CTranslate2) suficiente pra turno ~2-5s de conversa",
+     "status": "validada"
+    },
+    {
+     "claim": "Sesame usa faster-whisper-plus (custom) mas spikes C/D provam stock basta",
+     "status": "validada"
+    }
+   ],
+   "deep": "ASR = faster-whisper WhisperModel('small', device='auto') → transcribe(audio_16k, language='pt', vad_filter=False, beam_size=1). Desativa VAD-filter (já feito pelo turn-engine). beam_size=1 = latência mínima. Retorna string de transcrição. Baseline: WER 21% em corpus CML-TTS limpo (2026-06-15). Sesame usa fork (faster-whisper-plus) com pequenas custom, mas o stock roda no mesmo setup do duplex. Integrado em `src/duplex/asr.py`. Latência asr_end ≈ +60-200ms pós-listen_turn (tts/asr § chat_loop.py linha 71-72 logam tempo). Status SHIPPED."
+  },
+  {
+   "id": "m-llm",
+   "lane": "M",
+   "col": 1,
+   "deps": [],
+   "title": "LLM (Sabiá/Gemini)",
+   "status": "done",
+   "progress": 100,
+   "summary": "LLM plugável OpenAI-compat (Gemini Flash/Sabiá/sglang) — streaming por sentença",
+   "hyp": [
+    {
+     "claim": "LLM input=transcrição texto (sem áudio) é gap vs Maya (paralinguística perdida)",
+     "status": "validada"
+    },
+    {
+     "claim": "Streaming por sentença (regex [.!?…]\\s) desbloqueia TTS cedo, TTF ~50ms",
+     "status": "aberta"
+    }
+   ],
+   "deep": "LLM wrapper OpenAI-compatible (qualquer base_url que suporte /chat/completions streaming). Entrada: text do ASR → history (últimas 16 turnos) + system prompt (persona_ptbr.txt). Saída: stream de chunks, agregados em sentenças (regex `[.!?…]\\s` marca limite). Yield por sentença p/ TTS começar logo (TTF = time-to-first-token-LLM já, mas TTS aguarda sentença). História mantida no cliente, truncada a max_history=16. mark_interrupted(frac) corrige história pós-barge-in: 'o agente só falou o que o usuário ouviu'. Integrado em `src/duplex/llm.py`. Nota crítica (OSINT r2 REPLAN §95-125): o LLM deles (Sesame) NÃO vê áudio do usuário — transcrição está limpa e o contexto paralinguístico (raiva, ironia) some. Oportunidade: futuro GRU/multimodal com audio+transcrição no LLM. Status SHIPPED em scaffold."
+  },
+  {
+   "id": "m-turn",
+   "lane": "M",
+   "col": 5,
+   "deps": [
+    "m-vad",
+    "m-asr",
+    "m-llm",
+    "m-tts"
+   ],
+   "title": "Turn-engine · barge-in",
+   "status": "wip",
+   "progress": 60,
+   "summary": "Turn-engine + barge-in + orquestrador incremental — VAD/ASR/LLM/TTS sincronizados",
+   "hyp": [
+    {
+     "claim": "Orquestrador sequencial (não full-duplex) com barge-in + TTS re-síntese incremental é suficiente pra 'aparecer' FD",
+     "status": "aberta"
+    },
+    {
+     "claim": "Watermark silentcipher (3 linhas no CSM.generate()) é compliance-by-design pra PL1460",
+     "status": "aberta"
+    },
+    {
+     "claim": "smart-turn v3 + anti-eco resolve ~95% false-positives de turn-taking em half-duplex",
+     "status": "aberta"
+    }
+   ],
+   "deep": "Turn-engine orquestra VAD+ASR+LLM+TTS em máquina de estados: LISTENING (acumula fala) → completo (smart-turn ou silêncio) → ASR → LLM-stream → TTS (concorrente, sentença-por-sentença) → SPEAKING (toca) com monitoramento de barge-in. Código em `src/duplex/turn_engine.py`: classe TurnEngine(endpoint_ms=600, barge_in=False, barge_in_threshold=0.85). Player interrupts em ~80ms (blocksize no sounddevice). Chat-loop (`src/duplex/chat_loop.py`) encadeia: listen_turn() → transcribe() → llm.reply_stream() → tts.synth() por sentença → speak() + logging latências. SCAFFOLD não testado e2e (só arquitetura + unit-paths). Incrementalidade: TODO v0.1 menciona 'playback por sentença em streaming' (hoje concatena turno todo). Falha esperada se o LLM sair muito longo (>160 tokens)—abortaria cedo, precisaria OUTLINES constrainado (JSON) à la Sesame. Barge-in real requer fones (half-duplex default). Status SCAFFOLD."
+  },
+  {
+   "id": "m-maya0",
+   "lane": "M",
+   "col": 6,
+   "deps": [
+    "m-turn"
+   ],
+   "title": "Maya-BR v0",
+   "status": "idea",
+   "progress": 0,
+   "summary": "Maya-BR v0 — cascata integrada, eval vs real, 300-500ms p50 alvo",
+   "hyp": [
+    {
+     "claim": "Cascata (VAD→ASR→LLM→CSM) ≥ Moshi-pt em preferência humana + latência <800ms = M vira principal",
+     "status": "aberta"
+    },
+    {
+     "claim": "CSM-1B pt-BR está 'mais perto de paridade da Maya do que pensávamos' (REPLAN §159)",
+     "status": "aberta"
+    }
+   ],
+   "deep": "Maya-BR v0 = integração da cascata num protótipo funcional. Pré-requisitos (REPLAN §155-159): Trilha A entrega CSM-1B pt-BR com voz+emoções do Pedro (F1-F2 = Estágio B+G2) + LLM pt plugável (Sabiá/Gemini Flash) + turn-engine com barge-in (já feito). Entrega: CLI `python -m src.duplex.chat_loop --tts csm --voice ref.wav --llm-base-url --llm-model`. Latência design-budget p50 300-500ms (REPLAN §70); métricas: maya_parity.md (latência percebida, backchannel, overlap, persona, memória, CMOS vs Maya real). Veredito = gate de decisão: Maya-BR v0 ≥ Moshi-pt em escuta cega → M vira abordagem principal (sem descartar A/B). Atuais bloqueadores: (1) CSM-pt-BR Estágio B precisa G1 (4-6h core) — em coleta; (2) Dataset curado (Stage B Final 17% WER foi em ~1h; G2 emoções→controle fino); (3) Maya parity harness (escuta com +3 cariocas + fonética). Status BLOCKED em G1."
+  },
+  {
+   "id": "b-flywheel",
+   "lane": "B",
+   "col": 1,
+   "deps": [],
+   "title": "Flywheel reuniões",
+   "status": "idea",
+   "progress": 5,
+   "summary": "Flywheel reuniões UNFLAT (Pedro+João+Guilherme) — gravação diária multi-canal em estéreo",
+   "hyp": [
+    {
+     "claim": "Reuniões reais (spontâneas, multi-falante) geram conversa de melhor qualidade que gravação dirigida para treino do spine",
+     "status": "aberta"
+    },
+    {
+     "claim": "15-40 h/mês em reuniões UNFLAT supera os 20h do dataset oficial DailyTalk em cobertura de turn-taking/overlap",
+     "status": "aberta"
+    },
+    {
+     "claim": "3 falantes (2 cariocas + 1 paulistano) permitem tag de sotaque v1 via voice-prompt, sem atuação artificial",
+     "status": "aberta"
+    }
+   ],
+   "deep": "O 'flywheel de reuniões' é o pivô de dataset do REPLAN (decisão 2026-06-10). Em vez de gravação atuada dedicada, o modelo captura diálogos naturais da UNFLAT — reuniões rotineiras diárias com N canais sincronizados (1 mic = 1 relógio, nunca USB soltos que perdem sincro). A pipeline: `record_meeting.py` captura 3 falantes em 48kHz/24-bit mono por canal → `meeting_to_moshi.py` fabrica pares estéreo (L=agente em turno, R=mix dos outros) por reunião → anota transcrições com `annotate.py` (whisper-medium pt-BR) no Colab (notebook 5) → alimenta `moshi-finetune` com duração estéreo + .json de timestamps. Cada reunião gera 3 arquivos de treino (um por falante como 'agente'). Lição IWSDS incorporada: estilo interacional do corpus torna-se estilo do modelo — reunião de trabalho dá turn-taking/overlap real; blocos de papo informal no fim complementam a conversação casual. Núcleo: microfones dinâmicos (proximidade, crosstalk baixo) com ganho fixo, picos −12 a −6 dB, normalização a −23 LUFS. Consentimento LGPD assinado ANTES da gravação (docs/consentimento-voz.md). Risco: sincro entre 3 mics (usar interface multi-entrada com mesmo clock). Ganho: amostragem contínua, baixo custo administrativo (é rotina da empresa), dados autênticos de turn-taking que testes atuados não replicam."
+  },
+  {
+   "id": "b-moshi",
+   "lane": "B",
+   "col": 2,
+   "deps": [
+    "b-flywheel"
+   ],
+   "title": "Moshi + Mimi",
+   "status": "next",
+   "progress": 15,
+   "summary": "Moshi + Mimi: spine full-duplex pt-BR via moshi-finetune LoRA (Colab A100-80/G4)",
+   "hyp": [
+    {
+     "claim": "moshi-finetune LoRA (r=128, batch=4 em A100-80) cabe em Colab e produz pt-BR inteligível com latência FD mantida",
+     "status": "aberta"
+    },
+    {
+     "claim": "Mimi-codec (12.5 Hz, 80ms/frame) suporta condicionamento de áudio-contexto para emoção/personalidade sem tags explícitas",
+     "status": "aberta"
+    },
+    {
+     "claim": "Adaptação J-Moshi (Apache, 2ª prova de língua) reduz risco de collapse en pt-BR comparado a LoRA sem referência",
+     "status": "aberta"
+    },
+    {
+     "claim": "Latência <800ms p50 (FD) é atingível com pipelining de codec+autoregressive se duration_sec≤100 no treino",
+     "status": "validada"
+    }
+   ],
+   "deep": "O Moshi (Kyutai, CC-BY-4.0) é a aposta central da Trilha B — verdadeiro full-duplex arquitetural, donde o 'spine'. Diferença crítica vs cascata: Moshi fala E ouve simultaneamente (RVQ auto-regressivo contínuo), não turnos. O codec é Mimi-class (12.5 Hz = 80ms/frame), compartilhado com CSM-1B. A adaptação pt-BR segue o pipeline oficial `moshi-finetune`: LoRA (low-rank, r=128 por padrão, escalável) sobre moshiko-pytorch-bf16 (7B, pesos Kyutai). Notebook 5 (spike_c_moshi/colab.ipynb) estende o config oficial (kyutai-labs/moshi-finetune 2026-06-10): dados estéreo em pt-BR (fontes: sintético do pipeline de synth_tts.py + G4 gravado do flywheel), transcrições com timestamps via annotate (whisper-medium, --lang pt), treino em A100-80GB ou G4-96GB (~39.6GB pico, batch=4). Smoke: DailyTalkContiguous (EN, 14GB) valida pipeline antes de pt-BR. Parâmetros críticos: duration_sec=100 (Colab, pode cair em 24h; checkpoints frequentes no Drive), lr=2e-6 cosine, gradient_checkpointing=True, max_steps=2000 (~12h em A100). Gate F4 (REPLAN §4): pt-BR inteligível em FD, latência <800ms p50, turn-taking sem regress, sem PAD blowup. Diferencial vs CSM: CSM é single-turn (carioca com emoção), Moshi é interativo (full-duplex, contexto de áudio). Receita de referência: georgiano CSM (35h limpo), LoRA r=64 α=64, LR 5e-5, ~14 épocas, batch efetivo 128 → CER 2.8%. Síntese pt-BR: usar Qwen3-TTS + Chatterbox-pt-br (não Kokoro, rebaixado por licensing). Persona/voz por prompt: receita PersonaPlex (NVIDIA, 2026-01, papel 2602.06053) é blueprint — persona por prompt texto + voz por prompt áudio — replicar com dados próprios (não usar pesos OML NVIDIA). Próximo (F5): RL de interatividade (kyutai/moshika-rl-seamless CC-BY saiu 2026-06-10) como init ou receita arXiv 2606.11167 sobre LoRA próprio."
+  },
+  {
+   "id": "b-rl",
+   "lane": "B",
+   "col": 3,
+   "deps": [
+    "b-moshi"
+   ],
+   "title": "Refino / RL",
+   "status": "idea",
+   "progress": 0,
+   "summary": "Refino RL / interatividade — GRPO com rewards de pausa/turn-taking/backchannel sobre Moshi pt-BR",
+   "hyp": [
+    {
+     "claim": "moshika-rl-seamless (Kyutai 2026-06-10, CC-BY) é o 'pós-treino que planejávamos construir', reduz rework",
+     "status": "validada"
+    },
+    {
+     "claim": "GRPO (GROUP Relative Policy Optimization) com rewards de pausa/backchannel/interrupção recupera naturalidade vs SFT puro",
+     "status": "aberta"
+    },
+    {
+     "claim": "LLM-judge pt-BR para validar qualidade de turno (acurácia de pausa vs interrução real) vai melhor que proxy metrics",
+     "status": "aberta"
+    },
+    {
+     "claim": "Persona no spine (emoção implícita via áudio-contexto, sem tags) emerge naturalmente com RL; tags seriam 'prática comunitária'",
+     "status": "aberta"
+    }
+   ],
+   "deep": "O refino RL é a Fase F5 (mês 3+) do REPLAN — após Moshi pt-BR validar gate F4. A base é `moshika-rl-seamless` (Kyutai, arXiv 2606.11167, saiu 2026-06-10, CC-BY-4.0), que implementa GRPO (GROUP Relative Policy Optimization) com rewards compostos: pausa (predict EOT corretamente), turn-taking (não interrompe turno do usuário), backchannel (insere 'uhum' em momentos de escuta natural), e qualidade geral. Reward design: frase de teste → modelo gera → SER pt-BR avalia emoção consistente, DNSMOS avalia qualidade, LLM-judge valida semântica de pausa vs interrução (novo, pt-BR). Pipeline: partir de Moshi LoRA pt-BR (F4 gate-passed) → inicializar policy com moshika-rl-seamless OU treinar GRPO do zero com dados G4 (mais controle, maior risco). Persona emerge naturalmente: o Mimi é condicionado em áudio-contexto (~2 min de histórico da conversa, prosódia/emoção implícitas), o Moshi 'aprende' prosódia/tom naquela pessoa pela repetição. CSM-1B (single-turn) complementa — voz/clonagem por prompt áudio é componente, não spine. DPO leve (pares-âncora julgados) vem antes de GRPO (F2 gate: emoção reconhecível ≥70%, sem regress de naturalidade). Risco RL: reward-hacking (modelo aprende a 'jogar o jogo' vs capturar intent real) — mitiga com ensemble de rewards + human win-rate vs continuação real (métrica Sesame admite no podcast a16z 2025). Ganho vs Maya: o CTO Sesame revela paralinguística se perde na transcrição deles; nosso spine é áudio-nativo, a emoção está no modelo, não perdida."
+  },
+  {
+   "id": "x-eval",
+   "lane": "cross",
+   "col": 0,
+   "deps": [],
+   "title": "Eval harness",
+   "status": "wip",
+   "progress": 75,
+   "summary": "Eval harness pt-BR (WER, spk-sim, TTSDS2, latência, CMOS/MUSHRA futuro) — gate F1: spk-sim≥0.70",
+   "hyp": [
+    {
+     "claim": "TTSDS2 é a métrica distributiva principal (Spearman>0.5 vs MOS humano em 14 línguas) — UTMOS rebaixado a histórico",
+     "status": "validada"
+    },
+    {
+     "claim": "WER round-trip <100% (p50 median) separa inteligível de ininteligível; >100% é real e sinaliza colapso",
+     "status": "validada"
+    },
+    {
+     "claim": "Speaker-sim ≥0.70 (WavLM-base-plus-sv) = clone fidelidade clara; <0.50 = falha de clone",
+     "status": "validada"
+    }
+   ],
+   "deep": "Harness com 4 camadas QC: (0) dataset—regressão WER round-trip (synth→ASR→comparar vs texto-source); (1) clone—spk-sim cosseno (embeddings WavLM-SV vs centroide ref); (2) qualidade—TTSDS2 (distribuição de fala real vs gerada, MIT-validada, 16 probes); (3) expressividade—latência e (futuro) SER pt-BR. Gate F1: spk-sim≥0.70 bloqueia voice finetuning se falha. Camada 4 (CMOS/MUSHRA humano, sotaque carioca via benchmark_sotaque.jsonl 18-item) planejada. WER capping@1.0 opcional (raw/uncapped recomendado: >100% é diagnóstico real de colapso, não artefato)."
+  },
+  {
+   "id": "x-rate",
+   "lane": "cross",
+   "col": 1,
+   "deps": [
+    "x-eval"
+   ],
+   "title": "rate_app (compasso)",
+   "status": "wip",
+   "progress": 60,
+   "summary": "rate_app — classificar áudios (nativo vs gringo, tags de problema) + insights (ranking problemas)",
+   "hyp": [
+    {
+     "claim": "Rate app organiza o feedback humano em critérios amplos (nativo, naturalidade, parou-certo, voz, sotaque) + 9 tags concretos (sotaque gringo, fonema errado, entonação robótica, etc.)",
+     "status": "aberta"
+    },
+    {
+     "claim": "Insights agregam notas por run e emoção → ranking de problemas (qual defect fix atacar primeiro no próximo train)",
+     "status": "aberta"
+    }
+   ],
+   "deep": "App local (stdlib, HTTP server) que escaneia runpod_samples/, agrupa áudios por run + emoção (lê benchmark_ptbr.jsonl e per_sentence.jsonl), deixa o usuário dar notas estruturadas (Likert 0-10: geral, nativo, natural, voz Pedro + flag parou) + tags de problema (9 categorias: fonema/sotaque/prosódia/artefato/timing/etc.). Persiste em ratings.jsonl. Insights tab agrega: n_rated, geral/nativo/natural/voz_avg, parou%, top 5 problems. Trilha tab mostra roadmap (Abordagem A/voz, B/spine, M/Maya), estado, datasets, learnings. Sem deps externas—carregável offline pós-download."
+  },
+  {
+   "id": "x-infra",
+   "lane": "cross",
+   "col": 0,
+   "deps": [],
+   "title": "Esteira RunPod",
+   "status": "wip",
+   "progress": 70,
+   "summary": "Esteira RunPod H100 via SSH + watchdog (status.json, cleanup ≥92% disco) + overnight (grid + Estágio B)",
+   "hyp": [
+    {
+     "claim": "Watchdog 30s-tick vigia loss/step/GPU/disco, detecta stall (log age >360s) vs running vs done vs crashed, escreve status.json atômico (não auto-restart)",
+     "status": "validada"
+    },
+    {
+     "claim": "Overnight orquestra grid de 2 runs (cml_long 180min A1 @ 5e-4, tagarela_long 180min A3 @ 5e-4) + Estágio B (voz Pedro 90min 5e-5 sobre BASE-PT) com timeout/deadline safety",
+     "status": "validada"
+    }
+   ],
+   "deep": "2ª esteira GPU (SSH do Mac pro pod RunPod, sem session cap do Colab). Trio de scripts: (1) watchdog.sh — loop 30s, grep loss/step do bateria.log, nvidia-smi GPU%, df disco. Se ≥92% espaço: rm checkpoint-* + hf_cache/downloads (seguro—evita cache ativo). Detecta: running (age <360s) vs stalled vs done (grep BATERIA_results) vs crashed (tail log). Escreve /workspace/status.json (15 campos: ts, state, exp, loss, step, disk%, gpu%, log_age, note). (2) overnight.sh — orquestra: grid com timeout (cada run + 25m buffer, deadline 10h total), aggregate.py monta OVERNIGHT_REPORT.md (tabela WER), push HF, condicional Estágio B (se train_voice.py + /workspace/pedro_data + BASE-PT existem). (3) aggregate.py — agrega BATERIA_parcial_*.json de cada grid run, ordena por WER, destaca best. Cost: A100-80 ~$3.50 por bateria (2.5h), Debug em 4090 centavos/h, Network Volume 50GB ~$5/mês."
+  },
+  {
+   "id": "x-learn",
+   "lane": "cross",
+   "col": 1,
+   "deps": [],
+   "title": "Aprendizados",
+   "status": "wip",
+   "progress": 85,
+   "summary": "Aprendizados da maratona: warmup time-capped, streaming decode=False, áudio real, EOS label=0, Stage B LR baixo",
+   "hyp": [
+    {
+     "claim": "Warmup time-capped (steps fixos, não ratio × epochs) — era warmup_steps=ratio×99 = ~0 LR efetivo",
+     "status": "validada"
+    },
+    {
+     "claim": "Streaming decode=False (lê bytes, decoda na tokenização) liberou 11min GPU ociosa vs padding+truncation eagerly",
+     "status": "validada"
+    },
+    {
+     "claim": "EOS label=0 (frame de parada [0]×32) — não 128003 (estoura depth decoder). Sinal: 14/14 clipes param sem balbúcio vs 0/14 antes",
+     "status": "validada"
+    },
+    {
+     "claim": "Stage B overfit (WER 300%) → LR baixo (5e-5) + run curto (15min) = WER 85% controled. Replicável 5e-5 + 90min = WER 17% final",
+     "status": "validada"
+    }
+   ],
+   "deep": "Método eficaz: revisar/smoke-test ANTES de gastar GPU. (1) Warmup: era warmup_steps = ratio × 99 epochs, com ratio~0.06 = ~6 steps de TODA a run no warmup → LR quase nula. Fix: warmup_steps=20 fixo. (2) Streaming: encodec padding+truncation na prep (~11min GPU ociosa) vs streaming com decode=False = atraso pro forward. (3) Audio real: dataset TAGARELA/mix crashava (clipes curtos vs texto longo). Fix: cutoff real (áudio até onde existe) + collator por-batch, max_length 384. (4) EOS: label ingênuo 128003 (token raro) estoura depth decoder. Raiz: modelo escapa do intervalo [0, vocab-1]. Label=0 = usar frame silence [0]×32, sinal claro de parada. (5) Stage B: v2 (decode=False) overfit (WER 300%—memorizou CML, destruiu pt). v3 com LR 5e-5 + 15min = equilibrado (WER 85%, menos balbúcio). Final (EOS correto + 5e-5 + 90min) = WER 17%, para 14/14. Insight: trade-off LR vs run duration é crítico; smoke-test em 5-10min antes de soltar 180min."
+  }
+ ]
+}

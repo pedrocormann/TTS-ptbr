@@ -21,6 +21,8 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent.parent
 RATINGS = Path(__file__).resolve().parent / 'ratings.jsonl'
+MAP_JSON = Path(__file__).resolve().parent / 'trilha_map.json'
+_RLOCK = threading.Lock()
 ap = argparse.ArgumentParser()
 ap.add_argument('--dir', default=str(REPO / 'runpod_samples'))
 ap.add_argument('--port', type=int, default=8081)
@@ -100,6 +102,15 @@ def insights():
             'problemas': dict(sorted(probs.items(), key=lambda x: -x[1]))}
 
 
+def load_map():
+    if MAP_JSON.exists():
+        try:
+            return json.loads(MAP_JSON.read_text(encoding='utf-8'))
+        except Exception:
+            pass
+    return {'nodes': [], 'lanes': [], 'hypotheses': [], 'state': {'now': '(mapa não gerado — rode o workflow)', 'next': []}}
+
+
 PAGE = r"""<!doctype html><html lang=pt-br><head><meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1"><title>Rate — TTS pt-BR</title>
 <link rel=preconnect href="https://fonts.googleapis.com"><link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
@@ -120,7 +131,7 @@ h1{font-family:var(--disp);font-size:13px;font-weight:900;letter-spacing:0.12em;
 .tab{background:transparent;border:1px solid transparent;color:var(--tm);border-radius:var(--rsm);padding:8px 14px;cursor:pointer;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-family:var(--body);transition:all 0.2s var(--ease)}
 .tab:hover{color:var(--t2);background:var(--surface)}.tab.on{background:var(--surface-h);color:var(--t);border-color:var(--bh)}
 .bar{height:3px;background:rgba(255,255,255,0.05);border-radius:999px;flex:1;max-width:180px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--t);width:0;transition:width 0.8s var(--ease)}
-.wrap{max-width:780px;margin:30px auto;padding:0 20px}.card{background:var(--surface);border:1px solid var(--b);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.wrap{max-width:1180px;margin:30px auto;padding:0 20px}#av,#in{max-width:820px;margin:0 auto}.card{background:var(--surface);border:1px solid var(--b);border-radius:var(--radius);padding:24px;margin-bottom:16px}
 .tags{font-family:var(--mono);font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:var(--tm);margin-bottom:4px}
 .tags span{display:inline-block;border:1px solid var(--b);border-radius:6px;padding:3px 9px;margin:0 6px 6px 0}
 .text{font-family:var(--serif);font-size:28px;font-weight:400;line-height:1.3;letter-spacing:-0.01em;margin:16px 0;color:var(--t)}
@@ -136,6 +147,41 @@ table{width:100%;border-collapse:collapse;margin:10px 0}td,th{padding:7px 10px;b
 h2{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.01em;margin:2px 0 12px}h3{font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--tm);margin:22px 0 8px}.hide{display:none}
 .pill{display:inline-block;border-radius:6px;padding:2px 9px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase}.pill.go{background:rgba(40,200,64,0.15);color:var(--green)}.pill.wip{background:rgba(228,89,51,0.15);color:var(--orange)}.pill.next{background:rgba(30,51,134,0.3);color:var(--blue)}
 .trail b{color:var(--t)}.trail li{margin:4px 0;color:var(--t2)}.trail p{color:var(--tm)}
+.t-over{display:flex;align-items:center;gap:12px;margin-top:16px}
+.hyps{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.hyp{display:inline-block;font-size:12px;line-height:1.4;padding:6px 11px;border-radius:8px;border:1px solid var(--b);cursor:pointer;color:var(--t2);background:var(--surface);transition:all .15s var(--ease)}
+.hyp:hover{border-color:var(--bh);color:var(--t)}.hyp b{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase}
+.hyp.validada{border-color:rgba(40,200,64,0.3)}.hyp.validada b{color:var(--green)}
+.hyp.aberta{border-color:rgba(228,89,51,0.3)}.hyp.aberta b{color:var(--orange)}
+.hyp.refutada{opacity:0.55}.hyp.refutada b{color:var(--red)}
+.nexts{margin:8px 0 0 18px;color:var(--t2)}.nexts li{margin:5px 0;padding-left:4px}
+#mapwrap{overflow-x:auto;overflow-y:hidden;padding:6px 0 14px;margin-top:6px}
+#map{position:relative;min-width:920px}
+.lane{position:relative;padding:16px 0;border-top:1px solid var(--b)}.lane:first-child{border-top:none}
+.lane-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.lane-title{font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--t2);white-space:nowrap;min-width:210px}
+.lane-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:999px;width:90px;overflow:hidden}.lane-bar>i{display:block;height:100%;background:var(--t2);border-radius:999px;transition:width 0.9s var(--ease)}
+.lane-pct{font-family:var(--mono);font-size:10px;color:var(--tm)}
+.lane-row{display:grid;gap:14px;align-items:start;position:relative;z-index:1}.cell{min-width:0}
+.node{background:var(--surface);border:1px solid var(--b);border-left:2px solid var(--bh);border-radius:10px;padding:11px 12px;cursor:pointer;transition:all 0.15s var(--ease)}
+.node:hover{border-color:var(--bh);background:var(--surface-h);transform:translateY(-1px)}
+.node.done{border-left-color:var(--green)}.node.wip{border-left-color:var(--orange)}.node.next{border-left-color:var(--blue)}.node.idea{border-left-color:var(--tf)}
+.node-t{font-size:12px;font-weight:500;color:var(--t);line-height:1.25;margin-bottom:9px}
+.node-bar{height:4px;background:rgba(255,255,255,0.07);border-radius:999px;overflow:hidden}.node-bar>i{display:block;height:100%;border-radius:999px;background:var(--t2);transition:width 0.9s var(--ease)}
+.node.done .node-bar>i,.node-bar>i.done{background:var(--green)}.node.wip .node-bar>i,.node-bar>i.wip{background:var(--orange)}.node.next .node-bar>i,.node-bar>i.next{background:var(--blue)}
+.node-meta{display:flex;align-items:center;gap:6px;margin-top:8px;font-family:var(--mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--tm)}
+.node-meta .dot{width:5px;height:5px;border-radius:50%;background:var(--tf)}
+.node.done .dot{background:var(--green)}.node.wip .dot{background:var(--orange)}.node.next .dot{background:var(--blue)}
+svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visible}.edge{fill:none;stroke:rgba(245,245,247,0.13);stroke-width:1.5}
+.dots{display:flex;flex-wrap:wrap;gap:5px;margin:14px 2px 0}
+.pdot{width:8px;height:8px;border-radius:999px;background:var(--tf);cursor:pointer;transition:all .15s var(--ease)}.pdot:hover{transform:scale(1.3)}.pdot.done{background:var(--green)}.pdot.cur{outline:1px solid var(--t);outline-offset:2px}
+.panelbg{position:fixed;inset:0;background:rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:opacity 0.22s var(--ease);z-index:55}.panelbg.open{opacity:1;pointer-events:auto}
+.panel{position:fixed;top:0;right:0;width:min(440px,94vw);height:100vh;background:var(--bg);border-left:1px solid var(--bh);padding:26px 26px 60px;overflow-y:auto;transform:translateX(100%);transition:transform 0.28s var(--ease);z-index:60}.panel.open{transform:none}
+.panel-x{position:absolute;top:18px;right:18px;background:var(--surface);border:1px solid var(--b);color:var(--t2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:13px}.panel-x:hover{color:var(--t);border-color:var(--bh)}
+.panel h3.pt{font-family:var(--serif);font-size:26px;font-weight:400;margin:12px 0 0;letter-spacing:-0.01em}.panel .psum{color:var(--t2);font-size:14px;margin:14px 0}
+.panel .deep{color:var(--t2);font-size:14px;line-height:1.65}.panel .deep p{margin:9px 0}.panel .deep b{color:var(--t)}.panel .deep code{font-family:var(--mono);font-size:12px;background:var(--surface-h);padding:1px 5px;border-radius:4px;color:var(--t)}.panel .deep ul{margin:9px 0 9px 18px}.panel .deep li{margin:4px 0}
+.panel .hyp{display:block;margin:7px 0;cursor:default}
+.links{display:flex;flex-wrap:wrap;gap:7px}.linknode{font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid var(--b);background:var(--surface);color:var(--t2);cursor:pointer}.linknode:hover{border-color:var(--bh);color:var(--t)}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
@@ -147,17 +193,22 @@ h2{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.01e
 <div id=av><div class=card id=card></div>
 <div class=nav><button class=btn onclick=go(-1)>← <span class=k>←</span></button>
 <button class=btn onclick=play()>▶ Tocar <span class=k>espaço</span></button>
-<button class=btn onclick=go(1)>Próximo → <span class=k>→</span></button></div></div>
+<button class=btn onclick=go(1)>Próximo → <span class=k>→</span></button></div>
+<div id=dots class=dots></div></div>
 <div id=in class=hide></div>
 <div id=tr class=hide></div>
 </div>
 <div id=toast class=toast></div>
+<div id=panelbg class=panelbg onclick=closePanel()></div>
+<div id=panel class=panel></div>
 <script>
 let clips=[],ratings={},i=0;
+let MAP={nodes:[],lanes:[],hypotheses:[],state:{now:'',next:[]}};
+const _sq={};
 const K=(r,id)=>r+'|'+id;
 const NUM=[1,2,3,4,5];
 const PROBS=["sotaque gringo","fonema errado","entonação robótica","cortou/incompleto","ruído/chiado","emoção errada","repetiu","rápido/devagar","metálico/artefato"];
-async function boot(){clips=await(await fetch('/api/clips')).json();ratings=await(await fetch('/api/ratings')).json();renderTrail();render();}
+async function boot(){clips=await(await fetch('/api/clips')).json();ratings=await(await fetch('/api/ratings')).json();try{MAP=await(await fetch('/api/map')).json();}catch(e){}renderTrail();render();}
 function cur(){return clips[i];}
 function rOf(c){return ratings[K(c.run,c.id)]||{};}
 function esc(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
@@ -165,7 +216,8 @@ function scale(field,r,lo,hi){return `<div class=ihead><b>${field.label}</b><spa
 function render(){
  const c=cur();if(!c){document.getElementById('card').innerHTML='Nenhum áudio em runpod_samples/.';return;}
  const dur=c.dur_s!=null?c.dur_s+'s':'?';const cap=c.dur_s!=null&&c.dur_s>=12.7;
- let h=`<div class=tags><span>${c.run}</span><span>${c.id}</span><span>${c.emotion}</span><span>${c.accent}</span><span>dur ${dur}${cap?' <b class=warn>(no teto!)</b>':''}</span>${c.wer!=null?`<span>WER ${Math.round(c.wer*100)}%</span>`:''}</div>
+ const done=rOf(c).geral!=null;
+ let h=`<div class=tags><span>${c.run}</span><span>${c.id}</span><span>${c.emotion}</span><span>${c.accent}</span><span>dur ${dur}${cap?' <b class=warn>(no teto!)</b>':''}</span>${c.wer!=null?`<span>WER ${Math.round(c.wer*100)}%</span>`:''}${done?'<span style="border-color:var(--green);color:var(--green)">✓ avaliado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}</div>
  <div class=text>${esc(c.text)}</div>${c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:''}
  <audio id=au controls src="/audio?run=${encodeURIComponent(c.run)}&id=${encodeURIComponent(c.id)}"></audio>
  <div class=leg><b>WER</b> = erro do reconhecedor (palavras certas? menor=melhor) — mas <b>NÃO</b> mede sotaque. Um áudio pode ter WER 0% e soar gringo: por isso os critérios abaixo.</div>
@@ -188,26 +240,32 @@ function renderCtrls(){
  <button class="btn ${r.carioca=='nao'?'on':''}" onclick="setv('carioca','nao')">não</button></div>`;
  h+=`<div class=ind><div class=ihead><b>Problemas</b><span class=exp>marque tudo que ouviu — vira o ranking do que consertar</span></div>`+
    PROBS.map(p=>`<button class="btn fl ${(r.problemas||[]).includes(p)?'on':''}" onclick="togProb('${p}')">${p}</button>`).join('')+`</div>`;
- h+=`<div class=ind><div class=ihead><b>Nota livre</b></div><input type=text id=nota value="${esc(r.nota||'')}" onchange="setv('nota',this.value)" placeholder="observações..."></div>`;
+ h+=`<div class=ind><div class=ihead><b>Nota livre</b><span class=exp>salva enquanto você digita · Enter pra confirmar</span></div><input type=text id=nota value="${esc(r.nota||'')}" oninput="saveNota(this.value)" onkeydown="if(event.key=='Enter'||event.key=='Escape'){event.preventDefault();this.blur();}" placeholder="observações..."></div>`;
  document.getElementById('ctrls').innerHTML=h;
 }
 function updateCount(){
  const rated=clips.filter(x=>rOf(x).geral!=null).length;
  document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} avaliados`;
  document.getElementById('prog').style.width=(clips.length?100*rated/clips.length:0)+'%';
+ renderDots();
 }
+function renderDots(){const el=document.getElementById('dots');if(!el)return;el.innerHTML=clips.map(function(c,idx){return '<i class="pdot'+(rOf(c).geral!=null?' done':'')+(idx==i?' cur':'')+'" title="'+esc(c.run+' · '+c.id)+'" onclick="i='+idx+';render();setTimeout(playFresh,140)"></i>';}).join('');}
 async function save(r){await fetch('/api/rate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(r)});}
-async function setv(k,v){const c=cur();const r=rOf(c);r[k]=v;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;await save(r);renderCtrls();updateCount();flash('salvo ✓');}
+function queueSave(c,r){const key=K(c.run,c.id);const prev=_sq[key]||Promise.resolve();const p=prev.then(function(){return save(Object.assign({},r));}).catch(function(){});_sq[key]=p;return p;}
+function setv(k,v){const c=cur();const r=rOf(c);r[k]=v;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderCtrls();updateCount();flash('salvo ✓');queueSave(c,r);}
+function saveNota(v){const c=cur();const r=rOf(c);r.nota=v;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;clearTimeout(window._nt);window._nt=setTimeout(function(){queueSave(c,r);},400);}
 function flash(m){const t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(window._ft);window._ft=setTimeout(function(){t.classList.remove('show');},900);}
-async function togProb(p){const c=cur();const r=rOf(c);const a=r.problemas||[];const j=a.indexOf(p);if(j<0){a.push(p);}else{a.splice(j,1);}r.problemas=a;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;await save(r);renderCtrls();flash('salvo ✓');}
-function go(d){i=Math.max(0,Math.min(clips.length-1,i+d));render();setTimeout(play,120);}
-function play(){const a=document.getElementById('au');if(a){if(a.paused){a.play();}else{a.pause();}}}
+function togProb(p){const c=cur();const r=rOf(c);const a=r.problemas||[];const j=a.indexOf(p);if(j<0){a.push(p);}else{a.splice(j,1);}r.problemas=a;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderCtrls();flash('salvo ✓');queueSave(c,r);}
+function go(d){i=Math.max(0,Math.min(clips.length-1,i+d));render();setTimeout(playFresh,140);}
+function playFresh(){const a=document.getElementById('au');if(a){const p=a.play();if(p)p.catch(function(){});}}
+function play(){const a=document.getElementById('au');if(!a)return;if(a.paused){const p=a.play();if(p)p.catch(function(){flash('autoplay bloqueado — aperte ▶');});}else{a.pause();}}
 function view(v){
  for(const x of ['av','in','tr']){document.getElementById(x).classList.toggle('hide',x!=v);}
  document.getElementById('tAv').classList.toggle('on',v=='av');
  document.getElementById('tIn').classList.toggle('on',v=='in');
  document.getElementById('tTr').classList.toggle('on',v=='tr');
  if(v=='in'){showIns();}
+ if(v=='tr'){requestAnimationFrame(drawEdges);}
 }
 async function showIns(){
  const d=await(await fetch('/api/insights')).json();
@@ -220,77 +278,96 @@ async function showIns(){
  <h3>Problemas mais comuns → o que o próximo treino deve atacar</h3>
  ${probs.length?`<table><tr><th>problema</th><th>nº de clipes</th></tr>${probs.map(([p,n])=>`<tr><td>${p}</td><td>${n}</td></tr>`).join('')}</table>`:'<p class=muted>marque tags de problema nos áudios pra ver o ranking aqui.</p>'}</div>`;
 }
-function renderTrail(){document.getElementById('tr').innerHTML=TRAIL;}
+const STATUS={done:'feito',wip:'em curso',next:'a seguir',idea:'hipótese'};
+function renderTrail(){
+ const m=MAP;
+ const overall=m.lanes&&m.lanes.length?Math.round(m.lanes.reduce(function(s,l){return s+l.progress;},0)/m.lanes.length):0;
+ let h=`<div class=card><h2>🧭 Trilha do projeto</h2>
+  <p class=trail>${esc((m.state&&m.state.now)||'')}</p>
+  <div class=t-over><div class=lane-bar style="width:280px;height:4px"><i style="width:${overall}%"></i></div><span class=lane-pct>${overall}% no geral</span></div>
+  <div class=ihead style="margin-top:22px">Hipóteses que guiam <span class=exp>clique pra ir ao bloco</span></div>
+  <div class=hyps>${(m.hypotheses||[]).map(function(hy){return `<span class="hyp ${hy.status}" onclick="openNode('${hy.node}')">${esc(hy.claim)} · <b>${hy.status}</b></span>`;}).join('')}</div>
+  <div class=ihead style="margin-top:22px">Próximos passos</div>
+  <ol class=nexts>${((m.state&&m.state.next)||[]).map(function(s){return `<li>${esc(s)}</li>`;}).join('')}</ol></div>`;
+ h+=`<div class=card><div class=ihead>Mapa · o que depende do quê <span class=exp>clique num bloco pro aprofundamento técnico · ↔ arraste se precisar</span></div><div id=mapwrap><div id=map></div></div></div>`;
+ document.getElementById('tr').innerHTML=h;
+ const map=document.getElementById('map');
+ const COLS=Math.max(0,...m.nodes.map(function(n){return n.col;}))+1;
+ let lanes='';
+ for(const lane of m.lanes){
+  const lns=m.nodes.filter(function(n){return n.lane===lane.key;});
+  let cells='';
+  for(const n of lns){cells+=`<div class=cell style="grid-column:${n.col+1}">${nodeCard(n)}</div>`;}
+  lanes+=`<div class=lane><div class=lane-head><span class=lane-title>${esc(lane.label)}</span><div class=lane-bar><i style="width:${lane.progress}%"></i></div><span class=lane-pct>${lane.progress}%</span></div>
+   <div class=lane-row style="grid-template-columns:repeat(${COLS},minmax(140px,1fr))">${cells}</div></div>`;
+ }
+ map.innerHTML=`<svg class=edges id=edges></svg>`+lanes;
+ requestAnimationFrame(drawEdges);
+}
+function nodeCard(n){
+ return `<div class="node ${n.status}" id="nd-${n.id}" onclick="openNode('${n.id}')"><div class=node-t>${esc(n.title)}</div><div class=node-bar><i style="width:${n.progress||0}%"></i></div><div class=node-meta><span>${n.progress||0}%</span><span class=dot></span>${STATUS[n.status]||''}</div></div>`;
+}
+function drawEdges(){
+ try{
+  const svg=document.getElementById('edges'),map=document.getElementById('map');if(!svg||!map)return;
+  const mr=map.getBoundingClientRect();
+  svg.setAttribute('width',map.scrollWidth);svg.setAttribute('height',map.scrollHeight);
+  let p='';
+  for(const n of MAP.nodes){
+   const to=document.getElementById('nd-'+n.id);if(!to)continue;const tr=to.getBoundingClientRect();
+   for(const d of (n.deps||[])){
+    const f=document.getElementById('nd-'+d);if(!f)continue;const fr=f.getBoundingClientRect();
+    const x1=fr.right-mr.left,y1=fr.top+fr.height/2-mr.top,x2=tr.left-mr.left,y2=tr.top+tr.height/2-mr.top;
+    const dx=Math.max(22,Math.abs(x2-x1)*0.4);
+    p+=`<path class=edge d="M ${x1} ${y1} C ${x1+dx} ${y1}, ${x2-dx} ${y2}, ${x2} ${y2}"/>`;
+   }
+  }
+  svg.innerHTML=p;
+ }catch(e){}
+}
+function md(s){
+ s=esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`(.+?)`/g,'<code>$1</code>');
+ const lines=s.split('\n');let out='',inl=false;
+ for(let ln of lines){
+  if(/^\s*[-•]\s+/.test(ln)){if(!inl){out+='<ul>';inl=true;}out+='<li>'+ln.replace(/^\s*[-•]\s+/,'')+'</li>';}
+  else{if(inl){out+='</ul>';inl=false;}if(ln.trim())out+='<p>'+ln+'</p>';}
+ }
+ if(inl)out+='</ul>';return out;
+}
+function openNode(id){
+ const n=MAP.nodes.find(function(x){return x.id===id;});if(!n)return;
+ const lane=(MAP.lanes.find(function(l){return l.key===n.lane;})||{}).label||n.lane;
+ const deps=(n.deps||[]).map(function(d){return MAP.nodes.find(function(x){return x.id===d;});}).filter(Boolean);
+ const dependents=MAP.nodes.filter(function(x){return (x.deps||[]).indexOf(id)>=0;});
+ const link=function(a){return `<span class=linknode onclick="openNode('${a.id}')">${esc(a.title)}</span>`;};
+ let h=`<button class=panel-x onclick=closePanel()>✕</button>
+  <div class=tags><span>${esc(lane)}</span><span>${STATUS[n.status]||''}</span></div>
+  <h3 class=pt>${esc(n.title)}</h3>
+  <div class=node-bar style="margin:12px 0 6px;height:5px"><i class="${n.status}" style="width:${n.progress||0}%"></i></div>
+  <div class=lane-pct>${n.progress||0}% pronto</div>
+  <p class=psum>${esc(n.summary||'')}</p>
+  <div class=deep>${md(n.deep||'')}</div>`;
+ if((n.hyp||[]).length){h+=`<div class=ihead style="margin-top:20px">Hipóteses</div>`+n.hyp.map(function(hy){return `<div class="hyp ${hy.status}">${esc(hy.claim)} · <b>${hy.status}</b></div>`;}).join('');}
+ if(deps.length){h+=`<div class=ihead style="margin-top:20px">Depende de</div><div class=links>${deps.map(link).join('')}</div>`;}
+ if(dependents.length){h+=`<div class=ihead style="margin-top:20px">Habilita</div><div class=links>${dependents.map(link).join('')}</div>`;}
+ const panel=document.getElementById('panel');panel.innerHTML=h;panel.classList.add('open');document.getElementById('panelbg').classList.add('open');
+}
+function closePanel(){document.getElementById('panel').classList.remove('open');document.getElementById('panelbg').classList.remove('open');}
 document.addEventListener('keydown',e=>{
- if(e.target.tagName=='INPUT')return;
+ if(e.key=='Escape'){closePanel();}
+ const inInput=e.target.tagName=='INPUT';
+ if(inInput&&!(e.key=='ArrowRight'||e.key=='ArrowLeft'))return;
  if(!document.getElementById('av').classList.contains('hide')){
   if(e.key==' '){e.preventDefault();play();}
   else if(e.key>='1'&&e.key<='5'){setv('geral',+e.key);}
   else if(e.key.toLowerCase()=='p'){setv('parou',!(rOf(cur()).parou===true));}
-  else if(e.key=='ArrowRight'){go(1);}
-  else if(e.key=='ArrowLeft'){go(-1);}
+  else if(e.key=='ArrowRight'){if(inInput)e.target.blur();go(1);}
+  else if(e.key=='ArrowLeft'){if(inInput)e.target.blur();go(-1);}
  }
 });
-const TRAIL=`__TRAIL__`;
+window.addEventListener('resize',function(){if(!document.getElementById('tr').classList.contains('hide'))drawEdges();});
 boot();
 </script></body></html>"""
-
-
-TRAIL_HTML = """
-<div class="card trail">
-<h2>🧭 Trilha do projeto — onde estamos e pra onde vamos</h2>
-<p class=muted>Objetivo: TTS conversacional pt-BR "nível Maya da Sesame" — voz do Pedro, emoções, sotaque carioca, baixa latência.</p>
-
-<h3>📍 Onde estamos AGORA (15-16/jun)</h3>
-<ul>
-<li><b>Modelo pt (cml_long):</b> <span class=pill go>WER 21%</span> — CSM-1B finetunado fala português.</li>
-<li><b>Voz do Pedro (stage_b_final):</b> <span class=pill go>WER 17% · para 14/14</span> — tua voz falando pt e parando direito.</li>
-<li><b>Bloqueio resolvido:</b> o balbúcio (modelo não parava) — era o token de fim nunca supervisionado. <span class=pill go>EOS corrigido</span></li>
-<li><b>O que falta de qualidade:</b> sotaque às vezes "gringo" (fonemas), emoções pouco controladas, dataset da voz é mono-emoção → é o que esta avaliação vai medir.</li>
-</ul>
-
-<h3>🛣️ As 3 abordagens (Trilhas)</h3>
-<table><tr><th>Trilha</th><th>O que é</th><th>Status</th><th>Próximo</th></tr>
-<tr><td><b>A — A Voz</b></td><td>TTS expressivo com a voz do Pedro. Pool: Qwen3-TTS, Chatterbox-pt-br, <b>CSM-1B</b> (escolhido)</td><td><span class=pill wip>em andamento</span> cml_long + stage_b_final feitos</td><td>curar dataset → emoções → sotaque nativo; testar Qwen3-TTS como alternativa</td></tr>
-<tr><td><b>B — A Conversa</b></td><td>Spine full-duplex (fala e ouve junto) — Moshi (Kyutai) + Mimi</td><td><span class=pill next>não começou</span></td><td>flywheel de reuniões (dados estéreo) → Moshi LoRA pt-BR (F4)</td></tr>
-<tr><td><b>M — Maya</b></td><td>Engenharia reversa da Maya: cascata ASR→LLM→CSM (a Maya é cascata, confirmado pelo CTO deles)</td><td><span class=pill next>scaffold</span> (src/duplex)</td><td>montar Maya-BR v0 quando o CSM-pt estiver bom (A entrega a peça-voz)</td></tr>
-</table>
-<p class=muted>A voz do Pedro (dataset) serve às TRÊS. Se a Maya (M) se provar, vira a abordagem principal.</p>
-
-<h3>⚙️ Pipeline que usamos (Trilha A / CSM)</h3>
-<ul>
-<li><b>Estágio A — ensinar português:</b> CSM-1B + LoRA sobre corpus pt. Receita vencedora: CML, LR <b>5e-4</b>, 180min, áudio real, warmup_steps=20 → WER 21%.</li>
-<li><b>Estágio B — voz do Pedro:</b> funde a base pt + LoRA novo nos clipes do Pedro (LR baixo 5e-5, curto, pra não overfittar). + fix do EOS → para de balbuciar.</li>
-<li><b>Stack:</b> HF puro (não Unsloth, que quebrou), transformers==4.52.3, torchcodec==0.7, rodando em H100 RunPod via SSH.</li>
-</ul>
-
-<h3>📚 Datasets — o que usamos, quais partes, como</h3>
-<table><tr><th>Dataset</th><th>O que é</th><th>Como usamos</th></tr>
-<tr><td><b>CML-TTS</b> (68h, CC-BY)</td><td>leitura limpa de audiobook, pt formal</td><td>~8000 clipes via streaming → Estágio A (deu WER 21%). Registro de "leitura de livro", não conversa.</td></tr>
-<tr><td><b>TAGARELA</b> (NC, eval-only)</td><td>podcast espontâneo, fala real carioca</td><td>tentamos pro registro CERTO; o WER favorece CML mas o DS diz que TAGARELA é o registro do produto. Crash corrigido, falta rodar completo.</td></tr>
-<tr><td><b>MLS-pt</b> (161h, CC-BY)</td><td>leitura, mais volume</td><td>metade do "mix" (CML+MLS) — testado.</td></tr>
-<tr><td><b>ElevenLabs (voz do Pedro)</b></td><td>48min, 362 clipes (carioca-medio)</td><td>Estágio B (tua voz). Problema: 1 sessão, mono-emoção, transcrições do Whisper com erro → <b>curar com o curate_app</b>.</td></tr>
-</table>
-
-<h3>🧠 O que aprendemos e implementamos (técnico)</h3>
-<ul>
-<li><b>Warmup time-capped:</b> usar steps fixos (não ratio) — senão o LR fica em ~0 e não aprende.</li>
-<li><b>Streaming decode=False:</b> baixar só os clipes usados (não o dataset inteiro) — disco + velocidade.</li>
-<li><b>Áudio real (sem pad de 12s):</b> o pad de silêncio ensinava o modelo a "encher 12s".</li>
-<li><b>EOS = frame todo-zero:</b> supervisionar com label 0 (não o token 128003, que estoura o codebook) → o modelo aprende a PARAR.</li>
-<li><b>Stage B overfit:</b> dataset pequeno (272 clipes) → LR baixo + run curto.</li>
-<li><b>Método:</b> revisar a causa raiz + smoke-test representativo ANTES de gastar GPU. (Detalhes em research/JORNADA-2026-06-16.md)</li>
-</ul>
-
-<h3>🎯 Pra onde vamos (por trilha)</h3>
-<ul>
-<li><b>A (voz):</b> (1) curar o dataset; (2) re-treinar Estágio B sobre o dataset limpo; (3) gravar <b>emoções variadas</b> (G2) e mais vozes; (4) atacar o "sotaque gringo" (esta avaliação aponta onde); (5) Qwen3-TTS como braço alternativo.</li>
-<li><b>B (conversa):</b> gravar as reuniões da UNFLAT (flywheel, dados estéreo) → Moshi LoRA pt-BR.</li>
-<li><b>M (Maya):</b> com a voz pronta, montar Maya-BR v0 = CSM-pt + LLM (Sabiá/Gemini) + turn-engine (barge-in) → comparar com a Maya real.</li>
-</ul>
-<p class=muted>Esta avaliação alimenta o passo (4) da Trilha A: suas notas de "nativo/natural/sotaque" + as tags de problema viram o direcional do próximo modelo.</p>
-</div>
-"""
 
 
 class H(BaseHTTPRequestHandler):
@@ -305,14 +382,15 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         u = urllib.parse.urlparse(self.path); q = urllib.parse.parse_qs(u.query)
         if u.path == '/':
-            page = PAGE.replace('__TRAIL__', TRAIL_HTML.replace('`', "'").replace('\\', ''))
-            self._send(200, page, 'text/html; charset=utf-8')
+            self._send(200, PAGE, 'text/html; charset=utf-8')
         elif u.path == '/api/clips':
             self._send(200, build_manifest())
         elif u.path == '/api/ratings':
             self._send(200, {f"{k[0]}|{k[1]}": v for k, v in load_ratings().items()})
         elif u.path == '/api/insights':
             self._send(200, insights())
+        elif u.path == '/api/map':
+            self._send(200, load_map())
         elif u.path == '/audio':
             run = q.get('run', [''])[0]; cid = q.get('id', [''])[0]
             matches = list((SAMPLES / run).rglob(f'{cid}.wav'))
@@ -329,8 +407,14 @@ class H(BaseHTTPRequestHandler):
         if self.path == '/api/rate':
             n = int(self.headers.get('Content-Length', 0))
             r = json.loads(self.rfile.read(n))
-            with open(RATINGS, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(r, ensure_ascii=False) + '\n')
+            with _RLOCK:
+                data = load_ratings()
+                data[(r['run'], r['id'])] = r
+                tmp = RATINGS.with_suffix('.tmp')
+                with open(tmp, 'w', encoding='utf-8') as f:
+                    for v in data.values():
+                        f.write(json.dumps(v, ensure_ascii=False) + '\n')
+                tmp.replace(RATINGS)
             self._send(200, {'ok': True})
         else:
             self._send(404, b'404', 'text/plain')

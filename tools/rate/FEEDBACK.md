@@ -4,6 +4,12 @@
 
 > Não construímos os agentes agora. Construímos o **terreno**: a captura certa, num formato que o agente consiga consumir. Este doc é o contrato desse formato.
 
+**Dois tipos de erro pontual — e o loop resolve os dois:**
+1. **Objetivo (WER)** — qual *palavra* saiu errada (troca/omissão/inserção), extraído automaticamente do alinhamento `ref ↔ asr_hyp` → campo `wer_ops`. O WER deixa de ser só um número e vira uma lista de erros acionáveis.
+2. **Perceptual (humano)** — fonema de gringo, chiado, entonação, no tempo → campo `markers`. É o que o WER **não** pega (uma palavra pode ser reconhecida certa e ainda soar estrangeira).
+
+Um erro pode aparecer nos dois (a palavra errada está naquele segundo) ou só num. O agente futuro cruza os dois sinais.
+
 ## Como se captura (hoje, no rate_app)
 
 Na aba **Avaliar**, além das notas (geral, nativo-vs-gringo, naturalidade, parou, voz, sotaque) e das tags de problema por clipe, há uma **waveform clicável**:
@@ -25,6 +31,12 @@ A aba **Insights** mostra a **cobertura** (quantos clipes/instantes marcados, po
   "asr_hyp": "ola tudo bem",       // o que o ASR ouviu (round-trip do WER)
   "emotion": "neu", "accent": "carioca",
   "wer": 0.17, "dur_s": 4.5,       // métricas objetivas já existentes
+  "wer_ops": [                     // ⭐ o WER decomposto: erro pontual de PALAVRA (objetivo)
+    { "op": "ok",  "ref": "olá",  "hyp": "olá" },
+    { "op": "sub", "ref": "você", "hyp": "vc" },   // troca
+    { "op": "del", "ref": "bem",  "hyp": null },    // o modelo omitiu
+    { "op": "ins", "ref": null,   "hyp": "aí" }     // o modelo falou a mais
+  ],
   "ratings": {                     // julgamento humano por dimensão (1-5 / bool)
     "geral": 4, "nativo": 2, "natural": 3,
     "voz": 4, "parou": true, "carioca": "sim", "nota": "texto livre"

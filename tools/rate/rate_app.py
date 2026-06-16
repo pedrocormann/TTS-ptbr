@@ -15,7 +15,7 @@ Três abas:
 Sem dependências (stdlib). Escaneia runpod_samples/ (configurável). Notas → ratings.jsonl.
 Uso: python tools/rate/rate_app.py [--dir pasta] [--port 8081]
 """
-import argparse, json, os, statistics, urllib.parse, webbrowser, threading
+import argparse, json, os, re, statistics, urllib.parse, webbrowser, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -43,6 +43,37 @@ def load_benchmark():
     return bench
 
 
+def _norm_words(s):
+    return re.findall(r"\w+", (s or '').lower(), flags=re.UNICODE)
+
+
+def align_words(ref, hyp):
+    """Alinhamento palavra-a-palavra ref↔hyp (os erros que o WER pega, decompostos)."""
+    r, h = _norm_words(ref), _norm_words(hyp)
+    n, m = len(r), len(h)
+    if not n and not m:
+        return []
+    dp = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(n + 1): dp[i][0] = i
+    for j in range(m + 1): dp[0][j] = j
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            cost = 0 if r[i - 1] == h[j - 1] else 1
+            dp[i][j] = min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost)
+    ops, i, j = [], n, m
+    while i > 0 or j > 0:
+        if i > 0 and j > 0 and r[i - 1] == h[j - 1] and dp[i][j] == dp[i - 1][j - 1]:
+            ops.append({'op': 'ok', 'ref': r[i - 1], 'hyp': h[j - 1]}); i -= 1; j -= 1
+        elif i > 0 and j > 0 and dp[i][j] == dp[i - 1][j - 1] + 1:
+            ops.append({'op': 'sub', 'ref': r[i - 1], 'hyp': h[j - 1]}); i -= 1; j -= 1
+        elif i > 0 and dp[i][j] == dp[i - 1][j] + 1:
+            ops.append({'op': 'del', 'ref': r[i - 1], 'hyp': None}); i -= 1
+        else:
+            ops.append({'op': 'ins', 'ref': None, 'hyp': h[j - 1]}); j -= 1
+    ops.reverse()
+    return ops
+
+
 def build_manifest():
     bench = load_benchmark()
     clips = []
@@ -58,11 +89,13 @@ def build_manifest():
         for wav in sorted(run_dir.rglob('*.wav')):
             cid = wav.stem
             b = bench.get(cid, {}); ps = persent.get(cid, {})
+            text = b.get('text', ps.get('ref', '')); hyp = ps.get('hyp', '')
             clips.append({
                 'run': run_dir.name, 'id': cid,
                 'emotion': b.get('emotion', '?'), 'accent': b.get('accent', '?'),
-                'text': b.get('text', ps.get('ref', '')),
-                'wer': ps.get('wer'), 'dur_s': ps.get('dur_s'), 'hyp': ps.get('hyp', ''),
+                'text': text,
+                'wer': ps.get('wer'), 'dur_s': ps.get('dur_s'), 'hyp': hyp,
+                'wer_ops': align_words(text, hyp) if (text and hyp) else [],
                 'wav': str(wav.relative_to(REPO)),
             })
     return clips
@@ -126,7 +159,7 @@ def feedback_records():
             'run': c['run'], 'id': c['id'], 'audio': c.get('wav'),
             'ref_text': c['text'], 'asr_hyp': c.get('hyp', ''),
             'emotion': c['emotion'], 'accent': c['accent'],
-            'wer': c['wer'], 'dur_s': c['dur_s'],
+            'wer': c['wer'], 'wer_ops': c.get('wer_ops', []), 'dur_s': c['dur_s'],
             'ratings': {k: r.get(k) for k in ('geral', 'nativo', 'natural', 'voz', 'parou', 'carioca', 'nota')},
             'problems': r.get('problemas') or [],
             'markers': r.get('markers') or [],
@@ -230,6 +263,12 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .mtg{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--t2);background:var(--surface);border:1px solid var(--b);border-radius:5px;padding:2px 7px;white-space:nowrap}
 .mnt{flex:1;color:var(--t2)}
 .mx{color:var(--tm);cursor:pointer}.mx:hover{color:var(--red)}
+.werbox{margin:12px 0;background:rgba(255,255,255,0.02);border:1px solid var(--b);border-radius:var(--rsm);padding:11px 13px}
+.werh{font-size:12px;color:var(--t2);margin-bottom:8px}
+.werwords{font-size:15px;line-height:1.95}.werwords .w{padding:1px 2px;border-radius:3px}
+.werwords .sub{color:var(--orange);border-bottom:2px solid var(--orange);cursor:help}
+.werwords .del{color:var(--red);text-decoration:line-through;cursor:help}
+.werwords .ins{color:var(--blue);cursor:help}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
@@ -260,13 +299,25 @@ async function boot(){clips=await(await fetch('/api/clips')).json();ratings=awai
 function cur(){return clips[i];}
 function rOf(c){return ratings[K(c.run,c.id)]||{};}
 function esc(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function werDiff(ops,wer){
+ const sub=ops.filter(o=>o.op=='sub').length,del=ops.filter(o=>o.op=='del').length,ins=ops.filter(o=>o.op=='ins').length;const nerr=sub+del+ins;
+ const ws=ops.map(function(o){
+  if(o.op=='ok')return `<span class=w>${esc(o.ref)}</span>`;
+  if(o.op=='sub')return `<span class="w sub" title="ASR ouviu: ${esc(o.hyp)}">${esc(o.ref)}</span>`;
+  if(o.op=='del')return `<span class="w del" title="o modelo não falou esta palavra">${esc(o.ref)}</span>`;
+  return `<span class="w ins" title="o modelo falou a mais">+${esc(o.hyp)}</span>`;
+ }).join(' ');
+ const resumo=nerr?`${nerr} erro(s) de palavra — ${sub} troca, ${del} omissão, ${ins} a mais`:'todas as palavras certas';
+ return `<div class=werbox><div class=werh>WER ${wer!=null?Math.round(wer*100)+'%':'?'} · ${resumo} <span class=exp>passe o mouse nas marcadas · são os erros que o WER pega (palavra). os perceptuais ficam nos marcadores abaixo</span></div><div class=werwords>${ws}</div></div>`;
+}
 function scale(field,r,lo,hi){return `<div class=ihead><b>${field.label}</b><span class=exp>${field.exp}</span></div>`+NUM.map(n=>`<button class="btn ${r[field.k]==n?'on':''}" onclick="setv('${field.k}',${n})">${n}</button>`).join('')+`<span class=exp>${lo} → ${hi}</span>`;}
 function render(){
  const c=cur();if(!c){document.getElementById('card').innerHTML='Nenhum áudio em runpod_samples/.';return;}
  const dur=c.dur_s!=null?c.dur_s+'s':'?';const cap=c.dur_s!=null&&c.dur_s>=12.7;
  const done=rOf(c).geral!=null;
  let h=`<div class=tags><span>${c.run}</span><span>${c.id}</span><span>${c.emotion}</span><span>${c.accent}</span><span>dur ${dur}${cap?' <b class=warn>(no teto!)</b>':''}</span>${c.wer!=null?`<span>WER ${Math.round(c.wer*100)}%</span>`:''}${done?'<span style="border-color:var(--green);color:var(--green)">✓ avaliado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}</div>
- <div class=text>${esc(c.text)}</div>${c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:''}
+ <div class=text>${esc(c.text)}</div>
+ ${c.wer_ops&&c.wer_ops.length?werDiff(c.wer_ops,c.wer):(c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:'')}
  <audio id=au controls src="/audio?run=${encodeURIComponent(c.run)}&id=${encodeURIComponent(c.id)}"></audio>
  <div class=wave id=wave><canvas id=wc></canvas><div id=ph class=playhead></div><div id=pins></div></div>
  <div class=markbar><span id=mtime class=muted>clique na onda pra escolher o instante do erro</span>

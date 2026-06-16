@@ -136,6 +136,7 @@ table{width:100%;border-collapse:collapse;margin:10px 0}td,th{padding:7px 10px;b
 h2{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.01em;margin:2px 0 12px}h3{font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--tm);margin:22px 0 8px}.hide{display:none}
 .pill{display:inline-block;border-radius:6px;padding:2px 9px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase}.pill.go{background:rgba(40,200,64,0.15);color:var(--green)}.pill.wip{background:rgba(228,89,51,0.15);color:var(--orange)}.pill.next{background:rgba(30,51,134,0.3);color:var(--blue)}
 .trail b{color:var(--t)}.trail li{margin:4px 0;color:var(--t2)}.trail p{color:var(--tm)}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
 <button class="tab on" id=tAv onclick=view('av')>Avaliar</button>
@@ -146,10 +147,11 @@ h2{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.01e
 <div id=av><div class=card id=card></div>
 <div class=nav><button class=btn onclick=go(-1)>← <span class=k>←</span></button>
 <button class=btn onclick=play()>▶ Tocar <span class=k>espaço</span></button>
-<button class=btn onclick=go(1)>→ <span class=k>→</span></button></div></div>
+<button class=btn onclick=go(1)>Próximo → <span class=k>→</span></button></div></div>
 <div id=in class=hide></div>
 <div id=tr class=hide></div>
 </div>
+<div id=toast class=toast></div>
 <script>
 let clips=[],ratings={},i=0;
 const K=(r,id)=>r+'|'+id;
@@ -162,13 +164,19 @@ function esc(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>'
 function scale(field,r,lo,hi){return `<div class=ihead><b>${field.label}</b><span class=exp>${field.exp}</span></div>`+NUM.map(n=>`<button class="btn ${r[field.k]==n?'on':''}" onclick="setv('${field.k}',${n})">${n}</button>`).join('')+`<span class=exp>${lo} → ${hi}</span>`;}
 function render(){
  const c=cur();if(!c){document.getElementById('card').innerHTML='Nenhum áudio em runpod_samples/.';return;}
- const r=rOf(c);const dur=c.dur_s!=null?c.dur_s+'s':'?';const cap=c.dur_s!=null&&c.dur_s>=12.7;
- const isVoz=c.run.includes('stage')||c.run.includes('pedro')||c.run.includes('voz');
+ const dur=c.dur_s!=null?c.dur_s+'s':'?';const cap=c.dur_s!=null&&c.dur_s>=12.7;
  let h=`<div class=tags><span>${c.run}</span><span>${c.id}</span><span>${c.emotion}</span><span>${c.accent}</span><span>dur ${dur}${cap?' <b class=warn>(no teto!)</b>':''}</span>${c.wer!=null?`<span>WER ${Math.round(c.wer*100)}%</span>`:''}</div>
  <div class=text>${esc(c.text)}</div>${c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:''}
  <audio id=au controls src="/audio?run=${encodeURIComponent(c.run)}&id=${encodeURIComponent(c.id)}"></audio>
- <div class=leg><b>WER</b> = erro do reconhecedor (palavras certas? menor=melhor) — mas <b>NÃO</b> mede sotaque. Um áudio pode ter WER 0% e soar gringo: por isso os critérios abaixo.</div>`;
- h+=`<div class=ind>`+scale({k:'geral',label:'Nota geral',exp:'impressão geral · teclas 1-5'},r,'1 ruim','5 perfeito')+`</div>`;
+ <div class=leg><b>WER</b> = erro do reconhecedor (palavras certas? menor=melhor) — mas <b>NÃO</b> mede sotaque. Um áudio pode ter WER 0% e soar gringo: por isso os critérios abaixo.</div>
+ <div id=ctrls></div>`;
+ document.getElementById('card').innerHTML=h;
+ renderCtrls();updateCount();
+}
+function renderCtrls(){
+ const c=cur();if(!c)return;const r=rOf(c);
+ const isVoz=c.run.includes('stage')||c.run.includes('pedro')||c.run.includes('voz');
+ let h=`<div class=ind>`+scale({k:'geral',label:'Nota geral',exp:'impressão geral · teclas 1-5'},r,'1 ruim','5 perfeito')+`</div>`;
  h+=`<div class=ind>`+scale({k:'nativo',label:'Soa brasileiro nativo?',exp:'fonemas/sotaque de brasileiro, ou de gringo lendo pt?'},r,'1 gringo','5 nativo')+`</div>`;
  h+=`<div class=ind>`+scale({k:'natural',label:'Naturalidade',exp:'entonação/ritmo humano ou robótico?'},r,'1 robótico','5 humano')+`</div>`;
  if(isVoz)h+=`<div class=ind>`+scale({k:'voz',label:'Soa como o Pedro?',exp:'o timbre parece a tua voz?'},r,'1 nada','5 idêntico')+`</div>`;
@@ -181,14 +189,17 @@ function render(){
  h+=`<div class=ind><div class=ihead><b>Problemas</b><span class=exp>marque tudo que ouviu — vira o ranking do que consertar</span></div>`+
    PROBS.map(p=>`<button class="btn fl ${(r.problemas||[]).includes(p)?'on':''}" onclick="togProb('${p}')">${p}</button>`).join('')+`</div>`;
  h+=`<div class=ind><div class=ihead><b>Nota livre</b></div><input type=text id=nota value="${esc(r.nota||'')}" onchange="setv('nota',this.value)" placeholder="observações..."></div>`;
- document.getElementById('card').innerHTML=h;
+ document.getElementById('ctrls').innerHTML=h;
+}
+function updateCount(){
  const rated=clips.filter(x=>rOf(x).geral!=null).length;
  document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} avaliados`;
  document.getElementById('prog').style.width=(clips.length?100*rated/clips.length:0)+'%';
 }
 async function save(r){await fetch('/api/rate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(r)});}
-async function setv(k,v){const c=cur();const r=rOf(c);r[k]=v;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;await save(r);render();if(k=='geral'){setTimeout(()=>go(1),250);}}
-async function togProb(p){const c=cur();const r=rOf(c);const a=r.problemas||[];const j=a.indexOf(p);if(j<0){a.push(p);}else{a.splice(j,1);}r.problemas=a;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;await save(r);render();}
+async function setv(k,v){const c=cur();const r=rOf(c);r[k]=v;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;await save(r);renderCtrls();updateCount();flash('salvo ✓');}
+function flash(m){const t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(window._ft);window._ft=setTimeout(function(){t.classList.remove('show');},900);}
+async function togProb(p){const c=cur();const r=rOf(c);const a=r.problemas||[];const j=a.indexOf(p);if(j<0){a.push(p);}else{a.splice(j,1);}r.problemas=a;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;await save(r);renderCtrls();flash('salvo ✓');}
 function go(d){i=Math.max(0,Math.min(clips.length-1,i+d));render();setTimeout(play,120);}
 function play(){const a=document.getElementById('au');if(a){if(a.paused){a.play();}else{a.pause();}}}
 function view(v){

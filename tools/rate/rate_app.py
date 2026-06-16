@@ -101,27 +101,41 @@ def insights():
 
 
 PAGE = r"""<!doctype html><html lang=pt-br><head><meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1"><title>Rate — TTS pt-BR</title><style>
-:root{--bg:#0e0f13;--card:#1a1c22;--b:#2a2d36;--t:#e8e9ed;--t2:#9aa0ab;--ac:#6ea8fe;--ok:#4ade80;--no:#f87171;--am:#fbbf24}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:15px/1.6 -apple-system,system-ui,sans-serif}
-header{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--b);position:sticky;top:0;background:var(--bg);z-index:9}
-h1{font-size:16px;margin:0;font-weight:600}.sp{flex:1}.muted{color:var(--t2)}
-.tab{background:none;border:1px solid var(--b);color:var(--t2);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:14px}.tab.on{background:var(--ac);color:#08111f;border-color:var(--ac);font-weight:600}
-.bar{height:5px;background:#23262f;border-radius:3px;flex:1;max-width:200px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--ac);width:0}
-.wrap{max-width:820px;margin:22px auto;padding:0 16px}.card{background:var(--card);border:1px solid var(--b);border-radius:14px;padding:22px;margin-bottom:16px}
-.tags span{display:inline-block;background:#23262f;border:1px solid var(--b);border-radius:6px;padding:2px 9px;font-size:12px;margin-right:6px;color:var(--t2)}
-.text{font-size:20px;font-weight:500;margin:14px 0}.hyp{font-size:13px;color:var(--t2);background:#16181d;border-radius:8px;padding:10px;margin:10px 0}
-audio{width:100%;margin:12px 0}.warn{color:var(--am)}
-.leg{font-size:12px;color:var(--t2);background:#16181d;border-radius:8px;padding:9px 12px;margin:10px 0;line-height:1.6}.leg b{color:var(--t);font-weight:500}
-.ind{margin:15px 0}.ihead{font-size:13px;margin-bottom:6px}.ihead b{color:var(--t);font-weight:600}.exp{color:var(--t2);font-weight:400;margin-left:8px}
-.btn{background:#23262f;border:1px solid var(--b);color:var(--t);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:14px;margin-right:6px}.btn:hover{border-color:var(--ac)}
-.btn.on{background:var(--ac);color:#08111f;font-weight:600}.btn.ok.on{background:var(--ok);color:#06210f}.btn.no.on{background:var(--no);color:#2a0808}.btn.fl.on{background:var(--am);color:#241a00}
-input[type=text]{width:100%;background:#16181d;border:1px solid var(--b);color:var(--t);border-radius:8px;padding:8px 10px}
-.nav{display:flex;gap:10px;margin:16px 0}.nav .btn{flex:1;text-align:center;padding:10px}.k{font-size:11px;color:var(--t2);margin-left:5px}
-table{width:100%;border-collapse:collapse;margin:8px 0}td,th{padding:6px 10px;border-bottom:1px solid var(--b);text-align:left;font-size:14px}th{color:var(--t2);font-weight:500}
-h2{font-size:17px;margin:2px 0 10px}h3{font-size:14px;color:var(--ac);margin:18px 0 6px}.hide{display:none}
-.pill{display:inline-block;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600}.pill.go{background:#10331d;color:var(--ok)}.pill.wip{background:#33270f;color:var(--am)}.pill.next{background:#16263d;color:var(--ac)}
-.trail p{color:var(--t2)}.trail b{color:var(--t)}.trail li{margin:3px 0}
+<meta name=viewport content="width=device-width,initial-scale=1"><title>Rate — TTS pt-BR</title>
+<link rel=preconnect href="https://fonts.googleapis.com"><link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600;900&family=Geist+Mono:wght@400;500;600&display=swap" rel=stylesheet>
+<style>
+:root{--bg:#08080a;--surface:rgba(255,255,255,0.025);--surface-h:rgba(255,255,255,0.05);--b:rgba(255,255,255,0.06);--bh:rgba(255,255,255,0.14);
+--t:#f5f5f7;--t2:rgba(245,245,247,0.6);--tm:rgba(245,245,247,0.35);--tf:rgba(245,245,247,0.18);
+--red:#C7302D;--orange:#E45933;--blue:#7da0ff;--green:#28c840;--ac:#f5f5f7;
+--serif:'Instrument Serif',Georgia,serif;--disp:'Geist',-apple-system,system-ui,sans-serif;--body:'Geist',-apple-system,system-ui,sans-serif;--mono:'Geist Mono','SF Mono',Menlo,monospace;
+--radius:14px;--rsm:8px;--ease:cubic-bezier(0.16,1,0.3,1)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:var(--body);background:var(--bg);color:var(--t);letter-spacing:-0.005em;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11";line-height:1.6}
+body{background-image:radial-gradient(ellipse 1400px 700px at 50% -20%,rgba(255,255,255,0.025),transparent 60%);position:relative;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:0.4;mix-blend-mode:overlay}
+body>*{position:relative;z-index:1}
+header{display:flex;align-items:center;gap:14px;padding:14px 28px;border-bottom:1px solid var(--b);position:sticky;top:0;z-index:20;background:rgba(8,8,10,0.72);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}
+h1{font-family:var(--disp);font-size:13px;font-weight:900;letter-spacing:0.12em;text-transform:uppercase}.sp{flex:1}.muted{color:var(--tm)}
+.tab{background:transparent;border:1px solid transparent;color:var(--tm);border-radius:var(--rsm);padding:8px 14px;cursor:pointer;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-family:var(--body);transition:all 0.2s var(--ease)}
+.tab:hover{color:var(--t2);background:var(--surface)}.tab.on{background:var(--surface-h);color:var(--t);border-color:var(--bh)}
+.bar{height:3px;background:rgba(255,255,255,0.05);border-radius:999px;flex:1;max-width:180px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--t);width:0;transition:width 0.8s var(--ease)}
+.wrap{max-width:780px;margin:30px auto;padding:0 20px}.card{background:var(--surface);border:1px solid var(--b);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.tags{font-family:var(--mono);font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:var(--tm);margin-bottom:4px}
+.tags span{display:inline-block;border:1px solid var(--b);border-radius:6px;padding:3px 9px;margin:0 6px 6px 0}
+.text{font-family:var(--serif);font-size:28px;font-weight:400;line-height:1.3;letter-spacing:-0.01em;margin:16px 0;color:var(--t)}
+.hyp{font-family:var(--mono);font-size:12px;color:var(--tm);background:rgba(255,255,255,0.02);border:1px solid var(--b);border-radius:var(--rsm);padding:10px 12px;margin:10px 0}
+audio{width:100%;margin:14px 0}.warn{color:var(--orange)}
+.leg{font-size:12px;color:var(--t2);background:rgba(255,255,255,0.02);border:1px solid var(--b);border-radius:var(--rsm);padding:10px 12px;margin:12px 0;line-height:1.55}.leg b{color:var(--t);font-weight:500}
+.ind{margin:18px 0}.ihead{font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:var(--tm);margin-bottom:8px}.ihead b{color:var(--t);font-weight:600}.exp{text-transform:none;letter-spacing:0;color:var(--tm);font-weight:400;margin-left:8px;font-size:12px}
+.btn{background:var(--surface);border:1px solid var(--b);color:var(--t2);border-radius:var(--rsm);padding:8px 13px;cursor:pointer;font-size:13px;font-family:var(--body);margin:0 6px 6px 0;transition:all 0.15s var(--ease)}.btn:hover{border-color:var(--bh);color:var(--t)}
+.btn.on{background:var(--t);color:var(--bg);border-color:var(--t);font-weight:600}.btn.ok.on{background:var(--green);color:#06210f;border-color:var(--green)}.btn.no.on{background:var(--red);color:#fff;border-color:var(--red)}.btn.fl.on{background:var(--orange);color:#fff;border-color:var(--orange)}
+input[type=text]{width:100%;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:9px 12px;font-family:var(--body);font-size:14px}
+.nav{display:flex;gap:10px;margin:18px 0}.nav .btn{flex:1;text-align:center;padding:11px}.k{font-family:var(--mono);font-size:10px;color:var(--tf);margin-left:5px}
+table{width:100%;border-collapse:collapse;margin:10px 0}td,th{padding:7px 10px;border-bottom:1px solid var(--b);text-align:left}th{font-family:var(--mono);font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:var(--tm);font-weight:500}td{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;color:var(--t2)}td:first-child{font-family:var(--body);color:var(--t)}
+h2{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.01em;margin:2px 0 12px}h3{font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--tm);margin:22px 0 8px}.hide{display:none}
+.pill{display:inline-block;border-radius:6px;padding:2px 9px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase}.pill.go{background:rgba(40,200,64,0.15);color:var(--green)}.pill.wip{background:rgba(228,89,51,0.15);color:var(--orange)}.pill.next{background:rgba(30,51,134,0.3);color:var(--blue)}
+.trail b{color:var(--t)}.trail li{margin:4px 0;color:var(--t2)}.trail p{color:var(--tm)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
 <button class="tab on" id=tAv onclick=view('av')>Avaliar</button>

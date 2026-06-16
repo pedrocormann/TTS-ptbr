@@ -123,6 +123,8 @@ h1{font-size:16px;font-weight:600;margin:0}.sp{flex:1}.muted{color:var(--t2)}
 .hyp{font-size:13px;color:var(--t2);background:#16181d;border-radius:8px;padding:10px 12px;margin:10px 0}
 audio{width:100%;margin:12px 0}
 .row{display:flex;align-items:center;gap:10px;margin:14px 0;flex-wrap:wrap}.row b{width:120px;color:var(--t2);font-weight:500;font-size:13px}
+.ind{margin:16px 0}.ihead{font-size:13px;margin-bottom:7px}.ihead b{color:var(--t);font-weight:600}.exp{color:var(--t2);font-weight:400;margin-left:8px}
+.leg{font-size:12px;color:var(--t2);background:#16181d;border-radius:8px;padding:9px 12px;margin:10px 0;line-height:1.6}.leg b{color:var(--t);font-weight:500}
 .btn{background:#23262f;border:1px solid var(--b);color:var(--t);border-radius:8px;padding:7px 13px;cursor:pointer;font-size:14px}
 .btn:hover{border-color:var(--ac)}.btn.on{background:var(--ac);color:#08111f;border-color:var(--ac);font-weight:600}
 .btn.ok.on{background:var(--ok);color:#06210f}.btn.no.on{background:var(--no);color:#2a0808}
@@ -156,17 +158,18 @@ document.getElementById('card').innerHTML=`
 <div class=text>${esc(c.text)}</div>
 ${c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:''}
 <audio id=au controls src="/audio?run=${encodeURIComponent(c.run)}&id=${encodeURIComponent(c.id)}"></audio>
-<div class=row><b>Nota geral</b>${[1,2,3,4,5].map(n=>`<button class="btn ${r.geral==n?'on':''}" onclick="setv('geral',${n})">${n}</button>`).join('')}<span class=k>1-5</span></div>
-<div class=row><b>Parou certo?</b>
-<button class="btn ok ${r.parou===true?'on':''}" onclick="setv('parou',true)">sim</button>
-<button class="btn no ${r.parou===false?'on':''}" onclick="setv('parou',false)">não (balbuciou)</button><span class=k>P</span></div>
+<div class=leg><b>Como ler os números acima:</b> <b>WER</b> = erro do reconhecedor de fala (quão longe o áudio ficou do texto-alvo; <b>menor = mais inteligível</b>, 0% = perfeito) · <b>dur</b> = duração gerada · <b>"no teto"</b> = bateu no limite de tokens e não parou (balbúcio).</div>
+<div class=ind><div class=ihead><b>Nota geral</b><span class=exp>impressão geral do áudio · 1 = ruim, 5 = perfeito · teclas 1-5</span></div>${[1,2,3,4,5].map(n=>`<button class="btn ${r.geral==n?'on':''}" onclick="setv('geral',${n})">${n}</button>`).join('')}</div>
+<div class=ind><div class=ihead><b>Parou certo?</b><span class=exp>parou na hora certa ou continuou viajando (balbuciou)? · tecla P</span></div>
+<button class="btn ok ${r.parou===true?'on':''}" onclick="setv('parou',true)">sim, parou</button>
+<button class="btn no ${r.parou===false?'on':''}" onclick="setv('parou',false)">não, balbuciou</button></div>
 ${c.run.includes('stage')||c.run.includes('pedro')||c.run.includes('voz')?
-`<div class=row><b>Soa como o Pedro?</b>${[1,2,3,4,5].map(n=>`<button class="btn ${r.voz==n?'on':''}" onclick="setv('voz',${n})">${n}</button>`).join('')}</div>`:''}
-<div class=row><b>Natural?</b>${[1,2,3,4,5].map(n=>`<button class="btn ${r.natural==n?'on':''}" onclick="setv('natural',${n})">${n}</button>`).join('')}</div>
-<div class=row><b>Sotaque</b>
+`<div class=ind><div class=ihead><b>Soa como o Pedro?</b><span class=exp>o timbre/voz parece a tua? · 1 = nada a ver, 5 = idêntico</span></div>${[1,2,3,4,5].map(n=>`<button class="btn ${r.voz==n?'on':''}" onclick="setv('voz',${n})">${n}</button>`).join('')}</div>`:''}
+<div class=ind><div class=ihead><b>Natural?</b><span class=exp>soa humano e fluido, ou robótico/artificial? · 1 = robótico, 5 = natural</span></div>${[1,2,3,4,5].map(n=>`<button class="btn ${r.natural==n?'on':''}" onclick="setv('natural',${n})">${n}</button>`).join('')}</div>
+<div class=ind><div class=ihead><b>Sotaque carioca?</b><span class=exp>tem o sotaque/registro carioca esperado?</span></div>
 <button class="btn ${r.sotaque=='carioca'?'on':''}" onclick="setv('sotaque','carioca')">carioca ✓</button>
 <button class="btn ${r.sotaque=='nao'?'on':''}" onclick="setv('sotaque','nao')">não</button></div>
-<div class=row><b>Nota livre</b><input type=text id=nota value="${esc(r.nota||'')}" onchange="setv('nota',this.value)" placeholder="o que notou..."></div>`;
+<div class=ind><div class=ihead><b>Nota livre</b><span class=exp>o que você notou (ex: cortou no fim, chiado, emoção errada, ótima entonação)</span></div><input type=text id=nota value="${esc(r.nota||'')}" onchange="setv('nota',this.value)" placeholder="observações..."></div>`;
 const rated=clips.filter(c=>rOf(c).geral!=null).length;
 document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} avaliados`;
 document.getElementById('prog').style.width=(100*rated/clips.length)+'%';}

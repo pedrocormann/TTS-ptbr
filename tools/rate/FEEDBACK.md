@@ -42,21 +42,28 @@ A aba **Insights** mostra a **cobertura** (quantos clipes/instantes marcados, po
     "voz": 4, "parou": true, "carioca": "sim", "nota": "texto livre"
   },
   "problems": ["sotaque gringo", "fonema errado"],   // tags no nível do clipe
-  "markers": [                     // ⭐ o sinal localizado no tempo
-    { "t": 2.30, "tag": "fonema errado", "note": "disse 'rato' com R de gringo" },
-    { "t": 3.81, "tag": "chiado", "note": "" }
+  "markers": [                     // ⭐ o sinal perceptual localizado no tempo
+    { "t": 2.30, "tag": "R forte /ʁ/ virou fraco", "sev": "grave", "note": "rato → R de gringo" },
+    { "t": 3.81, "tag": "ruído/chiado", "sev": "leve", "note": "" }
   ],
-  "rated_ts": 1718560000000
+  "rated_ts": 1718560000000,
+  "schema_version": 1              // versionado: os agentes futuros sabem ler/migrar
 }
 ```
 
 ### `markers[]` — o coração agent-ready
 - `t` (float, segundos): instante do erro no áudio. Resolução de centésimo.
 - `tag` (string): categoria do erro (taxonomia abaixo).
+- `sev` (string): gravidade — `leve` | `medio` | `grave`. Prioriza o que o agente ataca primeiro.
 - `note` (string): descrição humana livre — pra fonema, idealmente **esperado → ouvido**.
 
-### Taxonomia de `tag` (atual)
-`fonema errado` · `sotaque gringo` · `entonação robótica` · `cortou/incompleto` · `ruído/chiado` · `emoção errada` · `repetiu` · `rápido/devagar` · `metálico/artefato` · `pausa estranha` · `ênfase errada`
+### Taxonomia de `tag`
+**Geral:** `sotaque gringo` · `fonema errado` · `entonação robótica` · `cortou/incompleto` · `ruído/chiado` · `emoção errada` · `repetiu` · `rápido/devagar` · `metálico/artefato` · `pausa estranha` · `ênfase errada`
+
+**Fonema pt-BR (onde o "gringo" erra)** — categorias acionáveis que o WER nunca pega:
+`R forte /ʁ/ virou fraco` · `vogal nasal sem nasalizar (ã/õ/em)` · `ti/di sem palatal (tchi/dji)` · `S coda sem chiado carioca` · `L coda virou /l/ (não /w/)` · `vogal aberta/fechada (ó/ô, é/ê)` · `lh/nh sem palatal` · `ão/ditongo nasal errado` · `sílaba tônica errada` · `ritmo silábico de gringo`
+
+> Essas categorias mapeiam direto pros alvos de correção: cada uma vira "minerar/gravar mais dado deste fonema" ou "regra de G2P/lexicon".
 
 ## Como um agente futuro consome isto
 1. Filtra `markers` por `tag` (ex.: todos os `fonema errado`).
@@ -66,16 +73,17 @@ A aba **Insights** mostra a **cobertura** (quantos clipes/instantes marcados, po
 
 ## A pergunta aberta (Pedro): esse pool é o ideal ou falta sinal?
 
-Provável que a gente **aprenda com a primeira leva de anotação** se falta algo. Candidatos a estender o schema, por ordem de provável valor:
-- **`severity`** por marcador (leve/médio/grave) — prioriza o que dói mais.
-- **região `[t_start, t_end]`** em vez de ponto — pra erros que duram (chiado, corte). Hoje é ponto + janela fixa.
-- **`expected` / `heard`** estruturados pra fonema (ex.: `/ʁ/` → `/r/`), não só nota livre — alimenta G2P direto.
-- **alinhamento ao `ref_text`** (índice do caractere/palavra no instante) — liga o tempo ao texto sem forced-alignment posterior.
-- **concordância entre avaliadores** (multi-rater) — saber se um erro é consenso ou gosto de 1 pessoa.
-- **exemplos positivos** ("aqui ficou ótimo") — não só erros; ancora o que preservar.
-- **confiança do avaliador** no marcador.
+**Já aplicado (v1):** `severity` por marcador · taxonomia **pt-BR-aware** de fonema · `wer_ops` (WER decomposto) · `schema_version`.
 
-Decisão: começamos **enxuto** (`{t, tag, note}` + ratings + tags) pra não atrapalhar a anotação, e **medimos a cobertura** (Insights) pra decidir o que adicionar. Quando os agentes entrarem, este doc evolui pra `v2` com os campos que provarem necessários.
+**Candidatos a v2** — decidir **depois da 1ª leva real de anotação** (medindo a cobertura no Insights), pra não inflar o schema cedo demais:
+- **região `[t_start, t_end]`** em vez de ponto — pra erros que duram (chiado, corte). Hoje é ponto + janela fixa de ±0.3s.
+- **`expected` / `heard`** totalmente estruturados (IPA) pra fonema — hoje aproximado pela tag pt-BR + nota livre.
+- **alinhamento do marcador ao `ref_text`** (índice da palavra/caractere no instante) — liga tempo↔texto sem forced-alignment posterior.
+- **concordância entre avaliadores** (multi-rater) — saber se um erro é consenso ou gosto de 1 pessoa (hoje só o Pedro avalia → viés a vigiar).
+- **exemplos positivos** ("aqui ficou ótimo") — ancora o que preservar, não só o que consertar.
+- **mais frases/áudios** — 14 frases × poucos runs dá sinal direcional, não estatístico; ampliar o benchmark quando o foco virar ranking fino.
+
+Princípio: **enxuto e versionado**. Mede a cobertura → adiciona só o que a anotação real provar necessário → bumpa `schema_version`.
 
 ## Onde fica
 - Captura: `tools/rate/rate_app.py` (aba Avaliar, waveform + marcadores).

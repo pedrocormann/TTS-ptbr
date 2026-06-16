@@ -156,6 +156,7 @@ def feedback_records():
     for c in clips:
         r = ratings.get((c['run'], c['id']), {})
         out.append({
+            'schema_version': 1,
             'run': c['run'], 'id': c['id'], 'audio': c.get('wav'),
             'ref_text': c['text'], 'asr_hyp': c.get('hyp', ''),
             'emotion': c['emotion'], 'accent': c['accent'],
@@ -254,6 +255,9 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 #pins{position:absolute;inset:0;pointer-events:none;z-index:3}
 .pin{position:absolute;top:0;width:2px;height:100%;background:var(--red);pointer-events:auto;cursor:pointer;transform:translateX(-1px)}
 .pin::after{content:'';position:absolute;top:-2px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.pin.sev-grave,.pin.sev-grave::after{background:var(--red)}.pin.sev-medio,.pin.sev-medio::after{background:var(--orange)}.pin.sev-leve,.pin.sev-leve::after{background:var(--tm)}
+.sevb{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase;padding:2px 6px;border-radius:5px;border:1px solid var(--b);white-space:nowrap}
+.sevb.grave{color:var(--red);border-color:rgba(199,48,45,0.4)}.sevb.medio{color:var(--orange);border-color:rgba(228,89,51,0.4)}.sevb.leve{color:var(--tm)}
 .markbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
 .msel,.mnote{background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:7px 10px;font-family:var(--body);font-size:13px}
 .mnote{flex:1;min-width:220px}
@@ -295,6 +299,7 @@ const _sq={};
 const K=(r,id)=>r+'|'+id;
 const NUM=[1,2,3,4,5];
 const PROBS=["sotaque gringo","fonema errado","entonação robótica","cortou/incompleto","ruído/chiado","emoção errada","repetiu","rápido/devagar","metálico/artefato"];
+const PTBR=["R forte /ʁ/ virou fraco","vogal nasal sem nasalizar (ã/õ/em)","ti/di sem palatal (tchi/dji)","S coda sem chiado carioca","L coda virou /l/ (não /w/)","vogal aberta/fechada (ó/ô,é/ê)","lh/nh sem palatal","ão/ditongo nasal errado","sílaba tônica errada","ritmo silábico de gringo"];
 async function boot(){clips=await(await fetch('/api/clips')).json();ratings=await(await fetch('/api/ratings')).json();try{MAP=await(await fetch('/api/map')).json();}catch(e){}renderTrail();render();}
 function cur(){return clips[i];}
 function rOf(c){return ratings[K(c.run,c.id)]||{};}
@@ -321,8 +326,9 @@ function render(){
  <audio id=au controls src="/audio?run=${encodeURIComponent(c.run)}&id=${encodeURIComponent(c.id)}"></audio>
  <div class=wave id=wave><canvas id=wc></canvas><div id=ph class=playhead></div><div id=pins></div></div>
  <div class=markbar><span id=mtime class=muted>clique na onda pra escolher o instante do erro</span>
-  <select id=mtag class=msel>${PROBS.map(p=>`<option>${p}</option>`).join('')}<option>pausa estranha</option><option>ênfase errada</option></select>
-  <input id=mnote class=mnote placeholder="o que ouviu (ex: disse 'rato' com R de gringo)" onkeydown="if(event.key=='Enter'){event.preventDefault();addMarker();}">
+  <select id=mtag class=msel><optgroup label="geral">${PROBS.map(p=>`<option>${p}</option>`).join('')}<option>pausa estranha</option><option>ênfase errada</option></optgroup><optgroup label="fonema pt-BR (onde o gringo erra)">${PTBR.map(p=>`<option>${p}</option>`).join('')}</optgroup></select>
+  <select id=msev class=msel title="gravidade"><option value=medio>médio</option><option value=leve>leve</option><option value=grave>grave</option></select>
+  <input id=mnote class=mnote placeholder="esperado → ouvido (ex: R forte /ʁ/ → R fraco)" onkeydown="if(event.key=='Enter'){event.preventDefault();addMarker();}">
   <button class=btn onclick=addMarker()>📍 marcar momento</button></div>
  <div id=mlist class=mlist></div>
  <div class=leg><b>WER</b> = erro do reconhecedor (palavras certas? menor=melhor) — mas <b>NÃO</b> mede sotaque. Um áudio pode ter WER 0% e soar gringo: por isso os critérios + os marcadores no tempo abaixo (a base pros agentes do futuro).</div>
@@ -378,7 +384,8 @@ function curMarkers(){const c=cur();return c?(rOf(c).markers||[]):[];}
 function addMarker(){
  if(window._mt==null){flash('clique na onda pra escolher o instante');return;}
  const c=cur();const r=rOf(c);const tag=document.getElementById('mtag').value;const note=document.getElementById('mnote').value;
- const m=(r.markers||[]).slice();m.push({t:Math.round(window._mt*100)/100,tag:tag,note:note});m.sort(function(a,b){return a.t-b.t;});
+ const sv=document.getElementById('msev');const sev=sv?sv.value:'medio';
+ const m=(r.markers||[]).slice();m.push({t:Math.round(window._mt*100)/100,tag:tag,sev:sev,note:note});m.sort(function(a,b){return a.t-b.t;});
  r.markers=m;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;
  const mn=document.getElementById('mnote');if(mn)mn.value='';window._mt=null;
  const mt=document.getElementById('mtime');if(mt)mt.textContent='clique na onda pra escolher o instante do erro';
@@ -386,8 +393,8 @@ function addMarker(){
 }
 function removeMarker(idx){const c=cur();const r=rOf(c);if(!r.markers)return;r.markers.splice(idx,1);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderPins();renderMarkerList();updateCount();flash('removido');queueSave(c,r);}
 function seekTo(t){const a=document.getElementById('au');if(a){a.currentTime=t;const p=a.play();if(p)p.catch(function(){});}}
-function renderPins(){const el=document.getElementById('pins');if(!el)return;const d=clipDur();el.innerHTML=curMarkers().map(function(m){return '<i class=pin style="left:'+(100*(m.t/d))+'%" title="'+esc(m.tag+' @ '+m.t+'s'+(m.note?' — '+m.note:''))+'" onclick="seekTo('+m.t+')"></i>';}).join('');}
-function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — cada um é um instante que um agente futuro pode recortar e corrigir</span></div>`+ms.map(function(m,idx){return `<div class=mrow><span class=mt onclick="seekTo(${m.t})">${m.t.toFixed(2)}s</span><span class=mtg>${esc(m.tag)}</span><span class=mnt>${esc(m.note||'')}</span><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
+function renderPins(){const el=document.getElementById('pins');if(!el)return;const d=clipDur();el.innerHTML=curMarkers().map(function(m){return '<i class="pin sev-'+(m.sev||'medio')+'" style="left:'+(100*(m.t/d))+'%" title="'+esc((m.sev?'['+m.sev+'] ':'')+m.tag+' @ '+m.t+'s'+(m.note?' — '+m.note:''))+'" onclick="seekTo('+m.t+')"></i>';}).join('');}
+function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — cada um é um instante (com gravidade) que um agente futuro recorta e corrige</span></div>`+ms.map(function(m,idx){return `<div class=mrow><span class=mt onclick="seekTo(${m.t})">${m.t.toFixed(2)}s</span><span class="sevb ${m.sev||'medio'}">${m.sev||'médio'}</span><span class=mtg>${esc(m.tag)}</span><span class=mnt>${esc(m.note||'')}</span><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
 function updateCount(){
  const rated=clips.filter(x=>rOf(x).geral!=null).length;
  document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} avaliados`;

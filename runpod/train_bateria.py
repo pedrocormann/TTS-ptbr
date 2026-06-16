@@ -54,10 +54,12 @@ def parse_args():
 
 
 # experimentos disponíveis (mesma matriz do notebook)
+# clips por experimento (não horas): ~8000 clipes ≈ baixa em ~2-4 min e dá ~1.5-2 epochs
+# num run de 50min (baixo overfit, comparação justa). Igual entre fontes = ranking justo.
 ALL_EXPS = {
-    'A1_cml':      {'name': 'A1_cml',      'source': 'cml',      'hours': 30},
-    'A3_tagarela': {'name': 'A3_tagarela', 'source': 'tagarela', 'hours': 25},
-    'A2_mix':      {'name': 'A2_mix',      'source': 'mix',      'hours': 40},
+    'A1_cml':      {'name': 'A1_cml',      'source': 'cml',      'clips': 8000},
+    'A3_tagarela': {'name': 'A3_tagarela', 'source': 'tagarela', 'clips': 8000},
+    'A2_mix':      {'name': 'A2_mix',      'source': 'mix',      'clips': 8000},
 }
 
 
@@ -75,32 +77,31 @@ def heavy_imports():
 
 
 # ───────────────────────── helpers (VERBATIM do notebook 1b) ─────────────────────────
-def _stream_take(name, cfg, text_key, target_s):
-    """STREAMING: itera o dataset e acumula clipes até `target_s` segundos de áudio.
-    Baixa só o que usamos (não o dataset inteiro) — essencial no volume pequeno do pod.
-    Mesmo padrão que já funcionava pro TAGARELA, generalizado pras 3 fontes."""
+def _stream_take(name, cfg, text_key, n_clips):
+    """STREAMING RÁPIDO: itera SEM decodificar o áudio (Audio(decode=False) → só lê os
+    bytes) e pega `n_clips` clipes. Decodificar ao iterar (pra medir duração em segundos)
+    era o gargalo — levava >10min pra 30h. Com decode=False a coleta é só I/O de rede
+    (~minutos); o áudio é decodificado depois, na tokenização (onde já era de qualquer jeito)."""
     st = load_dataset(name, cfg, split='train', streaming=True) if cfg \
          else load_dataset(name, split='train', streaming=True)
-    rows, tot = [], 0.0
+    st = st.cast_column('audio', Audio(decode=False))
+    rows = []
     for ex in st:
-        a = ex['audio']
         txt = ex.get(text_key) or ex.get('text') or ex.get('sentence') or ex.get('transcript') or ''
-        rows.append({'audio': a, 'text': txt})
-        tot += len(a['array']) / a['sampling_rate']
-        if tot >= target_s:
+        rows.append({'audio': ex['audio'], 'text': txt})
+        if len(rows) >= n_clips:
             break
     return rows
 
 
-def load_source(source, hours):
-    tgt = hours * 3600
+def load_source(source, clips):
     if source == 'cml':
-        rows = _stream_take('ylacombe/cml-tts', 'portuguese', 'text', tgt)
+        rows = _stream_take('ylacombe/cml-tts', 'portuguese', 'text', clips)
     elif source == 'mix':
-        rows = _stream_take('ylacombe/cml-tts', 'portuguese', 'text', tgt / 2)          # metade CML
-        rows += _stream_take('facebook/multilingual_librispeech', 'portuguese', 'transcript', tgt / 2)  # metade MLS
+        rows = _stream_take('ylacombe/cml-tts', 'portuguese', 'text', clips // 2)                      # metade CML
+        rows += _stream_take('facebook/multilingual_librispeech', 'portuguese', 'transcript', clips // 2)  # metade MLS
     elif source == 'tagarela':
-        rows = _stream_take('freds0/TAGARELA', None, 'sentence', tgt)
+        rows = _stream_take('freds0/TAGARELA', None, 'sentence', clips)
     ds = Dataset.from_list(rows).cast_column('audio', Audio(sampling_rate=24000)).shuffle(seed=42)
     return ds
 
@@ -209,8 +210,8 @@ def run_experiment(exp, deadline_global, cfg):
     CSMTrainer = make_trainer_cls()
     name, out = exp['name'], f"{cfg.out_root}/runs/battery_{exp['name']}"
     os.makedirs(out, exist_ok=True); t0 = time.time()
-    print(f"\n{'='*64}\n▶ {name}  ({exp['source']}, {exp['hours']}h)  {time.strftime('%H:%M')}\n{'='*64}")
-    raw = load_source(exp['source'], exp['hours'])
+    print(f"\n{'='*64}\n▶ {name}  ({exp['source']}, {exp['clips']} clipes)  {time.strftime('%H:%M')}\n{'='*64}")
+    raw = load_source(exp['source'], exp['clips'])
     raw = raw.filter(lambda ex: 1.5 <= len(ex['audio']['array'])/24000 <= 20 and len(str(ex['text']).split()) >= 3)
     MAX_AUDIO = 288000 + 1   # 12s fixo (áudio cortado a 12s no preprocess)
     print(f"  {len(raw)} clipes · max_audio={MAX_AUDIO/24000:.0f}s")
@@ -239,7 +240,7 @@ def run_experiment(exp, deadline_global, cfg):
     steps = tr.state.global_step
     model.save_pretrained(f'{out}/final'); processor.save_pretrained(f'{out}/final')
     wer = eval_wer(model, processor, raw[0], out)
-    r = {'name': name, 'source': exp['source'], 'hours': exp['hours'],
+    r = {'name': name, 'source': exp['source'], 'clips': exp['clips'],
          'steps': steps, 'wer': wer, 'min': round((time.time()-t0)/60)}
     del model, processor, tr, ds, raw; gc.collect(); torch.cuda.empty_cache()
     print("  ✅", r); return r
@@ -293,9 +294,9 @@ def main():
             traceback.print_exc(); print(f"  ❌ {exp['name']}: {e}")
 
     print("\n\n" + "="*64 + "\n=== RESULTADOS DA BATERIA ===\n" + "="*64)
-    lines = ["| exp | fonte | horas | steps | WER | min |", "|---|---|---|---|---|---|"]
+    lines = ["| exp | fonte | clipes | steps | WER | min |", "|---|---|---|---|---|---|"]
     for r in sorted(results, key=lambda x: x['wer']):
-        ln = f"| {r['name']} | {r['source']} | {r['hours']} | {r['steps']} | {r['wer']:.1%} | {r['min']:.0f} |"
+        ln = f"| {r['name']} | {r['source']} | {r['clips']} | {r['steps']} | {r['wer']:.1%} | {r['min']:.0f} |"
         lines.append(ln); print(ln)
     if results:
         best = min(results, key=lambda x: x['wer'])

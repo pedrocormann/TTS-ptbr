@@ -63,6 +63,7 @@ def build_manifest():
                 'emotion': b.get('emotion', '?'), 'accent': b.get('accent', '?'),
                 'text': b.get('text', ps.get('ref', '')),
                 'wer': ps.get('wer'), 'dur_s': ps.get('dur_s'), 'hyp': ps.get('hyp', ''),
+                'wav': str(wav.relative_to(REPO)),
             })
     return clips
 
@@ -96,10 +97,42 @@ def insights():
         by_emo.setdefault(r['emotion'], []).append(r)
         for p in (r.get('problemas') or []):
             probs[p] = probs.get(p, 0) + 1
+    # cobertura de marcadores no tempo (o substrato pros agentes do futuro)
+    marc_clips, marc_total, marc_tag = 0, 0, {}
+    for rr in ratings.values():
+        ms = rr.get('markers') or []
+        if ms:
+            marc_clips += 1
+            marc_total += len(ms)
+            for m in ms:
+                t = m.get('tag', '?'); marc_tag[t] = marc_tag.get(t, 0) + 1
     return {'total_rated': len(rated), 'total': len(clips),
             'por_run': {k: agg(v) for k, v in sorted(by_run.items())},
             'por_emocao': {k: agg(v) for k, v in sorted(by_emo.items())},
-            'problemas': dict(sorted(probs.items(), key=lambda x: -x[1]))}
+            'problemas': dict(sorted(probs.items(), key=lambda x: -x[1])),
+            'feedback': {'clips_marcados': marc_clips, 'total_marcadores': marc_total,
+                         'por_tag': dict(sorted(marc_tag.items(), key=lambda x: -x[1]))}}
+
+
+def feedback_records():
+    """Registros agent-ready: junta áudio + refs + avaliações + marcadores no tempo.
+    É o contrato que um loop de agentes futuro consome (ver tools/rate/FEEDBACK.md)."""
+    clips = build_manifest()
+    ratings = load_ratings()
+    out = []
+    for c in clips:
+        r = ratings.get((c['run'], c['id']), {})
+        out.append({
+            'run': c['run'], 'id': c['id'], 'audio': c.get('wav'),
+            'ref_text': c['text'], 'asr_hyp': c.get('hyp', ''),
+            'emotion': c['emotion'], 'accent': c['accent'],
+            'wer': c['wer'], 'dur_s': c['dur_s'],
+            'ratings': {k: r.get(k) for k in ('geral', 'nativo', 'natural', 'voz', 'parou', 'carioca', 'nota')},
+            'problems': r.get('problemas') or [],
+            'markers': r.get('markers') or [],
+            'rated_ts': r.get('ts'),
+        })
+    return out
 
 
 def load_map():
@@ -182,6 +215,21 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .panel .deep{color:var(--t2);font-size:14px;line-height:1.65}.panel .deep p{margin:9px 0}.panel .deep b{color:var(--t)}.panel .deep code{font-family:var(--mono);font-size:12px;background:var(--surface-h);padding:1px 5px;border-radius:4px;color:var(--t)}.panel .deep ul{margin:9px 0 9px 18px}.panel .deep li{margin:4px 0}
 .panel .hyp{display:block;margin:7px 0;cursor:default}
 .links{display:flex;flex-wrap:wrap;gap:7px}.linknode{font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid var(--b);background:var(--surface);color:var(--t2);cursor:pointer}.linknode:hover{border-color:var(--bh);color:var(--t)}
+.wave{position:relative;width:100%;height:64px;margin:12px 0 6px;background:rgba(255,255,255,0.02);border:1px solid var(--b);border-radius:var(--rsm);overflow:hidden;cursor:crosshair}
+.wave canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.playhead{position:absolute;top:0;bottom:0;width:1.5px;background:var(--orange);left:0;pointer-events:none;z-index:2}
+#pins{position:absolute;inset:0;pointer-events:none;z-index:3}
+.pin{position:absolute;top:0;width:2px;height:100%;background:var(--red);pointer-events:auto;cursor:pointer;transform:translateX(-1px)}
+.pin::after{content:'';position:absolute;top:-2px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.markbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.msel,.mnote{background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:7px 10px;font-family:var(--body);font-size:13px}
+.mnote{flex:1;min-width:220px}
+.mlist{margin-top:2px}
+.mrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--b);font-size:13px}
+.mt{font-family:var(--mono);font-size:12px;color:var(--orange);cursor:pointer;min-width:54px}
+.mtg{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--t2);background:var(--surface);border:1px solid var(--b);border-radius:5px;padding:2px 7px;white-space:nowrap}
+.mnt{flex:1;color:var(--t2)}
+.mx{color:var(--tm);cursor:pointer}.mx:hover{color:var(--red)}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
@@ -220,10 +268,16 @@ function render(){
  let h=`<div class=tags><span>${c.run}</span><span>${c.id}</span><span>${c.emotion}</span><span>${c.accent}</span><span>dur ${dur}${cap?' <b class=warn>(no teto!)</b>':''}</span>${c.wer!=null?`<span>WER ${Math.round(c.wer*100)}%</span>`:''}${done?'<span style="border-color:var(--green);color:var(--green)">✓ avaliado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}</div>
  <div class=text>${esc(c.text)}</div>${c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:''}
  <audio id=au controls src="/audio?run=${encodeURIComponent(c.run)}&id=${encodeURIComponent(c.id)}"></audio>
- <div class=leg><b>WER</b> = erro do reconhecedor (palavras certas? menor=melhor) — mas <b>NÃO</b> mede sotaque. Um áudio pode ter WER 0% e soar gringo: por isso os critérios abaixo.</div>
+ <div class=wave id=wave><canvas id=wc></canvas><div id=ph class=playhead></div><div id=pins></div></div>
+ <div class=markbar><span id=mtime class=muted>clique na onda pra escolher o instante do erro</span>
+  <select id=mtag class=msel>${PROBS.map(p=>`<option>${p}</option>`).join('')}<option>pausa estranha</option><option>ênfase errada</option></select>
+  <input id=mnote class=mnote placeholder="o que ouviu (ex: disse 'rato' com R de gringo)" onkeydown="if(event.key=='Enter'){event.preventDefault();addMarker();}">
+  <button class=btn onclick=addMarker()>📍 marcar momento</button></div>
+ <div id=mlist class=mlist></div>
+ <div class=leg><b>WER</b> = erro do reconhecedor (palavras certas? menor=melhor) — mas <b>NÃO</b> mede sotaque. Um áudio pode ter WER 0% e soar gringo: por isso os critérios + os marcadores no tempo abaixo (a base pros agentes do futuro).</div>
  <div id=ctrls></div>`;
  document.getElementById('card').innerHTML=h;
- renderCtrls();updateCount();
+ setupWave(c);renderCtrls();updateCount();
 }
 function renderCtrls(){
  const c=cur();if(!c)return;const r=rOf(c);
@@ -243,6 +297,46 @@ function renderCtrls(){
  h+=`<div class=ind><div class=ihead><b>Nota livre</b><span class=exp>salva enquanto você digita · Enter pra confirmar</span></div><input type=text id=nota value="${esc(r.nota||'')}" oninput="saveNota(this.value)" onkeydown="if(event.key=='Enter'||event.key=='Escape'){event.preventDefault();this.blur();}" placeholder="observações..."></div>`;
  document.getElementById('ctrls').innerHTML=h;
 }
+let _audioCtx=null;
+function audioCtx(){if(!_audioCtx){try{_audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return _audioCtx;}
+function clipDur(){const a=document.getElementById('au');return (a&&a.duration&&isFinite(a.duration)&&a.duration>0)?a.duration:((cur()&&cur().dur_s)||1);}
+function setupWave(c){
+ window._mt=null;
+ const a=document.getElementById('au');
+ if(a){a.ontimeupdate=updatePlayhead;a.onended=updatePlayhead;a.onplay=updatePlayhead;}
+ const w=document.getElementById('wave');
+ if(w){w.onclick=function(e){const rc=w.getBoundingClientRect();const d=clipDur();const t=Math.max(0,Math.min(d,(e.clientX-rc.left)/rc.width*d));window._mt=t;if(a)a.currentTime=t;const mt=document.getElementById('mtime');if(mt)mt.innerHTML='instante: <b style="color:var(--orange)">'+t.toFixed(2)+'s</b> — escolha o tipo e marque';updatePlayhead();};}
+ drawWave(c);renderPins();renderMarkerList();
+}
+function updatePlayhead(){const a=document.getElementById('au'),ph=document.getElementById('ph');if(!a||!ph)return;ph.style.left=(100*(a.currentTime/clipDur()))+'%';}
+async function drawWave(c){
+ const cv=document.getElementById('wc');if(!cv)return;
+ const W=Math.max(2,cv.clientWidth||600),H=cv.clientHeight||64;cv.width=W;cv.height=H;
+ const ctx=cv.getContext('2d');ctx.clearRect(0,0,W,H);
+ try{
+  const ac=audioCtx();if(!ac)throw 0;
+  const buf=await(await fetch('/audio?run='+encodeURIComponent(c.run)+'&id='+encodeURIComponent(c.id))).arrayBuffer();
+  const ab=await ac.decodeAudioData(buf);
+  if(cur()!==c)return;
+  const data=ab.getChannelData(0);const step=Math.max(1,Math.floor(data.length/W));
+  ctx.fillStyle='rgba(245,245,247,0.30)';
+  for(let x=0;x<W;x++){let mn=1,mx=-1;for(let j=0;j<step;j++){const v=data[x*step+j]||0;if(v<mn)mn=v;if(v>mx)mx=v;}const y1=(1-(mx+1)/2)*H,y2=(1-(mn+1)/2)*H;ctx.fillRect(x,y1,1,Math.max(1,y2-y1));}
+ }catch(e){ctx.strokeStyle='rgba(245,245,247,0.16)';ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();}
+}
+function curMarkers(){const c=cur();return c?(rOf(c).markers||[]):[];}
+function addMarker(){
+ if(window._mt==null){flash('clique na onda pra escolher o instante');return;}
+ const c=cur();const r=rOf(c);const tag=document.getElementById('mtag').value;const note=document.getElementById('mnote').value;
+ const m=(r.markers||[]).slice();m.push({t:Math.round(window._mt*100)/100,tag:tag,note:note});m.sort(function(a,b){return a.t-b.t;});
+ r.markers=m;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;
+ const mn=document.getElementById('mnote');if(mn)mn.value='';window._mt=null;
+ const mt=document.getElementById('mtime');if(mt)mt.textContent='clique na onda pra escolher o instante do erro';
+ renderPins();renderMarkerList();updateCount();flash('marcado ✓');queueSave(c,r);
+}
+function removeMarker(idx){const c=cur();const r=rOf(c);if(!r.markers)return;r.markers.splice(idx,1);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderPins();renderMarkerList();updateCount();flash('removido');queueSave(c,r);}
+function seekTo(t){const a=document.getElementById('au');if(a){a.currentTime=t;const p=a.play();if(p)p.catch(function(){});}}
+function renderPins(){const el=document.getElementById('pins');if(!el)return;const d=clipDur();el.innerHTML=curMarkers().map(function(m){return '<i class=pin style="left:'+(100*(m.t/d))+'%" title="'+esc(m.tag+' @ '+m.t+'s'+(m.note?' — '+m.note:''))+'" onclick="seekTo('+m.t+')"></i>';}).join('');}
+function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — cada um é um instante que um agente futuro pode recortar e corrigir</span></div>`+ms.map(function(m,idx){return `<div class=mrow><span class=mt onclick="seekTo(${m.t})">${m.t.toFixed(2)}s</span><span class=mtg>${esc(m.tag)}</span><span class=mnt>${esc(m.note||'')}</span><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
 function updateCount(){
  const rated=clips.filter(x=>rOf(x).geral!=null).length;
  document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} avaliados`;
@@ -272,11 +366,24 @@ async function showIns(){
  const tbl=(o,hd)=>`<table><tr><th>${hd}</th><th>n</th><th>geral</th><th>nativo</th><th>natural</th><th>voz</th><th>parou%</th></tr>`+
   Object.entries(o).map(([k,a])=>`<tr><td>${k}</td><td>${a.n}</td><td>${a.geral??'-'}</td><td>${a.nativo??'-'}</td><td>${a.natural??'-'}</td><td>${a.voz??'-'}</td><td>${a.parou_pct??'-'}</td></tr>`).join('')+`</table>`;
  const probs=Object.entries(d.problemas||{});
+ const fb=d.feedback||{clips_marcados:0,total_marcadores:0,por_tag:{}};
+ const ftags=Object.entries(fb.por_tag||{});
  document.getElementById('in').innerHTML=`<div class=card><h2>Insights — ${d.total_rated}/${d.total} avaliados</h2>
  <h3>Por run (qual modelo é melhor)</h3>${tbl(d.por_run,'run')}
  <h3>Por emoção (o que falha)</h3>${tbl(d.por_emocao,'emoção')}
  <h3>Problemas mais comuns → o que o próximo treino deve atacar</h3>
- ${probs.length?`<table><tr><th>problema</th><th>nº de clipes</th></tr>${probs.map(([p,n])=>`<tr><td>${p}</td><td>${n}</td></tr>`).join('')}</table>`:'<p class=muted>marque tags de problema nos áudios pra ver o ranking aqui.</p>'}</div>`;
+ ${probs.length?`<table><tr><th>problema</th><th>nº de clipes</th></tr>${probs.map(([p,n])=>`<tr><td>${p}</td><td>${n}</td></tr>`).join('')}</table>`:'<p class=muted>marque tags de problema nos áudios pra ver o ranking aqui.</p>'}
+ <h3>Feedback no tempo → a base pros agentes do futuro</h3>
+ <p class=muted>${fb.clips_marcados} clipes com marcadores · ${fb.total_marcadores} instantes marcados. Cada marcador é um trecho (run+id+segundo+tipo+nota) que um loop de agentes pode recortar do áudio e corrigir no próximo treino.</p>
+ ${ftags.length?`<table><tr><th>tipo de erro (no tempo)</th><th>marcadores</th></tr>${ftags.map(([p,n])=>`<tr><td>${p}</td><td>${n}</td></tr>`).join('')}</table>`:'<p class=muted>marque instantes na waveform (aba Avaliar) pra começar a construir essa base.</p>'}
+ <div style="margin-top:18px"><button class=btn onclick=exportFeedback()>⬇ exportar feedback (agent-ready .jsonl)</button> <span class=exp>schema em tools/rate/FEEDBACK.md</span></div></div>`;
+}
+async function exportFeedback(){
+ try{const recs=await(await fetch('/api/feedback')).json();
+  const jsonl=recs.map(function(r){return JSON.stringify(r);}).join('\n');
+  const blob=new Blob([jsonl],{type:'application/x-ndjson'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='feedback.jsonl';a.click();URL.revokeObjectURL(url);
+  flash('exportado: feedback.jsonl');}catch(e){flash('falha ao exportar');}
 }
 const STATUS={done:'feito',wip:'em curso',next:'a seguir',idea:'hipótese'};
 function renderTrail(){
@@ -391,6 +498,8 @@ class H(BaseHTTPRequestHandler):
             self._send(200, insights())
         elif u.path == '/api/map':
             self._send(200, load_map())
+        elif u.path == '/api/feedback':
+            self._send(200, feedback_records())
         elif u.path == '/audio':
             run = q.get('run', [''])[0]; cid = q.get('id', [''])[0]
             matches = list((SAMPLES / run).rglob(f'{cid}.wav'))

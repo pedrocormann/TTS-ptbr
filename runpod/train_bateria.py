@@ -163,13 +163,19 @@ def eval_wer(model, processor, ref, out):
     model.eval()
     bench = [json.loads(l) for l in open(REPO_ROOT/'eval/benchmark_ptbr.jsonl', encoding='utf-8') if l.strip()]
     gd = pathlib.Path(f'{out}/gen'); gd.mkdir(exist_ok=True, parents=True)
+    gen_durs = []
     for i, it in enumerate(bench):
         conv = [{'role':'0','content':[{'type':'text','text':str(ref['text'])},{'type':'audio','path':ref['audio']['array']}]},
                 {'role':'0','content':[{'type':'text','text':it['text']}]}]
         inp = processor.apply_chat_template(conv, tokenize=True, return_dict=True).to('cuda')
         with torch.no_grad():
-            au = model.generate(**inp, output_audio=True, max_new_tokens=375)
-        sf.write(gd / f"{it.get('id', i)}.wav", au[0].to(torch.float32).cpu().numpy(), 24000)
+            au = model.generate(**inp, output_audio=True, max_new_tokens=160)   # ~13s teto (antes 375=30s)
+        wav = au[0].to(torch.float32).cpu().numpy()
+        gen_durs.append(len(wav) / 24000)
+        sf.write(gd / f"{it.get('id', i)}.wav", wav, 24000)
+    cap_hits = sum(1 for d in gen_durs if d >= 12.8)   # bateu no teto = NÃO aprendeu a parar (balbucio)
+    print(f"  gen: dur média {float(np.mean(gen_durs)):.1f}s · {cap_hits}/{len(gen_durs)} no teto "
+          f"({'⚠️ balbuciando' if cap_hits > len(gen_durs)//2 else 'aprendeu a parar ✓'})")
     asr = WhisperModel('small', device='cpu', compute_type='int8')  # cpu: evita crash cuDNN
     norm = jiwer.Compose([jiwer.ToLowerCase(), jiwer.RemovePunctuation(), jiwer.RemoveMultipleSpaces(), jiwer.Strip()])
     ws = []

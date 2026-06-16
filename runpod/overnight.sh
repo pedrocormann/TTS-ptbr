@@ -15,12 +15,13 @@ LIVE=/workspace/bateria.log               # o watchdog lê isto = run atual
 HUB="pedrocormann/tts-ptbr-bateria"
 GRID_DEADLINE=$(( $(date +%s) + 600*60 ))  # 10h de teto pro grid (deixa folga p/ Stage B)
 
-# grid FOCADO (após o fix de shape): recupera TAGARELA/mix (falharam) + 1 BASE-PT longo.
-# cml_base (WER 116%) já está salvo de antes → a aggregate inclui ele.  "tag|exp|lr|rank|min"
+# grid REPLANEJADO pelo Head of ML: os runs de 60min @ 2e-4 só BALBUCIAM (WER ~116%, áudio
+# colando no teto de 30s). Aposta agora = runs LONGOS + LR agressivo (grad_norm folgado em 2.6):
+# CML e TAGARELA a 5e-4 por 180min cada (data source comparado de verdade, onde separa) → Stage B.
+# cml_base (116% @ 2e-4 60min) fica salvo como baseline.  "tag|exp|lr|rank|min"
 GRID=(
-  "tag_base|A3_tagarela|2e-4|64|60"   # data source: TAGARELA (vs cml_base já feito)
-  "mix_base|A2_mix|2e-4|64|60"        # data source: mix
-  "cml_long|A1_cml|2e-4|64|120"       # BASE-PT longo (CML) — base do Estágio B
+  "cml_long|A1_cml|5e-4|64|180"       # BASE-PT longo CML @ LR agressivo — base do Estágio B
+  "tag_long|A3_tagarela|5e-4|64|180"  # BASE-PT longo TAGARELA (comparação no comprimento que importa)
 )
 
 n=${#GRID[@]}; i=0
@@ -60,6 +61,7 @@ if [ -f runpod/train_voice.py ] && [ -d /workspace/pedro_data ] && [ -d "$BASE" 
   echo "===== [$(date +%H:%M)] STAGE B: voz do Pedro sobre BASE-PT =====" | tee -a "$LOG"
   timeout 130m python -u runpod/train_voice.py --base-adapter "$BASE" \
       --data-dir /workspace/pedro_data --out /workspace/TTS-ptbr-data/runs/stage_b_pedro \
+      --lr 2e-4 --minutes 90 \
       > "$LIVE" 2>&1 \
     && echo "[$(date +%H:%M)] ✓ Stage B" | tee -a "$LOG" \
     || echo "[$(date +%H:%M)] ✗ Stage B falhou" | tee -a "$LOG"

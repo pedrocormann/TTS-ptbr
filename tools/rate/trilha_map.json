@@ -112,18 +112,18 @@
    "title": "MLS-pt",
    "status": "wip",
    "progress": 30,
-   "summary": "MLS-pt 161h CC-BY fala lida — metade do mix; ainda em planejamento",
+   "summary": "MLS-pt 161h CC-BY (LibriSpeech, leitura) — metade do mix; ainda em planejamento",
    "hyp": [
     {
      "claim": "Mix CML+MLS (totalizando ~230h leitura) > CML pure em cauda de robustez",
      "status": "aberta"
     },
     {
-     "claim": "MLS-pt é EU-leaning (mais pt-PT que pt-BR no sotaque) — precisa validação sonora",
+     "claim": "MLS-pt tende a pt-PT/misto no sotaque (LibriVox) — precisa validação sonora antes de entrar no mix",
      "status": "aberta"
     }
    ],
-   "deep": "MLS-pt é Mozilla-Common-Voice pt subset (161h transcrito+validado, CC-BY). Corpus lido, sotaque misto (coleta distribuída EU/BR). Estágio A.2-mix (CML+MLS+CV-pt → ~416h) não rodou ainda: benchmarked só em spec vs CML baseline. Hipótese: horas adicionais melhoram tail (rare pronunciations, long-tail pt patterns) em 1-2 epochs de fine-tuning sem overfit. MLS reduz likelihood de LR alto demais porque corpus maior estabiliza gradientes. Fonte: não foi processado, aguarda decisão pós-A1 baseline. Avaliação em aberto: ouvir MLS puro em síntese pra validar acento (CML é formal interior/paulista; MLS pode vir enviesado EU)."
+   "deep": "MLS-pt é Multilingual LibriSpeech, subconjunto pt (161h, leitura de audiobooks LibriVox, CC-BY). Corpus lido, sotaque tende a pt-PT/misto (precisa validação sonora). Estágio A.2-mix (CML+MLS+CV-pt) ainda não rodou — benchmarked só em spec vs CML baseline. Hipótese: as horas extras melhoram a cauda (pronúncias raras, padrões longos do pt) em 1-2 epochs sem overfit, e o corpus maior estabiliza gradientes (menos risco de LR alto demais). Avaliação aberta: ouvir MLS puro pra checar o acento antes de misturar."
   },
   {
    "id": "ds-tagarela",

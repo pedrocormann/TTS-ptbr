@@ -47,3 +47,7 @@ phase0/**/__pycache__/
 .DS_Store
 .idea/
 .vscode/
+
+# dados locais de avaliação (working data; o artefato é o export feedback.jsonl)
+tools/rate/ratings.jsonl
+tools/rate/*.tmp

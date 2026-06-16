@@ -165,9 +165,12 @@ function onlyFlag(){filt=!filt;i=0;applyFilter();render();document.getElementByI
 async function exp(){const r=await(await fetch('/api/export',{method:'POST'})).json();const s=await(await fetch('/api/stats')).json();
 document.getElementById('msg').innerHTML=`✓ Exportado ${r.n} clipes limpos → <code>${r.path}</code> · ${s.min_mantidos}min mantidos · descartados ${s.descartar} · flags ${JSON.stringify(s.flags)}`}
 document.addEventListener('keydown',e=>{if(e.target.tagName=='TEXTAREA'||e.target.tagName=='INPUT')return;
-if(e.key==' '){e.preventDefault();play()}else if(e.key=='ArrowRight')go(1)else if(e.key=='ArrowLeft')go(-1)
-else if(e.key.toLowerCase()=='k')setv('keep',true)else if(e.key.toLowerCase()=='d')setv('keep',false)
-else if(e.key.toLowerCase()=='f')onlyFlag()});
+if(e.key==' '){e.preventDefault();play();}
+else if(e.key=='ArrowRight'){go(1);}
+else if(e.key=='ArrowLeft'){go(-1);}
+else if(e.key.toLowerCase()=='k'){setv('keep',true);}
+else if(e.key.toLowerCase()=='d'){setv('keep',false);}
+else if(e.key.toLowerCase()=='f'){onlyFlag();}});
 boot();
 </script></body></html>"""
 

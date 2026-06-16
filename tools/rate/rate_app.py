@@ -191,10 +191,12 @@ document.getElementById('ins').innerHTML=`<div class=card><h2 style=font-size:16
 <table><tr><th>run</th><th>id</th><th>geral</th><th>parou</th><th>texto</th></tr>${d.piores.map(p=>`<tr><td>${p.run}</td><td>${p.id}</td><td>${p.geral}</td><td>${p.parou?'✓':'✗'}</td><td class=muted>${esc(p.text)}</td></tr>`).join('')}</table></div>`;
 document.getElementById('ins').style.display='block';document.getElementById('rate').style.display='none';}
 document.addEventListener('keydown',e=>{if(e.target.tagName=='INPUT')return;
-if(e.key==' '){e.preventDefault();play()}else if(e.key>='1'&&e.key<='5')setv('geral',+e.key)
-else if(e.key.toLowerCase()=='p')setv('parou',!(rOf(cur()).parou===true))
-else if(e.key=='ArrowRight')go(1)else if(e.key=='ArrowLeft')go(-1)
-else if(e.key.toLowerCase()=='i')toggleView()});
+if(e.key==' '){e.preventDefault();play();}
+else if(e.key>='1'&&e.key<='5'){setv('geral',+e.key);}
+else if(e.key.toLowerCase()=='p'){setv('parou',!(rOf(cur()).parou===true));}
+else if(e.key=='ArrowRight'){go(1);}
+else if(e.key=='ArrowLeft'){go(-1);}
+else if(e.key.toLowerCase()=='i'){toggleView();}});
 boot();
 </script></body></html>"""
 

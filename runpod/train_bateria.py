@@ -109,14 +109,20 @@ def load_source(source, clips):
 
 
 def build_prep(processor, max_audio):
+    CLIP = 288000   # 12s @ 24kHz — TODO áudio vira EXATAMENTE isto (crop + zero-pad). Sem isso,
+                    # áudio curto/variável (TAGARELA/MLS/voz do Pedro) dá nº de frames do codec ≠
+                    # nº de placeholders → "shape mismatch [300,2048] vs [290,2048]" no forward.
     def spk(ex, i):
         return str(int(hashlib.md5(str(ex.get('speaker_id', i)).encode()).hexdigest(), 16) % 10)
     def prep(ex, idx):
+        arr = np.asarray(ex['audio']['array'], dtype=np.float32)[:CLIP]
+        if arr.shape[0] < CLIP:
+            arr = np.pad(arr, (0, CLIP - arr.shape[0]))   # zero-pad clipes curtos → comprimento fixo
         conv = [{'role': spk(ex, idx), 'content': [{'type':'text','text':str(ex['text']).strip()},
-                                                   {'type':'audio','path':ex['audio']['array'][:288000]}]}]
+                                                   {'type':'audio','path':arr}]}]
         o = processor.apply_chat_template(conv, tokenize=True, return_dict=True, output_labels=True,
             text_kwargs={'padding':'max_length','max_length':256,'truncation':True,'pad_to_multiple_of':8,'padding_side':'right'},
-            audio_kwargs={'sampling_rate':24000,'max_length':max_audio,'padding':'max_length'},
+            audio_kwargs={'sampling_rate':24000},   # áudio já é uniforme → sem padding aqui
             common_kwargs={'return_tensors':'pt'})
         return {k: v[0] for k, v in o.items()}
     return prep

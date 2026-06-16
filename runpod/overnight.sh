@@ -15,16 +15,12 @@ LIVE=/workspace/bateria.log               # o watchdog lê isto = run atual
 HUB="pedrocormann/tts-ptbr-bateria"
 GRID_DEADLINE=$(( $(date +%s) + 600*60 ))  # 10h de teto pro grid (deixa folga p/ Stage B)
 
-# grid: "tag|exp|lr|rank|minutos"  — varia UM eixo por vez a partir do baseline
+# grid FOCADO (após o fix de shape): recupera TAGARELA/mix (falharam) + 1 BASE-PT longo.
+# cml_base (WER 116%) já está salvo de antes → a aggregate inclui ele.  "tag|exp|lr|rank|min"
 GRID=(
-  "cml_base|A1_cml|2e-4|64|60"        # baseline (data source)
-  "tag_base|A3_tagarela|2e-4|64|60"
-  "mix_base|A2_mix|2e-4|64|60"
-  "cml_lr1e4|A1_cml|1e-4|64|60"       # eixo LR
-  "cml_lr3e4|A1_cml|3e-4|64|60"
-  "cml_r128|A1_cml|2e-4|128|60"       # eixo rank
-  "cml_long|A1_cml|2e-4|64|150"       # BASE-PT candidato (longo) — vira base do Stage B
-  "tag_long|A3_tagarela|2e-4|64|150"
+  "tag_base|A3_tagarela|2e-4|64|60"   # data source: TAGARELA (vs cml_base já feito)
+  "mix_base|A2_mix|2e-4|64|60"        # data source: mix
+  "cml_long|A1_cml|2e-4|64|120"       # BASE-PT longo (CML) — base do Estágio B
 )
 
 n=${#GRID[@]}; i=0

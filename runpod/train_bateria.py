@@ -178,14 +178,25 @@ def eval_wer(model, processor, ref, out):
           f"({'⚠️ balbuciando' if cap_hits > len(gen_durs)//2 else 'aprendeu a parar ✓'})")
     asr = WhisperModel('small', device='cpu', compute_type='int8')  # cpu: evita crash cuDNN
     norm = jiwer.Compose([jiwer.ToLowerCase(), jiwer.RemovePunctuation(), jiwer.RemoveMultipleSpaces(), jiwer.Strip()])
-    ws = []
+    import statistics
+    ws, per_sent = [], []
     for i, it in enumerate(bench):
         segs, _ = asr.transcribe(str(gd / f"{it.get('id', i)}.wav"), language='pt')
         hyp = ' '.join(s.text.strip() for s in segs).strip()
-        ws.append(jiwer.wer(norm(it['text']), norm(hyp)) if hyp else 1.0)
+        w = jiwer.wer(norm(it['text']), norm(hyp)) if hyp else 1.0
+        ws.append(w)
+        per_sent.append({'id': it.get('id', i), 'wer': round(w, 3),
+                         'dur_s': round(gen_durs[i], 1) if i < len(gen_durs) else None,
+                         'ref': it['text'], 'hyp': hyp})
+    # salva por-frase (ref/hyp/WER/duração) — é o que mostra QUAIS frases o modelo acerta
+    with open(gd / 'per_sentence.jsonl', 'w', encoding='utf-8') as f:
+        for r in per_sent:
+            f.write(json.dumps(r, ensure_ascii=False) + '\n')
+    mean_w, med_w = float(np.mean(ws)), float(statistics.median(ws))
+    print(f"  WER média {mean_w*100:.0f}% · MEDIANA {med_w*100:.0f}% (decisão) · por-frase → {gd}/per_sentence.jsonl")
     del asr; gc.collect(); torch.cuda.empty_cache()
     model.train()
-    return round(float(np.mean(ws)), 3)
+    return round(med_w, 3)   # retorna a MEDIANA (robusta a outliers de "não-parar"), não a média
 
 
 def preflight(cfg):

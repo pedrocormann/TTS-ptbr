@@ -333,6 +333,10 @@
     {
      "claim": "Rótulos 3-camadas habilita 3 interfaces de controle (tag/NL/vector).",
      "status": "aberta"
+    },
+    {
+     "claim": "Controlar emoção SEM regravar (task-vector/activation steering) NÃO funciona trivialmente em TTS baseado em LM como o CSM (UNESP, arXiv 2606.05367) → o dataset G2 multi-emoção segue como caminho principal, não atalho",
+     "status": "aberta"
     }
    ],
    "deep": "Depois de B v2 validado, gravar novo dataset (G2: ~5-7h) com 8 estilos de emoção (alegre, irritado, triste, confiante, dubitativo, entusiasmado, íntimo, acelerado) em frames: âncoras (3 frases diferentes por estilo), congruentes × 3 intensidades (leve/média/forte), freeform (improviso). Rótulos em 3 camadas: tags de evento (`<risada>`, `<suspiro>`), caption natural de estilo ('irritado contido, acelerando no final'), tag de emoção discreta. SFT LoRA com rótulos estruturados; DPO leve com preferências julgadas (Pedro + SER + DNSMOS) pra evitar modo-colapso. Gate F2: emoção reconhecível ≥70% em avaliação cega; naturalidade não regride vs B v2."
@@ -359,6 +363,10 @@
     },
     {
      "claim": "SFT contrastiva ensina pronúncia correta melhor que dados gerais.",
+     "status": "aberta"
+    },
+    {
+     "claim": "O 'gringo' se ataca via G2P/fonema-condicionado + MDD-GOP L1-aware (localiza o fonema errado no tempo) + ground-truth sintético de TTS nativo — refs arXiv 2410.14997/2309.07719/2306.00535",
      "status": "aberta"
     }
    ],
@@ -584,6 +592,10 @@
     {
      "claim": "Latência <800ms p50 (FD) é atingível com pipelining de codec+autoregressive se duration_sec≤100 no treino",
      "status": "validada"
+    },
+    {
+     "claim": "O full-duplex 2026 passou do Moshi: SoulX-Duplug (módulo plug-and-play sobre TTS streaming) pode dar 'duplex' sobre a cascata Maya sem treinar spine do zero — avaliar antes de comprometer com Moshi (arXiv 2603.14877/2606.14528)",
+     "status": "aberta"
     }
    ],
    "deep": "O Moshi (Kyutai, CC-BY-4.0) é a aposta central da Trilha B — verdadeiro full-duplex arquitetural, donde o 'spine'. Diferença crítica vs cascata: Moshi fala E ouve simultaneamente (RVQ auto-regressivo contínuo), não turnos. O codec é Mimi-class (12.5 Hz = 80ms/frame), compartilhado com CSM-1B. A adaptação pt-BR segue o pipeline oficial `moshi-finetune`: LoRA (low-rank, r=128 por padrão, escalável) sobre moshiko-pytorch-bf16 (7B, pesos Kyutai). Notebook 5 (spike_c_moshi/colab.ipynb) estende o config oficial (kyutai-labs/moshi-finetune 2026-06-10): dados estéreo em pt-BR (fontes: sintético do pipeline de synth_tts.py + G4 gravado do flywheel), transcrições com timestamps via annotate (whisper-medium, --lang pt), treino em A100-80GB ou G4-96GB (~39.6GB pico, batch=4). Smoke: DailyTalkContiguous (EN, 14GB) valida pipeline antes de pt-BR. Parâmetros críticos: duration_sec=100 (Colab, pode cair em 24h; checkpoints frequentes no Drive), lr=2e-6 cosine, gradient_checkpointing=True, max_steps=2000 (~12h em A100). Gate F4 (REPLAN §4): pt-BR inteligível em FD, latência <800ms p50, turn-taking sem regress, sem PAD blowup. Diferencial vs CSM: CSM é single-turn (carioca com emoção), Moshi é interativo (full-duplex, contexto de áudio). Receita de referência: georgiano CSM (35h limpo), LoRA r=64 α=64, LR 5e-5, ~14 épocas, batch efetivo 128 → CER 2.8%. Síntese pt-BR: usar Qwen3-TTS + Chatterbox-pt-br (não Kokoro, rebaixado por licensing). Persona/voz por prompt: receita PersonaPlex (NVIDIA, 2026-01, papel 2602.06053) é blueprint — persona por prompt texto + voz por prompt áudio — replicar com dados próprios (não usar pesos OML NVIDIA). Próximo (F5): RL de interatividade (kyutai/moshika-rl-seamless CC-BY saiu 2026-06-10) como init ou receita arXiv 2606.11167 sobre LoRA próprio."

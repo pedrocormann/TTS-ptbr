@@ -43,8 +43,8 @@ A aba **Insights** mostra a **cobertura** (quantos clipes/instantes marcados, po
   },
   "problems": ["sotaque gringo", "fonema errado"],   // tags no nível do clipe
   "markers": [                     // ⭐ o sinal perceptual no tempo — trecho início→fim
-    { "t_start": 2.30, "t_end": 2.55, "tag": "R forte /ʁ/ virou fraco", "sev": "grave", "note": "rato → R de gringo" },
-    { "t_start": 3.81, "t_end": 4.20, "tag": "ruído/chiado", "sev": "leve", "note": "" }
+    { "t_start": 2.30, "t_end": 2.55, "tag": "R forte /ʁ/ virou fraco", "sev": 5, "note": "rato → R de gringo" },
+    { "t_start": 3.81, "t_end": 4.20, "tag": "ruído/chiado", "sev": 2, "note": "" }
   ],
   "rated_ts": 1718560000000,
   "schema_version": 1              // versionado: os agentes futuros sabem ler/migrar
@@ -54,11 +54,11 @@ A aba **Insights** mostra a **cobertura** (quantos clipes/instantes marcados, po
 ### `markers[]` — o coração agent-ready
 - `t_start` / `t_end` (float, segundos): início e fim do trecho do erro (arraste na waveform). Resolução de centésimo. Um clique seco vira trecho de duração ~0 (ponto). O agente recorta exatamente `[t_start, t_end]`.
 - `tag` (string): categoria do erro (taxonomia abaixo).
-- `sev` (string): gravidade — `leve` | `medio` | `grave`. Prioriza o que o agente ataca primeiro.
+- `sev` (int 1-5): intensidade do erro (slider). Prioriza o que o agente ataca primeiro. Aceita também os legados `leve`/`medio`/`grave`.
 - `note` (string): descrição humana livre — pra fonema, idealmente **esperado → ouvido**.
 
 ### Taxonomia de `tag`
-**Geral:** `sotaque gringo` · `fonema errado` · `entonação robótica` · `cortou/incompleto` · `ruído/chiado` · `emoção errada` · `repetiu` · `rápido/devagar` · `metálico/artefato` · `pausa estranha` · `ênfase errada`
+**Geral:** `palavra errada (WER)` · `sotaque gringo` · `fonema errado` · `entonação robótica` · `cortou/incompleto` · `ruído/chiado` · `emoção errada` · `repetiu` · `rápido/devagar` · `metálico/artefato` · `pausa estranha` · `ênfase errada`
 
 **Fonema pt-BR (onde o "gringo" erra)** — categorias acionáveis que o WER nunca pega:
 `R forte /ʁ/ virou fraco` · `vogal nasal sem nasalizar (ã/õ/em)` · `ti/di sem palatal (tchi/dji)` · `S coda sem chiado carioca` · `L coda virou /l/ (não /w/)` · `vogal aberta/fechada (ó/ô, é/ê)` · `lh/nh sem palatal` · `ão/ditongo nasal errado` · `sílaba tônica errada` · `ritmo silábico de gringo`

@@ -276,6 +276,30 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .werwords .sub{color:var(--orange);border-bottom:2px solid var(--orange);cursor:help}
 .werwords .del{color:var(--red);text-decoration:line-through;cursor:help}
 .werwords .ins{color:var(--blue);cursor:help}
+.metrics{display:flex;gap:24px;align-items:baseline;flex-wrap:wrap;margin:4px 0 12px}
+.metric{display:flex;flex-direction:column;gap:2px}
+.metric>b{font-family:var(--mono);font-size:9px;letter-spacing:0.05em;text-transform:uppercase;color:var(--tm)}
+.mbig{font-family:var(--mono);font-size:23px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+.mv{font-family:var(--mono);font-size:15px;color:var(--t)}.mv .warn{color:var(--orange);font-style:normal;font-size:11px}
+.werwords{margin:10px 0}
+.transport{display:flex;align-items:center;gap:12px;margin:10px 0 2px}
+.playbtn{width:40px;height:40px;border-radius:50%;background:var(--t);color:var(--bg);border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .12s var(--ease)}.playbtn:hover{transform:scale(1.06)}
+.ptime{font-family:var(--mono);font-size:13px;color:var(--t2)}
+.loophint{font-family:var(--mono);font-size:10px;color:var(--tm);letter-spacing:0.04em}
+.selhint{font-size:12px;color:var(--tm);margin:2px 0 8px}
+.markbar{flex-wrap:nowrap}
+#mtag{max-width:230px;flex-shrink:0}
+.mnote{min-width:90px}
+.sevwrap{display:flex;align-items:center;gap:7px;white-space:nowrap;flex-shrink:0}
+.sevcap{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--tm)}
+.sevsl{width:88px;accent-color:var(--orange);cursor:pointer}
+.sevval{font-family:var(--mono);font-size:14px;color:var(--orange);width:14px;text-align:center}
+.btn.mark{background:var(--orange);color:#fff;border-color:var(--orange);font-weight:600;white-space:nowrap;flex-shrink:0}.btn.mark:hover{filter:brightness(1.12);border-color:var(--orange);color:#fff}
+.btn.mark .ent{font-family:var(--mono);font-size:11px;opacity:0.85;margin-left:3px}
+.mrow{gap:8px}
+.mrowsel{max-width:215px;font-size:12px;padding:5px 8px;flex-shrink:0}
+.msev2{width:46px;text-align:center;font-size:12px;padding:5px 4px;flex-shrink:0}.msev2.grave{color:var(--red)}.msev2.medio{color:var(--orange)}.msev2.leve{color:var(--tm)}
+.mnt2{flex:1;min-width:70px;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t2);border-radius:6px;padding:5px 8px;font-size:13px;font-family:var(--body)}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
@@ -301,40 +325,50 @@ let MAP={nodes:[],lanes:[],hypotheses:[],state:{now:'',next:[]}};
 const _sq={};
 const K=(r,id)=>r+'|'+id;
 const NUM=[1,2,3,4,5];
-const PROBS=["sotaque gringo","fonema errado","entonação robótica","cortou/incompleto","ruído/chiado","emoção errada","repetiu","rápido/devagar","metálico/artefato"];
+const PROBS=["palavra errada (WER)","sotaque gringo","fonema errado","entonação robótica","cortou/incompleto","ruído/chiado","emoção errada","repetiu","rápido/devagar","metálico/artefato"];
 const PTBR=["R forte /ʁ/ virou fraco","vogal nasal sem nasalizar (ã/õ/em)","ti/di sem palatal (tchi/dji)","S coda sem chiado carioca","L coda virou /l/ (não /w/)","vogal aberta/fechada (ó/ô,é/ê)","lh/nh sem palatal","ão/ditongo nasal errado","sílaba tônica errada","ritmo silábico de gringo"];
 async function boot(){clips=await(await fetch('/api/clips')).json();ratings=await(await fetch('/api/ratings')).json();try{MAP=await(await fetch('/api/map')).json();}catch(e){}renderTrail();render();}
 function cur(){return clips[i];}
 function rOf(c){return ratings[K(c.run,c.id)]||{};}
 function esc(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
-function werDiff(ops,wer){
- const sub=ops.filter(o=>o.op=='sub').length,del=ops.filter(o=>o.op=='del').length,ins=ops.filter(o=>o.op=='ins').length;const nerr=sub+del+ins;
+function sevInfo(s){
+ if(typeof s==='number'){const b=s<=2?'leve':(s<=3?'medio':'grave');return {n:s,bucket:b,label:s+'/5'};}
+ const map={leve:1,'médio':3,medio:3,grave:5};const n=map[s]||3;const b=n<=2?'leve':(n<=3?'medio':'grave');return {n:n,bucket:b,label:(s||'médio')};
+}
+function tagOpts(sel){return '<optgroup label="geral">'+PROBS.map(function(p){return '<option'+(p===sel?' selected':'')+'>'+esc(p)+'</option>';}).join('')+['pausa estranha','ênfase errada'].map(function(p){return '<option'+(p===sel?' selected':'')+'>'+p+'</option>';}).join('')+'</optgroup><optgroup label="fonema pt-BR">'+PTBR.map(function(p){return '<option'+(p===sel?' selected':'')+'>'+esc(p)+'</option>';}).join('')+'</optgroup>';}
+function werMetrics(c){
+ const dur=c.dur_s!=null?(c.dur_s.toFixed(1)+'s'):'?';const cap=c.dur_s!=null&&c.dur_s>=12.7;
+ const wer=c.wer!=null?Math.round(c.wer*100)+'%':'—';
+ const wcol=c.wer==null?'var(--t2)':(c.wer<=0.1?'var(--green)':(c.wer<=0.3?'var(--orange)':'var(--red)'));
+ const nerr=(c.wer_ops&&c.wer_ops.length)?c.wer_ops.filter(function(o){return o.op!=='ok';}).length:null;
+ return `<div class=metrics><span class=metric><b>WER</b><span class=mbig style="color:${wcol}">${wer}</span></span><span class=metric><b>duração</b><span class=mv>${dur}${cap?' <i class=warn>no teto!</i>':''}</span></span>${nerr!=null?`<span class=metric><b>erros de palavra</b><span class=mv>${nerr}</span></span>`:''}</div>`;
+}
+function werWords(ops){
  const ws=ops.map(function(o){
   if(o.op=='ok')return `<span class=w>${esc(o.ref)}</span>`;
   if(o.op=='sub')return `<span class="w sub" title="ASR ouviu: ${esc(o.hyp)}">${esc(o.ref)}</span>`;
-  if(o.op=='del')return `<span class="w del" title="o modelo não falou esta palavra">${esc(o.ref)}</span>`;
+  if(o.op=='del')return `<span class="w del" title="o modelo não falou">${esc(o.ref)}</span>`;
   return `<span class="w ins" title="o modelo falou a mais">+${esc(o.hyp)}</span>`;
  }).join(' ');
- const resumo=nerr?`${nerr} erro(s) de palavra — ${sub} troca, ${del} omissão, ${ins} a mais`:'todas as palavras certas';
- return `<div class=werbox><div class=werh>WER ${wer!=null?Math.round(wer*100)+'%':'?'} · ${resumo} <span class=exp>passe o mouse nas marcadas · são os erros que o WER pega (palavra). os perceptuais ficam nos marcadores abaixo</span></div><div class=werwords>${ws}</div></div>`;
+ return `<div class=werwords title="ref vs ASR — laranja=troca · riscado=omissão · azul=a mais">${ws}</div>`;
 }
 function scale(field,r,lo,hi){return `<div class=ihead><b>${field.label}</b><span class=exp>${field.exp}</span></div>`+NUM.map(n=>`<button class="btn ${r[field.k]==n?'on':''}" onclick="setv('${field.k}',${n})">${n}</button>`).join('')+`<span class=exp>${lo} → ${hi}</span>`;}
 function render(){
  const c=cur();if(!c){document.getElementById('card').innerHTML='Nenhum áudio em runpod_samples/.';return;}
- const dur=c.dur_s!=null?c.dur_s+'s':'?';const cap=c.dur_s!=null&&c.dur_s>=12.7;
  const done=rOf(c).geral!=null;
- let h=`<div class=tags><span>${c.run}</span><span>${c.id}</span><span>${c.emotion}</span><span>${c.accent}</span><span>dur ${dur}${cap?' <b class=warn>(no teto!)</b>':''}</span>${c.wer!=null?`<span>WER ${Math.round(c.wer*100)}%</span>`:''}${done?'<span style="border-color:var(--green);color:var(--green)">✓ avaliado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}</div>
+ let h=`<div class=tags><span>${c.run}</span><span>${c.id}</span><span>${c.emotion}</span><span>${c.accent}</span>${done?'<span style="border-color:var(--green);color:var(--green)">✓ avaliado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}</div>
+ ${werMetrics(c)}
  <div class=text>${esc(c.text)}</div>
- ${c.wer_ops&&c.wer_ops.length?werDiff(c.wer_ops,c.wer):(c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:'')}
- <audio id=au controls src="/audio?run=${encodeURIComponent(c.run)}&id=${encodeURIComponent(c.id)}"></audio>
+ ${c.wer_ops&&c.wer_ops.length?werWords(c.wer_ops):(c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:'')}
+ <audio id=au src="/audio?run=${encodeURIComponent(c.run)}&id=${encodeURIComponent(c.id)}" preload=auto style="display:none"></audio>
+ <div class=transport><button id=playbtn class=playbtn onclick=togglePlay()>▶</button><span id=ptime class=ptime>0:00 / 0:00</span><span class=loophint>↻ loop até pausar</span></div>
  <div class=wave id=wave><canvas id=wc></canvas><div id=sel class=sel></div><div id=ph class=playhead></div><div id=pins></div></div>
- <div class=markbar><span id=mtime class=muted>arraste na onda pra marcar o trecho (início → fim) do erro</span>
-  <select id=mtag class=msel><optgroup label="geral">${PROBS.map(p=>`<option>${p}</option>`).join('')}<option>pausa estranha</option><option>ênfase errada</option></optgroup><optgroup label="fonema pt-BR (onde o gringo erra)">${PTBR.map(p=>`<option>${p}</option>`).join('')}</optgroup></select>
-  <select id=msev class=msel title="gravidade"><option value=medio>médio</option><option value=leve>leve</option><option value=grave>grave</option></select>
+ <div id=mtime class=selhint>arraste na onda pra marcar o trecho (início → fim) do erro · clique = vai pro ponto</div>
+ <div class=markbar><select id=mtag class=msel><optgroup label="geral">${PROBS.map(p=>`<option>${esc(p)}</option>`).join('')}<option>pausa estranha</option><option>ênfase errada</option></optgroup><optgroup label="fonema pt-BR (onde o gringo erra)">${PTBR.map(p=>`<option>${esc(p)}</option>`).join('')}</optgroup></select>
+  <div class=sevwrap><span class=sevcap>intensidade</span><input type=range id=msev min=1 max=5 value=3 class=sevsl oninput="document.getElementById('sevval').textContent=this.value"><span id=sevval class=sevval>3</span></div>
   <input id=mnote class=mnote placeholder="esperado → ouvido (ex: R forte /ʁ/ → R fraco)" onkeydown="if(event.key=='Enter'){event.preventDefault();addMarker();}">
-  <button class=btn onclick=addMarker()>📍 marcar trecho</button></div>
+  <button id=markbtn class="btn mark" onclick=addMarker()>📍 marcar trecho <span class=ent>↵</span></button></div>
  <div id=mlist class=mlist></div>
- <div class=leg><b>WER</b> = erro do reconhecedor (palavras certas? menor=melhor) — mas <b>NÃO</b> mede sotaque. Um áudio pode ter WER 0% e soar gringo: por isso os critérios + os marcadores no tempo abaixo (a base pros agentes do futuro).</div>
  <div id=ctrls></div>`;
  document.getElementById('card').innerHTML=h;
  setupWave(c);renderCtrls();updateCount();
@@ -364,16 +398,23 @@ function timeAt(e,w){const rc=w.getBoundingClientRect();const d=clipDur();return
 function setupWave(c){
  window._mStart=null;window._mEnd=null;window._mDrag=false;
  const a=document.getElementById('au');
- if(a){a.ontimeupdate=updatePlayhead;a.onended=updatePlayhead;a.onplay=updatePlayhead;}
+ if(a){a.loop=true;a.ontimeupdate=function(){updatePlayhead();updateTransport();};a.onplay=updateTransport;a.onpause=updateTransport;a.onloadedmetadata=updateTransport;}
  const w=document.getElementById('wave');
  if(w){
-  w.onmousedown=function(e){e.preventDefault();window._mStart=timeAt(e,w);window._mEnd=window._mStart;window._mDrag=true;if(a)a.currentTime=window._mStart;renderSel();labelSel();};
+  w.onmousedown=function(e){e.preventDefault();window._mStart=timeAt(e,w);window._mEnd=window._mStart;window._mDrag=true;if(a)a.currentTime=window._mStart;renderSel();labelSel();updatePlayhead();};
   w.onmousemove=function(e){if(window._mDrag){window._mEnd=timeAt(e,w);renderSel();labelSel();}};
  }
  const sel=document.getElementById('sel');if(sel)sel.style.display='none';
- drawWave(c);renderPins();renderMarkerList();labelSel();
+ drawWave(c);renderPins();renderMarkerList();labelSel();updateTransport();
 }
-function endDrag(){if(!window._mDrag)return;window._mDrag=false;if(window._mEnd<window._mStart){const t=window._mStart;window._mStart=window._mEnd;window._mEnd=t;}labelSel();}
+function fmt(s){s=Math.max(0,s||0);const m=Math.floor(s/60),x=Math.floor(s%60);return m+':'+(x<10?'0':'')+x;}
+function togglePlay(){const a=document.getElementById('au');if(!a)return;if(a.paused){const p=a.play();if(p)p.catch(function(){flash('clique na onda pra liberar o som');});}else{a.pause();}updateTransport();}
+function updateTransport(){const a=document.getElementById('au'),pb=document.getElementById('playbtn'),pt=document.getElementById('ptime');if(a&&pb)pb.textContent=a.paused?'▶':'⏸';if(a&&pt)pt.textContent=fmt(a.currentTime)+' / '+fmt(clipDur());}
+function endDrag(){if(!window._mDrag)return;window._mDrag=false;
+ if(window._mEnd<window._mStart){const t=window._mStart;window._mStart=window._mEnd;window._mEnd=t;}
+ if(Math.abs(window._mEnd-window._mStart)<0.06){window._mStart=null;window._mEnd=null;const sel=document.getElementById('sel');if(sel)sel.style.display='none';const a=document.getElementById('au');if(a&&a.paused){const p=a.play();if(p)p.catch(function(){});}}
+ labelSel();
+}
 function renderSel(){const el=document.getElementById('sel');if(!el||window._mStart==null)return;const d=clipDur();const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);el.style.left=(100*a/d)+'%';el.style.width=Math.max(0.4,100*(b-a)/d)+'%';el.style.display='block';}
 function labelSel(){const mt=document.getElementById('mtime');if(!mt)return;if(window._mStart==null){mt.textContent='arraste na onda pra marcar o trecho (início → fim) do erro';return;}const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);mt.innerHTML='trecho: <b style="color:var(--orange)">'+a.toFixed(2)+'s → '+b.toFixed(2)+'s</b> ('+(b-a).toFixed(2)+'s) — escolha o tipo e marque';}
 function updatePlayhead(){const a=document.getElementById('au'),ph=document.getElementById('ph');if(!a||!ph)return;ph.style.left=(100*(a.currentTime/clipDur()))+'%';}
@@ -396,7 +437,7 @@ function addMarker(){
  if(window._mStart==null){flash('arraste na onda pra marcar o trecho');return;}
  const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);
  const c=cur();const r=rOf(c);const tag=document.getElementById('mtag').value;const note=document.getElementById('mnote').value;
- const sv=document.getElementById('msev');const sev=sv?sv.value:'medio';
+ const sv=document.getElementById('msev');const sev=sv?(+sv.value):3;
  const m=(r.markers||[]).slice();m.push({t_start:Math.round(a*100)/100,t_end:Math.round(b*100)/100,tag:tag,sev:sev,note:note});m.sort(function(x,y){return x.t_start-y.t_start;});
  r.markers=m;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;
  const mn=document.getElementById('mnote');if(mn)mn.value='';
@@ -406,8 +447,9 @@ function addMarker(){
 function removeMarker(idx){const c=cur();const r=rOf(c);if(!r.markers)return;r.markers.splice(idx,1);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderPins();renderMarkerList();updateCount();flash('removido');queueSave(c,r);}
 function seekTo(t){const a=document.getElementById('au');if(a){a.currentTime=t;const p=a.play();if(p)p.catch(function(){});}}
 function mSpan(m){const a=m.t_start!=null?m.t_start:m.t;const b=m.t_end!=null?m.t_end:a;return [a,b];}
-function renderPins(){const el=document.getElementById('pins');if(!el)return;const d=clipDur();el.innerHTML=curMarkers().map(function(m){const s=mSpan(m),a=s[0],b=s[1];return '<i class="pin sev-'+(m.sev||'medio')+'" style="left:'+(100*a/d)+'%;width:'+Math.max(0.6,100*(b-a)/d)+'%" title="'+esc((m.sev?'['+m.sev+'] ':'')+m.tag+' @ '+a.toFixed(2)+'–'+b.toFixed(2)+'s'+(m.note?' — '+m.note:''))+'" onclick="seekTo('+a+')"></i>';}).join('');}
-function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — cada trecho (início→fim) que um agente futuro recorta e corrige</span></div>`+ms.map(function(m,idx){const s=mSpan(m),a=s[0],b=s[1];return `<div class=mrow><span class=mt onclick="seekTo(${a})">${a.toFixed(2)}–${b.toFixed(2)}s</span><span class="sevb ${m.sev||'medio'}">${m.sev||'médio'}</span><span class=mtg>${esc(m.tag)}</span><span class=mnt>${esc(m.note||'')}</span><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
+function renderPins(){const el=document.getElementById('pins');if(!el)return;const d=clipDur();el.innerHTML=curMarkers().map(function(m){const s=mSpan(m),a=s[0],b=s[1];const si=sevInfo(m.sev);return '<i class="pin sev-'+si.bucket+'" style="left:'+(100*a/d)+'%;width:'+Math.max(0.6,100*(b-a)/d)+'%" title="'+esc('['+si.label+'] '+m.tag+' @ '+a.toFixed(2)+'–'+b.toFixed(2)+'s'+(m.note?' — '+m.note:''))+'" onclick="seekTo('+a+')"></i>';}).join('');}
+function updateMarker(idx,field,val){const c=cur();const r=rOf(c);if(!r.markers||!r.markers[idx])return;r.markers[idx][field]=(field==='sev'?(+val):val);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;if(field==='sev')renderPins();flash('salvo ✓');queueSave(c,r);}
+function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — clique no tempo pra ouvir · edite tipo/intensidade/nota</span></div>`+ms.map(function(m,idx){const s=mSpan(m),a=s[0],b=s[1];const si=sevInfo(m.sev);return `<div class=mrow><span class=mt onclick="seekTo(${a})">${a.toFixed(2)}–${b.toFixed(2)}s</span><select class="msel mrowsel" onchange="updateMarker(${idx},'tag',this.value)">${tagOpts(m.tag)}</select><select class="msev2 sevb ${si.bucket}" onchange="updateMarker(${idx},'sev',this.value)">`+[1,2,3,4,5].map(function(n){return `<option value=${n}${si.n===n?' selected':''}>${n}</option>`;}).join('')+`</select><input class=mnt2 value="${esc(m.note||'')}" oninput="updateMarker(${idx},'note',this.value)" placeholder="nota"><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
 function updateCount(){
  const rated=clips.filter(x=>rOf(x).geral!=null).length;
  document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} avaliados`;
@@ -423,7 +465,6 @@ function flash(m){const t=document.getElementById('toast');if(!t)return;t.textCo
 function togProb(p){const c=cur();const r=rOf(c);const a=r.problemas||[];const j=a.indexOf(p);if(j<0){a.push(p);}else{a.splice(j,1);}r.problemas=a;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderCtrls();flash('salvo ✓');queueSave(c,r);}
 function go(d){i=Math.max(0,Math.min(clips.length-1,i+d));render();setTimeout(playFresh,140);}
 function playFresh(){const a=document.getElementById('au');if(a){const p=a.play();if(p)p.catch(function(){});}}
-function play(){const a=document.getElementById('au');if(!a)return;if(a.paused){const p=a.play();if(p)p.catch(function(){flash('autoplay bloqueado — aperte ▶');});}else{a.pause();}}
 function view(v){
  for(const x of ['av','in','tr']){document.getElementById(x).classList.toggle('hide',x!=v);}
  document.getElementById('tAv').classList.toggle('on',v=='av');
@@ -533,14 +574,15 @@ function openNode(id){
 function closePanel(){document.getElementById('panel').classList.remove('open');document.getElementById('panelbg').classList.remove('open');}
 document.addEventListener('keydown',e=>{
  if(e.key=='Escape'){closePanel();}
- const inInput=e.target.tagName=='INPUT';
- if(inInput&&!(e.key=='ArrowRight'||e.key=='ArrowLeft'))return;
+ const tg=e.target.tagName;const isText=tg=='INPUT'&&(e.target.type=='text'||!e.target.type);const typing=tg=='INPUT'||tg=='SELECT'||tg=='TEXTAREA';
+ if(typing&&!(isText&&(e.key=='ArrowRight'||e.key=='ArrowLeft')))return;
  if(!document.getElementById('av').classList.contains('hide')){
-  if(e.key==' '){e.preventDefault();play();}
+  if(e.key==' '){e.preventDefault();togglePlay();}
+  else if(e.key=='Enter'&&window._mStart!=null){e.preventDefault();addMarker();}
   else if(e.key>='1'&&e.key<='5'){setv('geral',+e.key);}
   else if(e.key.toLowerCase()=='p'){setv('parou',!(rOf(cur()).parou===true));}
-  else if(e.key=='ArrowRight'){if(inInput)e.target.blur();go(1);}
-  else if(e.key=='ArrowLeft'){if(inInput)e.target.blur();go(-1);}
+  else if(e.key=='ArrowRight'){if(isText)e.target.blur();go(1);}
+  else if(e.key=='ArrowLeft'){if(isText)e.target.blur();go(-1);}
  }
 });
 document.addEventListener('mouseup',function(){endDrag();});

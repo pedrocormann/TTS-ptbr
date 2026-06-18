@@ -31,6 +31,48 @@ def load_block():
         return BLOCK_FILE.read_text(encoding='utf-8').strip() or 'treino-1'
     except Exception:
         return 'treino-1'
+
+
+# ---------- Curadoria do dataset da voz (aba Curar) ----------
+CURATE_SRC = REPO / 'data/raw/elevenlabs2024/transcribed_clean_auto.jsonl'
+CURATE_RETRANS = REPO / 'data/raw/elevenlabs2024/retranscribed.jsonl'
+CURATE_EDITS = Path(__file__).resolve().parent / 'curate_edits.jsonl'
+CURATE_CLEAN = REPO / 'data/raw/elevenlabs2024/transcribed_clean.jsonl'
+CURATE_SEG = REPO / 'data/raw/elevenlabs2024/segments'
+
+
+def _jsonl(p):
+    return [json.loads(l) for l in p.read_text(encoding='utf-8').splitlines() if l.strip()] if p.exists() else []
+
+
+def load_curate():
+    src = _jsonl(CURATE_SRC)
+    retr = {r['id']: r.get('text_v2', '') for r in _jsonl(CURATE_RETRANS)}
+    edits = {}
+    for e in _jsonl(CURATE_EDITS):
+        edits[e['id']] = e   # último vence
+    out = []
+    for r in src:
+        e = edits.get(r['id'], {})
+        out.append({
+            'id': r['id'], 'audio': r.get('audio'), 'style': r.get('style'), 'dur_s': r.get('dur_s'),
+            'text_orig': r.get('text', ''), 'text_v2': retr.get(r['id']),
+            'text': e.get('text', r.get('text', '')),
+            'keep': e.get('keep', True), 'flags': e.get('flags', []), 'edited': bool(e),
+        })
+    return out
+
+
+def save_curate(e):
+    with _RLOCK:
+        with open(CURATE_EDITS, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(e, ensure_ascii=False) + '\n')
+        recs = load_curate()
+        with open(CURATE_CLEAN, 'w', encoding='utf-8') as f:
+            for r in recs:
+                if r.get('keep'):
+                    f.write(json.dumps({'id': r['id'], 'audio': r.get('audio'),
+                                        'text': r['text'], 'dur_s': r.get('dur_s')}, ensure_ascii=False) + '\n')
 ap = argparse.ArgumentParser()
 ap.add_argument('--dir', default=str(REPO / 'runpod_samples'))
 ap.add_argument('--port', type=int, default=8081)
@@ -341,18 +383,23 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .modal-t{font-family:var(--serif);font-size:22px;margin-bottom:16px}
 .modal-in{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--b);color:var(--t);border-radius:8px;padding:11px 13px;font-size:14px;font-family:var(--body)}.modal-in:focus{outline:none;border-color:var(--bh)}
 .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.curtext{width:100%;min-height:72px;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:10px 12px;font-family:var(--body);font-size:15px;line-height:1.5;resize:vertical}.curtext:focus{outline:none;border-color:var(--bh)}
+.curcmp{margin:10px 0;font-size:13px;color:var(--t2);line-height:1.7}.curcmp .curlbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--tm);margin-right:4px}
+.btn.mini{font-size:11px;padding:3px 8px}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
 <button class="tab on" id=tAv onclick=view('av')>Avaliar</button>
 <button class=tab id=tIn onclick=view('in')>Insights</button>
 <button class=tab id=tTr onclick=view('tr')>Trilha</button>
+<button class=tab id=tCu onclick=view('cu')>Curar</button>
 <div class=bar><i id=prog></i></div><span class=muted id=cnt></span><div class=sp></div></header>
 <div class=wrap>
 <div id=av><div class=card id=card></div>
 <div id=dots class=dots></div></div>
 <div id=in class=hide></div>
 <div id=tr class=hide></div>
+<div id=cu class=hide></div>
 </div>
 <div id=toast class=toast></div>
 <button class="sidenav left" id=navL onclick=goPrev() title="áudio anterior">‹</button>
@@ -364,6 +411,7 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 <script>
 let clips=[],ratings={},i=0;
 let MAP={nodes:[],lanes:[],hypotheses:[],state:{now:'',next:[]}};
+let CUR=[],ci=0;
 const _sq={};
 const K=(r,id)=>r+'|'+id;
 const NUM=[1,2,3,4,5];
@@ -545,14 +593,47 @@ function flash(m){const t=document.getElementById('toast');if(!t)return;t.textCo
 function togProb(p){const c=cur();const r=rOf(c);const a=r.problemas||[];const j=a.indexOf(p);if(j<0){a.push(p);}else{a.splice(j,1);}r.problemas=a;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderCtrls();flash('salvo ✓');queueSave(c,r);}
 function go(d){saveDraft();i=Math.max(0,Math.min(clips.length-1,i+d));render();setTimeout(playFresh,140);}
 function playFresh(){const a=document.getElementById('au');if(a){const p=a.play();if(p)p.catch(function(){});}}
+async function showCurate(){
+ try{CUR=await(await fetch('/api/curate')).json();}catch(e){CUR=[];}
+ if(!CUR.length){document.getElementById('cu').innerHTML='<div class=card>Sem dataset pra curar — rode <code>tools/curate/auto_curate.py</code> primeiro.</div>';return;}
+ ci=Math.max(0,Math.min(ci,CUR.length-1));renderCur();
+}
+const CFLAGS=['2 vozes','ruído','corte ruim','sobreposição','eco/metálico','outro'];
+function renderCur(){
+ const c=CUR[ci];if(!c)return;
+ const done=CUR.filter(x=>x.edited).length;
+ let h=`<div class=card>
+ <div class=tags><span>${ci+1}/${CUR.length}</span><span>${esc(c.id)}</span><span>${esc(c.style||'')}</span><span>dur ${c.dur_s!=null?c.dur_s.toFixed(1)+'s':'?'}</span>${c.edited?'<span style="border-color:var(--green);color:var(--green)">✓ revisado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}${c.keep===false?'<span style="border-color:var(--red);color:var(--red)">descartado</span>':''}</div>
+ <audio controls src="/curate/audio?id=${encodeURIComponent(c.id)}" style="width:100%;margin:12px 0"></audio>
+ <div class=ihead><b>Transcrição</b> <span class=exp>corrija pra bater EXATO com o áudio</span></div>
+ <textarea id=curtext class=curtext oninput="curEdit('text',this.value)" placeholder="transcrição...">${esc(c.text||'')}</textarea>
+ <div class=curcmp>
+  <div><span class=curlbl>original (Whisper):</span> ${esc(c.text_orig||'—')}</div>
+  ${c.text_v2!=null?`<div><span class=curlbl>ASR-v2 (medium):</span> ${esc(c.text_v2||'(vazio)')} ${(c.text_v2&&c.text_v2!==c.text)?'<button class="btn mini" onclick=useV2()>usar v2</button>':''}</div>`:'<div class=curlbl>ASR-v2: re-transcrevendo no CPU… (recarregue pra atualizar)</div>'}
+ </div>
+ <div class=ind><div class=ihead><b>Manter?</b></div>
+  <button class="btn ok ${c.keep!==false?'on':''}" onclick="curEdit('keep',true)">manter</button>
+  <button class="btn no ${c.keep===false?'on':''}" onclick="curEdit('keep',false)">descartar</button></div>
+ <div class=ind><div class=ihead><b>Problemas</b></div>${CFLAGS.map(fl=>`<button class="btn fl ${(c.flags||[]).includes(fl)?'on':''}" onclick="curFlag('${fl}')">${fl}</button>`).join('')}</div>
+ <div class=nav><button class=btn onclick="curGo(-1)">‹ anterior</button><button class=btn onclick="curGo(1)">próximo ›</button><span class=muted style="margin-left:12px">${done}/${CUR.length} revisados · mantidos ${CUR.filter(x=>x.keep!==false).length}</span></div>
+ </div>`;
+ document.getElementById('cu').innerHTML=h;
+}
+function saveCurNow(){const c=CUR[ci];if(!c)return;fetch('/api/curate/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,text:c.text,keep:c.keep!==false,flags:c.flags||[]})}).catch(function(){});}
+function curEdit(field,val){const c=CUR[ci];if(!c)return;c[field]=val;c.edited=true;if(field=='keep')renderCur();clearTimeout(window._ce);window._ce=setTimeout(saveCurNow,400);flash('salvo ✓');}
+function curFlag(fl){const c=CUR[ci];if(!c)return;const a=c.flags||[];const j=a.indexOf(fl);if(j<0){a.push(fl);}else{a.splice(j,1);}c.flags=a;c.edited=true;renderCur();saveCurNow();flash('salvo ✓');}
+function useV2(){const c=CUR[ci];if(!c||c.text_v2==null)return;c.text=c.text_v2;c.edited=true;renderCur();saveCurNow();flash('usou ASR-v2');}
+function curGo(d){saveCurNow();ci=Math.max(0,Math.min(CUR.length-1,ci+d));renderCur();}
 function view(v){
- for(const x of ['av','in','tr']){document.getElementById(x).classList.toggle('hide',x!=v);}
+ for(const x of ['av','in','tr','cu']){document.getElementById(x).classList.toggle('hide',x!=v);}
  document.getElementById('tAv').classList.toggle('on',v=='av');
  document.getElementById('tIn').classList.toggle('on',v=='in');
  document.getElementById('tTr').classList.toggle('on',v=='tr');
+ document.getElementById('tCu').classList.toggle('on',v=='cu');
  document.getElementById('navL').classList.toggle('hide',v!='av');document.getElementById('navR').classList.toggle('hide',v!='av');
  if(v=='in'){showIns();}
  if(v=='tr'){requestAnimationFrame(drawEdges);}
+ if(v=='cu'){showCurate();}
 }
 async function showIns(){
  const d=await(await fetch('/api/insights')).json();
@@ -749,6 +830,15 @@ class H(BaseHTTPRequestHandler):
             self._send(200, load_map())
         elif u.path == '/api/feedback':
             self._send(200, feedback_records())
+        elif u.path == '/api/curate':
+            self._send(200, load_curate())
+        elif u.path == '/curate/audio':
+            cid = re.sub(r'[^\w-]', '', q.get('id', [''])[0])
+            p = CURATE_SEG / (cid + '.wav')
+            if cid and p.exists():
+                self._serve_range(p.read_bytes(), 'audio/wav')
+            else:
+                self._send(404, b'no audio', 'text/plain')
         elif u.path == '/audio':
             run = q.get('run', [''])[0]; cid = q.get('id', [''])[0]
             matches = list((SAMPLES / run).rglob(f'{cid}.wav'))
@@ -772,6 +862,10 @@ class H(BaseHTTPRequestHandler):
                     for v in data.values():
                         f.write(json.dumps(v, ensure_ascii=False) + '\n')
                 tmp.replace(RATINGS)
+            self._send(200, {'ok': True})
+        elif self.path == '/api/curate/save':
+            n = int(self.headers.get('Content-Length', 0))
+            save_curate(json.loads(self.rfile.read(n)))
             self._send(200, {'ok': True})
         else:
             self._send(404, b'404', 'text/plain')

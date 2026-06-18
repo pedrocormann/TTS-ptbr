@@ -51,3 +51,5 @@ phase0/**/__pycache__/
 # dados locais de avaliação (working data; o artefato é o export feedback.jsonl)
 tools/rate/ratings.jsonl
 tools/rate/*.tmp
+.firecrawl/
+tools/rate/markers_enriched.jsonl

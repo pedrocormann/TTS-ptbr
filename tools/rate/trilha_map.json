@@ -66,7 +66,7 @@
   {
    "key": "A",
    "label": "Trilha A · A Voz (CSM)",
-   "progress": 44
+   "progress": 46
   },
   {
    "key": "M",
@@ -81,7 +81,7 @@
   {
    "key": "cross",
    "label": "Transversal · Eval / Infra / Aprendizados",
-   "progress": 59
+   "progress": 63
   }
  ],
  "nodes": [
@@ -303,7 +303,7 @@
    "title": "Estágio B v2 · limpo",
    "status": "next",
    "progress": 10,
-   "summary": "Estágio B v2 · limpo — pipeline pronto, aguarda dataset curado (a-curate ainda não rodou); re-treinar sobre o sinal mais puro",
+   "summary": "Estágio B v2 · limpo — arms declarados em runpod/experiments.py (b2_clean/g2p/proporção); aguarda só o dataset curado (a-curate ainda não rodou)",
    "hyp": [
     {
      "claim": "Dataset curado produz WER ≤16% (vs 17% em B v1 sujo).",
@@ -326,7 +326,7 @@
    "title": "Emoções (G2)",
    "status": "idea",
    "progress": 0,
-   "summary": "Emoções (G2) — gravar 8 estilos com âncoras+intensidades → controle de emoção",
+   "summary": "Emoções (G2) — kit de gravação CONSTRUÍDO (tools/recording/g2_emotions.py, 8 estilos × 3 intensidades); falta gravar 5-7h. Caminho único (task-vector não funciona)",
    "hyp": [
     {
      "claim": "Dataset mono-emoção atual causa prosódia robótica (DS corrigiu).",
@@ -765,8 +765,8 @@
    ],
    "title": "G2P pt-BR (fonemizar entrada)",
    "status": "next",
-   "progress": 10,
-   "summary": "G2P pt-BR como front-end: fonemizar a entrada antes do CSM — ataca o 'gringo' #1 e os fonemas errados (ramo de ablação no Estágio B v2)",
+   "progress": 25,
+   "summary": "G2P pt-BR (fonemizar entrada) — léxico semeado CONSTRUÍDO (tools/text/g2p_lexicon.py); falta endurecer com mais exceções dos marcadores + wirar no treino (arm b2_g2p)",
    "deep": "Ramo de ablação contra o problema #1 (sotaque 'gringo'). Hoje o CSM recebe TEXTO cru; condicionar em FONEMAS (G2P pt-BR) melhora alinhamento e pronúncia, segundo os papers de AC (arXiv 2410.14997) e transfer-learning low-resource (arXiv 2306.00535). Plano: testar um front-end G2P pt-BR (fonemizar antes do CSM) como braço do Estágio B v2 e comparar contra a entrada por texto no eval perceptual + WER. Custa compute (re-treino do braço fonemizado), por isso vem depois do baseline limpo. Dep: a-stageB2 (precisa do pipeline de Estágio B v2 pronto pra ramificar).",
    "hyp": [
     {
@@ -788,8 +788,8 @@
    ],
    "title": "enrich_markers (MDD/forced-align)",
    "status": "next",
-   "progress": 5,
-   "summary": "enrich_markers.py: forced-alignment offline + GOP/MDD pt-BR — injeta fonema esperado×ouvido em cada marker de tempo, fechando o loop do feedback",
+   "progress": 25,
+   "summary": "enrich_markers — scaffold CONSTRUÍDO (tools/feedback/enrich_markers.py): lê markers, estrutura GOP/MDD pronta; forced-alignment (MFA/ctc) é o TODO",
    "deep": "Fecha o loop do feedback localizado (parte da v2 do rate_app, citada no FEEDBACK.md). enrich_markers.py roda forced-alignment offline sobre os áudios gerados e, com GOP/MDD pt-BR (arXiv 2309.07719, QCRI — o nome acadêmico do 'sotaque de gringo'), injeta em cada marker de tempo o fonema CANÔNICO (esperado) vs o VERBATIM (ouvido). Resultado: o avaliador/agente vê exatamente ONDE no tempo o fonema saiu errado, em vez de só uma nota global de 'soa gringo'. Alimenta o ranking de defeitos do rate_app com sinal sub-palavra. Dep: x-rate (estende a app de avaliação). Loop futuro — status 'idea'.",
    "hyp": [
     {

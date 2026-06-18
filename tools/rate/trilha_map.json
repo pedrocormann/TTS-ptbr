@@ -2,12 +2,12 @@
  "state": {
   "now": "TREINO 1 fechado (42 avaliações): a voz/timbre do Pedro está PROVADA (stage_b_final geral 3.1, voz 3.4, para 93%, WER 12%) — o moat funciona, não mexer nela. O gap inteiro é SOTAQUE ('gringo' é o problema #1, 'soa nativo' ~2.8/5 em TODOS os modelos), PROSÓDIA robótica e LEITURA DE NÚMERO. A maior parte do que move 'soa nativo' é mais barata que re-treinar: começar pelos quick-wins sem GPU (normalizar número), depois o baseline limpo (curar o dataset, que nunca rodou), e só então gastar compute em G2P (fonemizar a entrada) e trocar a base CML formal/paulista por dado carioca espontâneo. Emoção (G2) é o caminho certo mas o último da fila.",
   "next": [
-   "Quick-win sem GPU: normalizador de número/sigla/moeda pt-BR no front-end (conserta os 3 trechos graves do hard-01)",
-   "Baseline limpo: rodar curate_app + re-treinar Estágio B no dataset curado (alvo WER 8-10%) — limpeza vale mais que algoritmo",
-   "G2P pt-BR: fonemizar a entrada antes do CSM (ramo de ablação no Estágio B v2) — ataca o 'gringo' #1 e os fonemas errados",
-   "Estágio A em base carioca/espontânea (NURC se a licença MIT confirmar; senão ablação de proporção base↔voz do Pedro)",
-   "enrich_markers.py: forced-alignment + GOP/MDD pt-BR pra localizar o fonema errado no tempo (fecha o loop do feedback)",
-   "Gravar G2 (8 emoções) — emoção é o caminho único (task-vector não funciona em TTS-LM), por último/mais caro"
+   "PRIMEIRO (sem GPU): rodar curate_app → transcribed_clean.jsonl (único bloqueador 100% nosso; sem isso todo arm fica contaminado por Whisper+fragmentos)",
+   "Sprint do sotaque JÁ (~9h ≈ $30 H100 / $14 A100): B2-limpo + B2-G2P (CharsiuG2P/LatPhon, NÃO esperar BIPA) + ablação de proporção base↔Pedro (30/70, 50/50, 100%)",
+   "Em paralelo, sem GPU: enrich_markers offline (forced-align + GOP/MDD) sobre o Treino 1 → fonema-errado-no-tempo",
+   "Eval camada perceptual antes do gate: BRSpeechMOS pt-BR (treinar o nosso) + BIPA (pronúncia dialetal) — NÃO decidir sotaque por WER",
+   "NURC/base carioca só DEPOIS do NILC confirmar licença (upstream CC-BY-NC-ND); até lá a proporção cobre o teste de sotaque",
+   "G2 emoções por ÚLTIMO (caminho único, sem atalho — refutado): 8 estilos × 3 intensidades, rótulo em 3 camadas"
   ]
  },
  "hypotheses": [
@@ -55,6 +55,16 @@
    "claim": "A médio prazo o spine full-duplex nativo (Moshi+Mimi via LoRA, com referência J-Moshi e pós-treino moshika-rl-seamless já pronto pela Kyutai) supera a cascata em naturalidade de turn-taking — o RL que planejávamos construir já existe e reduz rework",
    "status": "aberta",
    "node": "b-moshi"
+  },
+  {
+   "claim": "Sotaque DECOMPÕE em fonético (G2P + léxico ~5k) + prosódico (pitch/duração, ~3min de fala basta) → atacar em 2 arms SEPARADOS, não treino monolítico (arXiv 2305.04816)",
+   "status": "aberta",
+   "node": "a-accent"
+  },
+  {
+   "claim": "CSM-1B basta pra naturalidade; a escala (3B/8B) compra long-tail, não naturalidade (Sesame CTO, a16z) → não escalar backbone antes do Maya-BR v0 validar UX",
+   "status": "validada",
+   "node": "m-tts"
   }
  ],
  "lanes": [
@@ -81,7 +91,7 @@
   {
    "key": "cross",
    "label": "Transversal · Eval / Infra / Aprendizados",
-   "progress": 63
+   "progress": 60
   }
  ],
  "nodes": [
@@ -376,7 +386,7 @@
      "status": "aberta"
     }
    ],
-   "deep": "O WER não captura sotaque estrangeiro (fonemas mal pronunciados que ainda formam palavras). O avaliador humano agora mede 'soa nativo vs gringo' + tags de erro de pronúncia. Ataque (3 alavancas): (1) G2P pt-BR — fonemizar a entrada melhora alinhamento e pronúncia (arXiv 2410.14997, 2306.00535); (2) ground-truth sintético — gerar a versão nativa da mesma frase com um TTS pt-BR bom e usar como alvo de destilação (arXiv 2410.14997); (3) GOP/MDD L1-aware — localiza o fonema errado no tempo via fonema canônico vs verbatim, o nome acadêmico do nosso problema (arXiv 2309.07719, QCRI). Validação: BIPA (transcrições IPA pt-BR, variante RIO, CC-BY) e SER pt-BR próprio. ⚠️ VALIDAR ANTES: confirmar variante RIO + licença CC-BY + disponibilidade no HF do BIPA antes de qualquer treino que o use (hoje só citado em VIGIL-LOG, não verificado contra repo público). Testes: classificador de sotaque no próprio dataset; MUSHRA cega 'de onde soa carioca'."
+   "deep": "O WER não captura sotaque estrangeiro (fonemas mal pronunciados que ainda formam palavras). O avaliador humano agora mede 'soa nativo vs gringo' + tags de erro de pronúncia. Ataque (3 alavancas): (1) G2P pt-BR — fonemizar a entrada melhora alinhamento e pronúncia (arXiv 2410.14997, 2306.00535); (2) ground-truth sintético — gerar a versão nativa da mesma frase com um TTS pt-BR bom e usar como alvo de destilação (arXiv 2410.14997); (3) GOP/MDD L1-aware — localiza o fonema errado no tempo via fonema canônico vs verbatim, o nome acadêmico do nosso problema (arXiv 2309.07719, QCRI). Validação: BIPA (transcrições IPA pt-BR, variante RIO, CC-BY) e SER pt-BR próprio. ⚠️ VALIDAR ANTES: confirmar variante RIO + licença CC-BY + disponibilidade no HF do BIPA antes de qualquer treino que o use (hoje só citado em VIGIL-LOG, não verificado contra repo público). Testes: classificador de sotaque no próprio dataset; MUSHRA cega 'de onde soa carioca'. [OSINT 18/jun] CHAVE: sotaque DECOMPÕE em (a) fonético — G2P front-end + léxico ~5k palavras; (b) prosódico — pitch/duração, ~3min de fala do alvo basta (arXiv 2305.04816). → atacar em 2 ARMS SEPARADOS, não treino monolítico. Fallback sem frontend dedicado: voice-conversion (arXiv 2301.04606). Nesta rodada o fator prosódico/carioca testa-se barato via ablação de proporção (base↔Pedro), sem dado novo."
   },
   {
    "id": "a-pool",
@@ -428,7 +438,7 @@
      "status": "validada"
     }
    ],
-   "deep": "O componente de voz (CSM-1B finetunado) está funcionando: WER 12% round-trip, 14/14 frases param corretamente (o fix do EOS label foi crítico). Mecanismo-Maya é o áudio-contexto: o Pedro fala (áudio 24k, ~4 turnos) entra na sequência do CSM junto com o turno-alvo, e a prosódia/emoção sai implícita — sem tags. Dados atuais: ~1h dirigida (g0 piloto + smoke M2). O Treino 1 já validou ~80% da hipótese: a clonagem da voz com 1h funciona. Falta: G1 núcleo (4-6h core) pra estabilizar o Stage B, e G2 emoções (8 estilos) pro controle fino. Risco: mono-prosódia do dataset pequeno — mitigado pelo G4 flywheel. Stack: Unsloth LoRA T4 (receita csm-mlx 3h) ou Colab A100; CSM-MLX (Apple M2 24GB) valida formato antes do Colab (smoke em 44 min)."
+   "deep": "O componente de voz (CSM-1B finetunado) está funcionando: WER 12% round-trip, 14/14 frases param corretamente (o fix do EOS label foi crítico). Mecanismo-Maya é o áudio-contexto: o Pedro fala (áudio 24k, ~4 turnos) entra na sequência do CSM junto com o turno-alvo, e a prosódia/emoção sai implícita — sem tags. Dados atuais: ~1h dirigida (g0 piloto + smoke M2). O Treino 1 já validou ~80% da hipótese: a clonagem da voz com 1h funciona. Falta: G1 núcleo (4-6h core) pra estabilizar o Stage B, e G2 emoções (8 estilos) pro controle fino. Risco: mono-prosódia do dataset pequeno — mitigado pelo G4 flywheel. Stack: Unsloth LoRA T4 (receita csm-mlx 3h) ou Colab A100; CSM-MLX (Apple M2 24GB) valida formato antes do Colab (smoke em 44 min). [OSINT 18/jun] Sesame CTO (a16z): 'even the 1B is very good' — a escala compra long-tail (homógrafos), NÃO naturalidade. Nosso CSM-1B já está na faixa de paridade → não escalar backbone antes do Maya-BR v0 validar UX."
   },
   {
    "id": "m-vad",
@@ -554,7 +564,7 @@
    "title": "Flywheel reuniões",
    "status": "idea",
    "progress": 5,
-   "summary": "Flywheel reuniões UNFLAT (Pedro+João+Guilherme) — gravação diária multi-canal em estéreo",
+   "summary": "⏸ ESTACIONADA esta rodada — Flywheel reuniões UNFLAT (Pedro+João+Guilherme) — gravação diária multi-canal em estéreo",
    "hyp": [
     {
      "claim": "Reuniões reais (spontâneas, multi-falante) geram conversa de melhor qualidade que gravação dirigida para treino do spine",
@@ -579,9 +589,9 @@
     "b-flywheel"
    ],
    "title": "Moshi + Mimi",
-   "status": "next",
+   "status": "idea",
    "progress": 5,
-   "summary": "Moshi + Mimi: spine full-duplex pt-BR via moshi-finetune LoRA — receita LIDA, nada rodou em pt-BR ainda (F4 ~2-3 meses no futuro)",
+   "summary": "⏸ ESTACIONADA esta rodada — Moshi + Mimi: spine full-duplex pt-BR via moshi-finetune LoRA — receita LIDA, nada rodou em pt-BR ainda (F4 ~2-3 meses no futuro)",
    "hyp": [
     {
      "claim": "moshi-finetune LoRA (r=128, batch=4 em A100-80) cabe em Colab e produz pt-BR inteligível com latência FD mantida",
@@ -604,7 +614,7 @@
      "status": "aberta"
     }
    ],
-   "deep": "Moshi (Kyutai, CC-BY-4.0) = modelo full-duplex único: fala E ouve simultaneamente (RVQ auto-regressivo contínuo), não alterna turnos como a cascata Maya. O codec Mimi (12.5 Hz = 80ms por token) é compartilhado com o CSM-1B. Para pt-BR: fine-tuning leve (LoRA r=128) sobre os pesos Kyutai (moshiko-pytorch-bf16, 7B), via pipeline oficial `moshi-finetune`. Estado real: a receita/notebook foi LIDA e entendida; nada rodou em pt-BR ainda (G4 flywheel está em 'idea', o Mimi roundtrip é só um smoke em spike_c_moshi/mimi_ptbr_roundtrip.py). F4 está ~2-3 meses no futuro (REPLAN §293-299). Notebook 5 estende o config oficial: dados estéreo pt-BR (sintético + G4 gravado), transcrições com timestamps (whisper-medium --lang pt), treino A100-80/G4-96GB (~39.6GB pico, batch=4). Params: duration_sec=100 (janela de ENTRADA do treino — samples truncados a 100s, não uma garantia de latência), lr=2e-6 cosine, gradient_checkpointing=True, max_steps=2000 (~12h). Gate F4 (REPLAN §4): pt-BR inteligível em FD, latência <800ms p50 (design-budget alcançável com pipelining, não propriedade do config), turn-taking sem regress, sem PAD blowup. Antes de comprometer: avaliar SoulX-Duplug (arXiv 2603.14877), módulo plug-and-play que poderia dar 'duplex' sobre a cascata Maya sem treinar spine do zero. F5: RL com moshika-rl-seamless (CC-BY, saiu 2026-06-10)."
+   "deep": "Moshi (Kyutai, CC-BY-4.0) = modelo full-duplex único: fala E ouve simultaneamente (RVQ auto-regressivo contínuo), não alterna turnos como a cascata Maya. O codec Mimi (12.5 Hz = 80ms por token) é compartilhado com o CSM-1B. Para pt-BR: fine-tuning leve (LoRA r=128) sobre os pesos Kyutai (moshiko-pytorch-bf16, 7B), via pipeline oficial `moshi-finetune`. Estado real: a receita/notebook foi LIDA e entendida; nada rodou em pt-BR ainda (G4 flywheel está em 'idea', o Mimi roundtrip é só um smoke em spike_c_moshi/mimi_ptbr_roundtrip.py). F4 está ~2-3 meses no futuro (REPLAN §293-299). Notebook 5 estende o config oficial: dados estéreo pt-BR (sintético + G4 gravado), transcrições com timestamps (whisper-medium --lang pt), treino A100-80/G4-96GB (~39.6GB pico, batch=4). Params: duration_sec=100 (janela de ENTRADA do treino — samples truncados a 100s, não uma garantia de latência), lr=2e-6 cosine, gradient_checkpointing=True, max_steps=2000 (~12h). Gate F4 (REPLAN §4): pt-BR inteligível em FD, latência <800ms p50 (design-budget alcançável com pipelining, não propriedade do config), turn-taking sem regress, sem PAD blowup. Antes de comprometer: avaliar SoulX-Duplug (arXiv 2603.14877), módulo plug-and-play que poderia dar 'duplex' sobre a cascata Maya sem treinar spine do zero. F5: RL com moshika-rl-seamless (CC-BY, saiu 2026-06-10). [OSINT 18/jun] NÃO tocar esta rodada (aposta de médio prazo; depende do flywheel escalar). J-Moshi (arXiv 2506.02979) prova a transferência de língua (Mimi congela) mas é CARO (CPT 128×V100/36h). SoulX-Duplug (arXiv 2603.14877, plug-and-play sobre TTS streaming) pode dar 'duplex' sobre a cascata Maya SEM treinar spine — avaliar só após o Maya-BR v0."
   },
   {
    "id": "b-rl",
@@ -616,7 +626,7 @@
    "title": "Refino / RL",
    "status": "idea",
    "progress": 0,
-   "summary": "Refino RL / interatividade — GRPO com rewards de pausa/turn-taking/backchannel sobre Moshi pt-BR",
+   "summary": "⏸ ESTACIONADA esta rodada — Refino RL / interatividade — GRPO com rewards de pausa/turn-taking/backchannel sobre Moshi pt-BR",
    "hyp": [
     {
      "claim": "moshika-rl-seamless (Kyutai 2026-06-10, CC-BY) é o 'pós-treino que planejávamos construir', reduz rework",
@@ -644,7 +654,7 @@
    "deps": [],
    "title": "Eval harness",
    "status": "wip",
-   "progress": 75,
+   "progress": 60,
    "summary": "Eval harness pt-BR (WER, spk-sim, TTSDS2, latência, CMOS/MUSHRA futuro) — gate F1: spk-sim≥0.70",
    "hyp": [
     {
@@ -660,7 +670,7 @@
      "status": "validada"
     }
    ],
-   "deep": "Harness com 4 camadas QC: (0) dataset — regressão WER round-trip (synth→ASR→comparar vs texto-source = métrica objetiva de inteligibilidade); (1) clone — spk-sim cosseno (embeddings WavLM-SV vs centroide ref; ≥0.70 = clonagem de timbre clara, <0.50 = falha); (2) qualidade — TTSDS2 (mede naturalidade pela distância entre fala real e gerada; correlação Spearman com julgamento humano >0.5 = forte, MIT-validada, 16 probes); (3) expressividade — latência e (futuro) SER pt-BR. Gate F1: spk-sim≥0.70 bloqueia voice finetuning se falha. Camada 4 (CMOS/MUSHRA humano, sotaque carioca via benchmark_sotaque.jsonl 18-item) planejada. WER capping@1.0 opcional (raw recomendado: >100% é diagnóstico real de colapso, não artefato)."
+   "deep": "Harness com 4 camadas QC: (0) dataset — regressão WER round-trip (synth→ASR→comparar vs texto-source = métrica objetiva de inteligibilidade); (1) clone — spk-sim cosseno (embeddings WavLM-SV vs centroide ref; ≥0.70 = clonagem de timbre clara, <0.50 = falha); (2) qualidade — TTSDS2 (mede naturalidade pela distância entre fala real e gerada; correlação Spearman com julgamento humano >0.5 = forte, MIT-validada, 16 probes); (3) expressividade — latência e (futuro) SER pt-BR. Gate F1: spk-sim≥0.70 bloqueia voice finetuning se falha. Camada 4 (CMOS/MUSHRA humano, sotaque carioca via benchmark_sotaque.jsonl 18-item) planejada. WER capping@1.0 opcional (raw recomendado: >100% é diagnóstico real de colapso, não artefato). [OSINT 18/jun] Camada perceptual pt-BR tem dono: BRSpeechMOS (arXiv 2306.09979, único MOS calibrado pt-BR, Whisper-Small extractor — treinar o nosso, sem checkpoint público) + SER pt-BR (arXiv 2506.02088, F0-RMVPE+emotion2vec+BERTimbau) + BIPA (pronúncia dialetal: chiado/africadas/L-vocalização carioca). Regra: spk-sim≥0.70 + WER como gates, mas NÃO decidir SOTAQUE por WER (invisível nele — Treino 1: 28× gringo, WER não pegou)."
   },
   {
    "id": "x-rate",
@@ -765,9 +775,9 @@
    ],
    "title": "G2P pt-BR (fonemizar entrada)",
    "status": "next",
-   "progress": 25,
-   "summary": "G2P pt-BR (fonemizar entrada) — léxico semeado CONSTRUÍDO (tools/text/g2p_lexicon.py); falta endurecer com mais exceções dos marcadores + wirar no treino (arm b2_g2p)",
-   "deep": "Ramo de ablação contra o problema #1 (sotaque 'gringo'). Hoje o CSM recebe TEXTO cru; condicionar em FONEMAS (G2P pt-BR) melhora alinhamento e pronúncia, segundo os papers de AC (arXiv 2410.14997) e transfer-learning low-resource (arXiv 2306.00535). Plano: testar um front-end G2P pt-BR (fonemizar antes do CSM) como braço do Estágio B v2 e comparar contra a entrada por texto no eval perceptual + WER. Custa compute (re-treino do braço fonemizado), por isso vem depois do baseline limpo. Dep: a-stageB2 (precisa do pipeline de Estágio B v2 pronto pra ramificar).",
+   "progress": 30,
+   "summary": "G2P pt-BR (fator FONÉTICO do sotaque) — engine CharsiuG2P/LatPhon (MIT, HF, inclui pt), NÃO bloquear no BIPA; léxico semeado construído. Arm b2_g2p separado da prosódia",
+   "deep": "Ramo de ablação contra o problema #1 (sotaque 'gringo'). Hoje o CSM recebe TEXTO cru; condicionar em FONEMAS (G2P pt-BR) melhora alinhamento e pronúncia, segundo os papers de AC (arXiv 2410.14997) e transfer-learning low-resource (arXiv 2306.00535). Plano: testar um front-end G2P pt-BR (fonemizar antes do CSM) como braço do Estágio B v2 e comparar contra a entrada por texto no eval perceptual + WER. Custa compute (re-treino do braço fonemizado), por isso vem depois do baseline limpo. Dep: a-stageB2 (precisa do pipeline de Estágio B v2 pronto pra ramificar). [OSINT 18/jun] Sotaque decompõe em fonético (G2P) + prosódico (arXiv 2305.04816): G2P resolve a parte fonética com léxico ~5k. Engine pronto SEM depender do BIPA: CharsiuG2P (ByT5, MIT, arXiv 2204.03067) ou LatPhon (3.5% PER, MIT, arXiv 2509.03300). BIPA-RIO (2.66% PER carioca) é o ideal mas licença/HF não confirmados — confirmar em paralelo, sem-GPU.",
    "hyp": [
     {
      "claim": "Condicionar o CSM em fonemas (G2P pt-BR) em vez de texto cru melhora pronúncia/alinhamento e reduz o 'gringo' (arXiv 2410.14997, 2306.00535)",
@@ -790,7 +800,7 @@
    "status": "next",
    "progress": 25,
    "summary": "enrich_markers — scaffold CONSTRUÍDO (tools/feedback/enrich_markers.py): lê markers, estrutura GOP/MDD pronta; forced-alignment (MFA/ctc) é o TODO",
-   "deep": "Fecha o loop do feedback localizado (parte da v2 do rate_app, citada no FEEDBACK.md). enrich_markers.py roda forced-alignment offline sobre os áudios gerados e, com GOP/MDD pt-BR (arXiv 2309.07719, QCRI — o nome acadêmico do 'sotaque de gringo'), injeta em cada marker de tempo o fonema CANÔNICO (esperado) vs o VERBATIM (ouvido). Resultado: o avaliador/agente vê exatamente ONDE no tempo o fonema saiu errado, em vez de só uma nota global de 'soa gringo'. Alimenta o ranking de defeitos do rate_app com sinal sub-palavra. Dep: x-rate (estende a app de avaliação). Loop futuro — status 'idea'.",
+   "deep": "Fecha o loop do feedback localizado (parte da v2 do rate_app, citada no FEEDBACK.md). enrich_markers.py roda forced-alignment offline sobre os áudios gerados e, com GOP/MDD pt-BR (arXiv 2309.07719, QCRI — o nome acadêmico do 'sotaque de gringo'), injeta em cada marker de tempo o fonema CANÔNICO (esperado) vs o VERBATIM (ouvido). Resultado: o avaliador/agente vê exatamente ONDE no tempo o fonema saiu errado, em vez de só uma nota global de 'soa gringo'. Alimenta o ranking de defeitos do rate_app com sinal sub-palavra. Dep: x-rate (estende a app de avaliação). Loop futuro — status 'idea'. [OSINT 18/jun] Implementar o forced-alignment que falta (MFA pt-BR ou ctc-segmentation) + GOP/MDD L1-aware (arXiv 2309.07719; GOP seg-free 2507.16838). Rodar OFFLINE em CPU sobre os áudios do Treino 1 ANTES do próximo treino — custo zero. Transforma 'soa gringo' (global, 28×) em fonema-errado-no-tempo.",
    "hyp": [
     {
      "claim": "Forced-alignment + GOP/MDD pt-BR localiza o fonema errado no tempo, transformando 'soa gringo' (nota global) em feedback sub-palavra acionável",
@@ -886,7 +896,7 @@
    "hours": "~1,8h",
    "cost": "~$6 (H100) / ~$3 (A100)",
    "depends": "B2-limpo (baseline) + g2p endurecido",
-   "note": "fonemizar a entrada — ataca o 'gringo' #1 e os fonemas errados"
+   "note": "fonemizar a entrada com CharsiuG2P/LatPhon (MIT) — ataca o fator FONÉTICO do gringo; não bloquear no BIPA"
   },
   {
    "label": "Ablação de proporção (3 runs)",
@@ -911,8 +921,8 @@
    "gpu": "A100/H100",
    "hours": "~3-4h",
    "cost": "~$11-13 (H100) / ~$5-6 (A100)",
-   "depends": "⚠ licença NURC (MIT) confirmar — BLOQUEADO",
-   "note": "ataca a RAIZ do carioca ausente (base CML formal domina hoje)"
+   "depends": "⚠ BLOQUEADO até NILC responder (NURC é CC-BY-NC-ND)",
+   "note": "nesta rodada: ablação de PROPORÇÃO (base↔Pedro), NÃO NURC — testa se a base formal domina o carioca"
   },
   {
    "label": "Estágio B + G2 · emoções",

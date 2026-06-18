@@ -310,6 +310,12 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .tchip.on{background:var(--orange);color:#fff;border-color:var(--orange);font-weight:500}
 .tchip.add{border-style:dashed;color:var(--tm)}.tchip.add:hover{color:var(--t)}
 .tagsel{font-size:12px;color:var(--t2);margin:4px 0 2px}.tagsel b{color:var(--t)}
+.sidenav{position:fixed;top:50%;transform:translateY(-50%);width:48px;height:148px;background:rgba(20,20,24,0.55);border:1px solid var(--b);color:var(--t2);font-size:30px;cursor:pointer;z-index:45;display:flex;align-items:center;justify-content:center;font-family:var(--body);transition:all .15s var(--ease);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.sidenav:hover{background:var(--surface-h);color:var(--t);border-color:var(--bh)}
+.sidenav.left{left:0;border-left:none;border-radius:0 16px 16px 0}.sidenav.right{right:0;border-right:none;border-radius:16px 0 0 16px}
+.sidenav.hide{display:none}.sidenav.off{opacity:0.18;pointer-events:none}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.card.pulse{animation:shake .34s var(--ease);border-color:var(--orange)}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
@@ -319,14 +325,13 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 <div class=bar><i id=prog></i></div><span class=muted id=cnt></span><div class=sp></div></header>
 <div class=wrap>
 <div id=av><div class=card id=card></div>
-<div class=nav><button class=btn onclick=go(-1)>← <span class=k>←</span></button>
-<button class=btn onclick=play()>▶ Tocar <span class=k>espaço</span></button>
-<button class=btn onclick=go(1)>Próximo → <span class=k>→</span></button></div>
 <div id=dots class=dots></div></div>
 <div id=in class=hide></div>
 <div id=tr class=hide></div>
 </div>
 <div id=toast class=toast></div>
+<button class="sidenav left" id=navL onclick=goPrev() title="áudio anterior">‹</button>
+<button class="sidenav right" id=navR onclick=goNext() title="próximo áudio">›</button>
 <div id=panelbg class=panelbg onclick=closePanel()></div>
 <div id=panel class=panel></div>
 <script>
@@ -338,8 +343,8 @@ const NUM=[1,2,3,4,5];
 const PROBS=["palavra errada (WER)","sotaque gringo","fonema errado","entonação robótica","cortou/incompleto","ruído/chiado","emoção errada","repetiu","rápido/devagar","metálico/artefato"];
 const PTBR=["R forte /ʁ/ virou fraco","vogal nasal sem nasalizar (ã/õ/em)","ti/di sem palatal (tchi/dji)","S coda sem chiado carioca","L coda virou /l/ (não /w/)","vogal aberta/fechada (ó/ô,é/ê)","lh/nh sem palatal","ão/ditongo nasal errado","sílaba tônica errada","ritmo silábico de gringo"];
 let CUSTOM=[];try{CUSTOM=JSON.parse(localStorage.getItem('customtags')||'[]');}catch(e){}
-window._drafts={};window._tgOpen={geral:true,ptbr:false};window._selTag="palavra errada (WER)";
-async function boot(){clips=await(await fetch('/api/clips')).json();ratings=await(await fetch('/api/ratings')).json();try{MAP=await(await fetch('/api/map')).json();}catch(e){}renderTrail();render();}
+try{window._drafts=JSON.parse(localStorage.getItem('drafts')||'{}');}catch(e){window._drafts={};}window._tgOpen={geral:true,ptbr:false};window._selTag="palavra errada (WER)";
+async function boot(){clips=await(await fetch('/api/clips')).json();ratings=await(await fetch('/api/ratings')).json();try{MAP=await(await fetch('/api/map')).json();}catch(e){}try{const last=localStorage.getItem('lastclip');if(last){const idx=clips.findIndex(function(c){return K(c.run,c.id)===last;});if(idx>=0)i=idx;}}catch(e){}renderTrail();render();}
 function cur(){return clips[i];}
 function rOf(c){return ratings[K(c.run,c.id)]||{};}
 function esc(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
@@ -358,9 +363,17 @@ function renderTagPicker(){const el=document.getElementById('tagpick');if(!el)re
   '<div class=taggroup><div class=tghead onclick="toggleGroup(\'ptbr\')"><span class=tgcaret>'+(window._tgOpen.ptbr?'▾':'▸')+'</span> fonema pt-BR (onde o gringo erra)</div><div class="tgchips'+(window._tgOpen.ptbr?'':' hide')+'">'+chips(PTBR)+'</div></div>'+
   '<div class=tagsel>tipo: <b>'+esc(window._selTag||'—')+'</b></div>';
 }
-function saveDraft(){const c=cur();if(!c)return;const mn=document.getElementById('mnote'),sv=document.getElementById('msev');const note=mn?mn.value:'';const sev=sv?+sv.value:3;if(window._mStart==null&&!note){delete window._drafts[K(c.run,c.id)];return;}window._drafts[K(c.run,c.id)]={tag:window._selTag,sev:sev,note:note,mStart:window._mStart,mEnd:window._mEnd};}
+function saveDraft(){const c=cur();if(!c)return;const mn=document.getElementById('mnote'),sv=document.getElementById('msev');const note=mn?mn.value:'';const sev=sv?+sv.value:3;if(window._mStart==null&&!note){delete window._drafts[K(c.run,c.id)];}else{window._drafts[K(c.run,c.id)]={tag:window._selTag,sev:sev,note:note,mStart:window._mStart,mEnd:window._mEnd};}persistDrafts();}
 function restoreDraft(c){const d=window._drafts[K(c.run,c.id)];if(!d)return;if(d.tag)window._selTag=d.tag;const sv=document.getElementById('msev');if(sv&&d.sev){sv.value=d.sev;const sl=document.getElementById('sevval');if(sl)sl.textContent=d.sev;}const mn=document.getElementById('mnote');if(mn&&d.note)mn.value=d.note;if(d.mStart!=null){window._mStart=d.mStart;window._mEnd=d.mEnd;renderSel();}}
 function jump(idx){saveDraft();i=Math.max(0,Math.min(clips.length-1,idx));render();setTimeout(playFresh,140);}
+function reqFields(c){const isVoz=c.run.includes('stage')||c.run.includes('pedro')||c.run.includes('voz');const f=[['geral','nota geral'],['nativo','soa nativo'],['natural','naturalidade'],['parou','parou'],['carioca','sotaque']];if(isVoz)f.push(['voz','soa como Pedro']);return f;}
+function filled(r,k){const v=r[k];return v!==undefined&&v!==null&&v!=='';}
+function missingReq(c){const r=rOf(c);return reqFields(c).filter(function(f){return !filled(r,f[0]);}).map(function(f){return f[1];});}
+function isComplete(c){return missingReq(c).length===0;}
+function pulseCard(){const el=document.getElementById('card');if(!el)return;el.classList.remove('pulse');void el.offsetWidth;el.classList.add('pulse');setTimeout(function(){el.classList.remove('pulse');},420);}
+function goPrev(){go(-1);}
+function goNext(){const c=cur();if(!c)return;const miss=missingReq(c);if(miss.length){flash('pra avançar, preencha: '+miss.join(', '));pulseCard();return;}go(1);}
+function persistDrafts(){try{localStorage.setItem('drafts',JSON.stringify(window._drafts));}catch(e){}}
 function werMetrics(c){
  const dur=c.dur_s!=null?(c.dur_s.toFixed(1)+'s'):'?';const cap=c.dur_s!=null&&c.dur_s>=12.7;
  const wer=c.wer!=null?Math.round(c.wer*100)+'%':'—';
@@ -380,8 +393,8 @@ function werWords(ops){
 function scale(field,r,lo,hi){return `<div class=ihead><b>${field.label}</b><span class=exp>${field.exp}</span></div>`+NUM.map(n=>`<button class="btn ${r[field.k]==n?'on':''}" onclick="setv('${field.k}',${n})">${n}</button>`).join('')+`<span class=exp>${lo} → ${hi}</span>`;}
 function render(){
  const c=cur();if(!c){document.getElementById('card').innerHTML='Nenhum áudio em runpod_samples/.';return;}
- const done=rOf(c).geral!=null;
- let h=`<div class=tags><span>${c.run}</span><span>${c.id}</span><span>${c.emotion}</span><span>${c.accent}</span>${done?'<span style="border-color:var(--green);color:var(--green)">✓ avaliado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}</div>
+ const miss=missingReq(c);const done=miss.length===0;
+ let h=`<div class=tags><span>${c.run}</span><span>${c.id}</span><span>${c.emotion}</span><span>${c.accent}</span>${done?'<span style="border-color:var(--green);color:var(--green)">✓ completo</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ falta: '+esc(miss.join(', '))+'</span>'}</div>
  ${werMetrics(c)}
  <div class=text>${esc(c.text)}</div>
  ${c.wer_ops&&c.wer_ops.length?werWords(c.wer_ops):(c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:'')}
@@ -398,6 +411,7 @@ function render(){
  <div id=ctrls></div>`;
  document.getElementById('card').innerHTML=h;
  setupWave(c);renderCtrls();updateCount();
+ try{localStorage.setItem('lastclip',K(c.run,c.id));}catch(e){}
 }
 function renderCtrls(){
  const c=cur();if(!c)return;const r=rOf(c);
@@ -469,7 +483,7 @@ function addMarker(){
  r.markers=m;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;
  const mn=document.getElementById('mnote');if(mn)mn.value='';
  window._mStart=null;window._mEnd=null;const sel=document.getElementById('sel');if(sel)sel.style.display='none';
- delete window._drafts[K(c.run,c.id)];
+ delete window._drafts[K(c.run,c.id)];persistDrafts();
  labelSel();renderPins();renderMarkerList();updateCount();flash('marcado ✓');queueSave(c,r);
 }
 function removeMarker(idx){const c=cur();const r=rOf(c);if(!r.markers)return;r.markers.splice(idx,1);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderPins();renderMarkerList();updateCount();flash('removido');queueSave(c,r);}
@@ -479,12 +493,14 @@ function renderPins(){const el=document.getElementById('pins');if(!el)return;con
 function updateMarker(idx,field,val){const c=cur();const r=rOf(c);if(!r.markers||!r.markers[idx])return;r.markers[idx][field]=(field==='sev'?(+val):val);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;if(field==='sev')renderPins();flash('salvo ✓');queueSave(c,r);}
 function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — clique no tempo pra ouvir · edite tipo/intensidade/nota</span></div>`+ms.map(function(m,idx){const s=mSpan(m),a=s[0],b=s[1];const si=sevInfo(m.sev);return `<div class=mrow><span class=mt onclick="seekTo(${a})">${a.toFixed(2)}–${b.toFixed(2)}s</span><select class="msel mrowsel" onchange="updateMarker(${idx},'tag',this.value)">${tagOpts(m.tag)}</select><select class="msev2 sevb ${si.bucket}" onchange="updateMarker(${idx},'sev',this.value)">`+[1,2,3,4,5].map(function(n){return `<option value=${n}${si.n===n?' selected':''}>${n}</option>`;}).join('')+`</select><input class=mnt2 value="${esc(m.note||'')}" oninput="updateMarker(${idx},'note',this.value)" placeholder="nota"><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
 function updateCount(){
- const rated=clips.filter(x=>rOf(x).geral!=null).length;
- document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} avaliados`;
+ const rated=clips.filter(function(x){return isComplete(x);}).length;
+ document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} completos`;
  document.getElementById('prog').style.width=(clips.length?100*rated/clips.length:0)+'%';
+ const nl=document.getElementById('navL'),nr=document.getElementById('navR');
+ if(nl)nl.classList.toggle('off',i<=0);if(nr)nr.classList.toggle('off',i>=clips.length-1);
  renderDots();
 }
-function renderDots(){const el=document.getElementById('dots');if(!el)return;el.innerHTML=clips.map(function(c,idx){return '<i class="pdot'+(rOf(c).geral!=null?' done':'')+(idx==i?' cur':'')+'" title="'+esc(c.run+' · '+c.id)+'" onclick="jump('+idx+')"></i>';}).join('');}
+function renderDots(){const el=document.getElementById('dots');if(!el)return;el.innerHTML=clips.map(function(c,idx){return '<i class="pdot'+(isComplete(c)?' done':'')+(idx==i?' cur':'')+'" title="'+esc(c.run+' · '+c.id)+'" onclick="jump('+idx+')"></i>';}).join('');}
 async function save(r){await fetch('/api/rate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(r)});}
 function queueSave(c,r){const key=K(c.run,c.id);const prev=_sq[key]||Promise.resolve();const p=prev.then(function(){return save(Object.assign({},r));}).catch(function(){});_sq[key]=p;return p;}
 function setv(k,v){const c=cur();const r=rOf(c);r[k]=v;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderCtrls();updateCount();flash('salvo ✓');queueSave(c,r);}
@@ -498,6 +514,7 @@ function view(v){
  document.getElementById('tAv').classList.toggle('on',v=='av');
  document.getElementById('tIn').classList.toggle('on',v=='in');
  document.getElementById('tTr').classList.toggle('on',v=='tr');
+ document.getElementById('navL').classList.toggle('hide',v!='av');document.getElementById('navR').classList.toggle('hide',v!='av');
  if(v=='in'){showIns();}
  if(v=='tr'){requestAnimationFrame(drawEdges);}
 }
@@ -608,8 +625,6 @@ document.addEventListener('keydown',e=>{
   else if(e.key=='Enter'&&window._mStart!=null){e.preventDefault();addMarker();}
   else if(e.key>='1'&&e.key<='5'){setv('geral',+e.key);}
   else if(e.key.toLowerCase()=='p'){setv('parou',!(rOf(cur()).parou===true));}
-  else if(e.key=='ArrowRight'){go(1);}
-  else if(e.key=='ArrowLeft'){go(-1);}
  }
 });
 document.addEventListener('mouseup',function(){endDrag();});

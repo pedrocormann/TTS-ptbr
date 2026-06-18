@@ -316,6 +316,7 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .sidenav.hide{display:none}.sidenav.off{opacity:0.18;pointer-events:none}
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
 .card.pulse{animation:shake .34s var(--ease);border-color:var(--orange)}
+.mrow.on{background:rgba(228,89,51,0.1);box-shadow:inset 2px 0 0 var(--orange);border-radius:6px}.mrow.on .mt{font-weight:600}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
@@ -436,12 +437,12 @@ function audioCtx(){if(!_audioCtx){try{_audioCtx=new (window.AudioContext||windo
 function clipDur(){const a=document.getElementById('au');return (a&&a.duration&&isFinite(a.duration)&&a.duration>0)?a.duration:((cur()&&cur().dur_s)||1);}
 function timeAt(e,w){const rc=w.getBoundingClientRect();const d=clipDur();return Math.max(0,Math.min(d,(e.clientX-rc.left)/rc.width*d));}
 function setupWave(c){
- window._mStart=null;window._mEnd=null;window._mDrag=false;
+ window._mStart=null;window._mEnd=null;window._mDrag=false;window._segLoop=null;clearTimeout(window._segTimer);
  const a=document.getElementById('au');
- if(a){a.loop=true;a.ontimeupdate=function(){updatePlayhead();updateTransport();};a.onplay=updateTransport;a.onpause=updateTransport;a.onloadedmetadata=updateTransport;}
+ if(a){a.loop=true;a.ontimeupdate=function(){updatePlayhead();updateTransport();segTick();};a.onplay=updateTransport;a.onpause=updateTransport;a.onloadedmetadata=updateTransport;}
  const w=document.getElementById('wave');
  if(w){
-  w.onmousedown=function(e){e.preventDefault();window._mStart=timeAt(e,w);window._mEnd=window._mStart;window._mDrag=true;if(a)a.currentTime=window._mStart;renderSel();labelSel();updatePlayhead();};
+  w.onmousedown=function(e){e.preventDefault();stopSeg();window._mStart=timeAt(e,w);window._mEnd=window._mStart;window._mDrag=true;if(a)a.currentTime=window._mStart;renderSel();labelSel();updatePlayhead();};
   w.onmousemove=function(e){if(window._mDrag){window._mEnd=timeAt(e,w);renderSel();labelSel();}};
  }
  if(!window._selTag)window._selTag=PROBS[0];
@@ -449,7 +450,7 @@ function setupWave(c){
  drawWave(c);renderPins();renderMarkerList();restoreDraft(c);renderTagPicker();labelSel();updateTransport();
 }
 function fmt(s){s=Math.max(0,s||0);const m=Math.floor(s/60),x=Math.floor(s%60);return m+':'+(x<10?'0':'')+x;}
-function togglePlay(){const a=document.getElementById('au');if(!a)return;if(a.paused){const p=a.play();if(p)p.catch(function(){flash('clique na onda pra liberar o som');});}else{a.pause();}updateTransport();}
+function togglePlay(){const a=document.getElementById('au');if(!a)return;if(a.paused){const p=a.play();if(p)p.catch(function(){flash('clique na onda pra liberar o som');});}else{a.pause();clearTimeout(window._segTimer);}updateTransport();}
 function updateTransport(){const a=document.getElementById('au'),pb=document.getElementById('playbtn'),pt=document.getElementById('ptime');if(a&&pb)pb.textContent=a.paused?'▶':'⏸';if(a&&pt)pt.textContent=fmt(a.currentTime)+' / '+fmt(clipDur());}
 function endDrag(){if(!window._mDrag)return;window._mDrag=false;
  if(window._mEnd<window._mStart){const t=window._mStart;window._mStart=window._mEnd;window._mEnd=t;}
@@ -488,10 +489,13 @@ function addMarker(){
 }
 function removeMarker(idx){const c=cur();const r=rOf(c);if(!r.markers)return;r.markers.splice(idx,1);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderPins();renderMarkerList();updateCount();flash('removido');queueSave(c,r);}
 function seekTo(t){const a=document.getElementById('au');if(a){a.currentTime=t;const p=a.play();if(p)p.catch(function(){});}}
+function loopSeg(idx){const ms=curMarkers();const m=ms[idx];if(!m)return;const sp=mSpan(m);if(window._segLoop&&window._segLoop.idx===idx){stopSeg();return;}window._segLoop={start:sp[0],end:sp[1],idx:idx};const a=document.getElementById('au');if(a){a.loop=false;a.currentTime=sp[0];const p=a.play();if(p)p.catch(function(){});}renderMarkerList();updateTransport();}
+function stopSeg(){if(!window._segLoop)return;window._segLoop=null;clearTimeout(window._segTimer);const a=document.getElementById('au');if(a)a.loop=true;renderMarkerList();}
+function segTick(){const s=window._segLoop;if(!s)return;const a=document.getElementById('au');if(!a)return;if(a.currentTime>=s.end){a.pause();clearTimeout(window._segTimer);window._segTimer=setTimeout(function(){if(window._segLoop){const a2=document.getElementById('au');if(a2){a2.currentTime=window._segLoop.start;const p=a2.play();if(p)p.catch(function(){});}}},1000);}}
 function mSpan(m){const a=m.t_start!=null?m.t_start:m.t;const b=m.t_end!=null?m.t_end:a;return [a,b];}
 function renderPins(){const el=document.getElementById('pins');if(!el)return;const d=clipDur();el.innerHTML=curMarkers().map(function(m){const s=mSpan(m),a=s[0],b=s[1];const si=sevInfo(m.sev);return '<i class="pin sev-'+si.bucket+'" style="left:'+(100*a/d)+'%;width:'+Math.max(0.6,100*(b-a)/d)+'%" title="'+esc('['+si.label+'] '+m.tag+' @ '+a.toFixed(2)+'–'+b.toFixed(2)+'s'+(m.note?' — '+m.note:''))+'" onclick="seekTo('+a+')"></i>';}).join('');}
 function updateMarker(idx,field,val){const c=cur();const r=rOf(c);if(!r.markers||!r.markers[idx])return;r.markers[idx][field]=(field==='sev'?(+val):val);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;if(field==='sev')renderPins();flash('salvo ✓');queueSave(c,r);}
-function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — clique no tempo pra ouvir · edite tipo/intensidade/nota</span></div>`+ms.map(function(m,idx){const s=mSpan(m),a=s[0],b=s[1];const si=sevInfo(m.sev);return `<div class=mrow><span class=mt onclick="seekTo(${a})">${a.toFixed(2)}–${b.toFixed(2)}s</span><select class="msel mrowsel" onchange="updateMarker(${idx},'tag',this.value)">${tagOpts(m.tag)}</select><select class="msev2 sevb ${si.bucket}" onchange="updateMarker(${idx},'sev',this.value)">`+[1,2,3,4,5].map(function(n){return `<option value=${n}${si.n===n?' selected':''}>${n}</option>`;}).join('')+`</select><input class=mnt2 value="${esc(m.note||'')}" oninput="updateMarker(${idx},'note',this.value)" placeholder="nota"><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
+function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — clique no tempo pra ouvir o trecho em loop (1s de descanso) · edite tipo/intensidade/nota</span></div>`+ms.map(function(m,idx){const s=mSpan(m),a=s[0],b=s[1];const si=sevInfo(m.sev);const on=window._segLoop&&window._segLoop.idx===idx;return `<div class="mrow${on?' on':''}"><span class=mt onclick="loopSeg(${idx})">${on?'↻ ':''}${a.toFixed(2)}–${b.toFixed(2)}s</span><select class="msel mrowsel" onchange="updateMarker(${idx},'tag',this.value)">${tagOpts(m.tag)}</select><select class="msev2 sevb ${si.bucket}" onchange="updateMarker(${idx},'sev',this.value)">`+[1,2,3,4,5].map(function(n){return `<option value=${n}${si.n===n?' selected':''}>${n}</option>`;}).join('')+`</select><input class=mnt2 value="${esc(m.note||'')}" oninput="updateMarker(${idx},'note',this.value)" placeholder="nota"><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
 function updateCount(){
  const rated=clips.filter(function(x){return isComplete(x);}).length;
  document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} completos`;

@@ -236,6 +236,10 @@ h2{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.01e
 .blockt{width:100%;border-collapse:collapse;margin:6px 0 10px}.blockt th{font-family:var(--mono);font-size:9px;text-transform:uppercase;color:var(--tm);text-align:left;padding:4px 8px;border-bottom:1px solid var(--b)}.blockt td{font-family:var(--mono);font-size:12px;color:var(--t2);padding:4px 8px;border-bottom:1px solid var(--b)}.blockt td:first-child{font-family:var(--body);color:var(--t)}
 .block-l{margin:6px 0 0 18px;color:var(--t2)}.block-l li{margin:4px 0}
 .block-next{margin-top:10px;font-size:13px;color:var(--t2)}.block-next b{color:var(--blue)}
+.gput{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.gput th{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.04em;color:var(--tm);text-align:left;padding:6px 8px;border-bottom:1px solid var(--b);white-space:nowrap}
+.gput td{padding:8px;border-bottom:1px solid var(--b);color:var(--t2);vertical-align:top}.gput td b{color:var(--t);font-weight:600}
+.gpufrac{color:var(--tm);font-size:12px}
 #mapwrap{overflow-x:auto;overflow-y:hidden;padding:6px 0 14px;margin-top:6px}
 #map{position:relative;min-width:920px}
 .lane{position:relative;padding:16px 0;border-top:1px solid var(--b)}.lane:first-child{border-top:none}
@@ -575,6 +579,14 @@ async function exportFeedback(){
   flash('exportado: feedback.jsonl');}catch(e){flash('falha ao exportar');}
 }
 const STATUS={done:'feito',wip:'em curso',next:'a seguir',idea:'hipótese'};
+function gpuPlanHTML(m){
+ if(!m.gpu_plan||!m.gpu_plan.length)return '';
+ const cb=m.cost_basis?'<p class=trail style="margin-bottom:10px">'+esc(m.cost_basis)+'</p>':'';
+ return `<div class=card><div class=ihead>Plano de GPU · próximos treinos <span class=exp>o que rodar, com que dado, quanto tempo e custo — base: o que já gastamos</span></div>`+cb+
+  '<div style="overflow-x:auto"><table class=gput><tr><th>treino</th><th>trilha</th><th>dataset · fração</th><th>GPU</th><th>horas</th><th>custo</th><th>depende</th></tr>'+
+  m.gpu_plan.map(function(g){return '<tr><td><b>'+esc(g.label)+'</b></td><td>'+esc(g.trilha)+'</td><td>'+esc(g.dataset)+(g.fraction?' · <span class=gpufrac>'+esc(g.fraction)+'</span>':'')+'</td><td>'+esc(g.gpu||'')+'</td><td>'+esc(g.hours||'')+'</td><td>'+esc(g.cost||'')+'</td><td>'+esc(g.depends||'')+'</td></tr>';}).join('')+
+  '</table></div>'+(m.gpu_total?'<div class=block-next><b>→ </b>'+esc(m.gpu_total)+'</div>':'')+`</div>`;
+}
 function blocksHTML(m){
  if(!m.blocks||!m.blocks.length)return '';
  return `<div class=card><div class=ihead>Blocos de avaliação <span class=exp>o que cada leva de teste ensinou — alimenta a trilha</span></div>`+
@@ -598,6 +610,7 @@ function renderTrail(){
   <div class=ihead style="margin-top:22px">Próximos passos</div>
   <ol class=nexts>${((m.state&&m.state.next)||[]).map(function(s){return `<li>${esc(s)}</li>`;}).join('')}</ol></div>`;
  h+=`<div class=card><div class=ihead>Mapa · o que depende do quê <span class=exp>clique num bloco pro aprofundamento técnico · ↔ arraste se precisar</span></div><div id=mapwrap><div id=map></div></div></div>`;
+ h+=gpuPlanHTML(m);
  h+=blocksHTML(m);
  document.getElementById('tr').innerHTML=h;
  const map=document.getElementById('map');

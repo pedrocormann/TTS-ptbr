@@ -859,5 +859,74 @@
     "6. Gravar G2 (alto)"
    ]
   }
- ]
+ ],
+ "cost_basis": "Base de custo (o que já gastamos): o Treino 1 custou ~$40 — ≈12h de H100 80GB @ $3,29/h (Estágio A 3h + grid de ~8 runs + 4× Estágio B 1,5h). A100 80GB (~$1,39/h, mais lenta) é a opção barata pra treino; debug em RTX 4090/L4 ($0,39–0,69/h). Valor exato no billing do RunPod. Estimativas abaixo no rate H100.",
+ "gpu_plan": [
+  {
+   "label": "B2 · baseline limpo",
+   "trilha": "A",
+   "node": "a-stageB2",
+   "roadmap": 2,
+   "dataset": "voz do Pedro CURADA (transcribed_clean)",
+   "fraction": "100% do curado (~50-70% dos 362 clipes)",
+   "gpu": "A100/H100",
+   "hours": "~1,8h (1,5h treino + 0,3h prep)",
+   "cost": "~$6 (H100) / ~$3 (A100)",
+   "depends": "curate_app rodar (sem GPU)",
+   "note": "linha de base honesta; limpeza deve baixar WER 12→8-10%"
+  },
+  {
+   "label": "B2 · G2P (ablação)",
+   "trilha": "A",
+   "node": "a-g2p",
+   "roadmap": 3,
+   "dataset": "mesmo curado, texto fonemizado",
+   "fraction": "100%",
+   "gpu": "A100/H100",
+   "hours": "~1,8h",
+   "cost": "~$6 (H100) / ~$3 (A100)",
+   "depends": "B2-limpo (baseline) + g2p endurecido",
+   "note": "fonemizar a entrada — ataca o 'gringo' #1 e os fonemas errados"
+  },
+  {
+   "label": "Ablação de proporção (3 runs)",
+   "trilha": "A",
+   "node": "a-accent",
+   "roadmap": 4,
+   "dataset": "base pt + voz do Pedro em 30/70, 50/50, 100%",
+   "fraction": "varia por run",
+   "gpu": "A100/H100",
+   "hours": "~5,4h (3×1,8h)",
+   "cost": "~$18 (H100) / ~$8 (A100)",
+   "depends": "B2-limpo",
+   "note": "testa se mais voz do Pedro cedo derruba o gringo + recupera o carioca"
+  },
+  {
+   "label": "Estágio A · base carioca",
+   "trilha": "A",
+   "node": "a-stageA",
+   "roadmap": 4,
+   "dataset": "NURC/espontâneo (~20-30h) — TAGARELA fica eval-only (NC)",
+   "fraction": "~20-30h slice (SNR>32dB, 2-12s)",
+   "gpu": "A100/H100",
+   "hours": "~3-4h",
+   "cost": "~$11-13 (H100) / ~$5-6 (A100)",
+   "depends": "⚠ licença NURC (MIT) confirmar — BLOQUEADO",
+   "note": "ataca a RAIZ do carioca ausente (base CML formal domina hoje)"
+  },
+  {
+   "label": "Estágio B + G2 · emoções",
+   "trilha": "A (F2)",
+   "node": "a-emo",
+   "roadmap": 6,
+   "dataset": "voz curada + G2 (8 emoções)",
+   "fraction": "100% (após gravar 5-7h novas)",
+   "gpu": "A100/H100",
+   "hours": "~2-2,5h",
+   "cost": "~$8 (H100) / ~$4 (A100)",
+   "depends": "gravar G2 (semanas, sem GPU)",
+   "note": "caminho ÚNICO pra emoção (task-vector não funciona em TTS-LM)"
+  }
+ ],
+ "gpu_total": "Próximo sprint do SOTAQUE (sem esperar licença nem gravar G2): B2-limpo + B2-G2P + ablação de proporção ≈ 9h de GPU ≈ $30 no H100 (ou ~$14 no A100). #1 normalizador (FEITO, sem GPU) e #5 enrich_markers/GOP (forced-align offline, CPU) não contam."
 }

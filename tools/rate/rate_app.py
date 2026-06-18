@@ -317,6 +317,12 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
 .card.pulse{animation:shake .34s var(--ease);border-color:var(--orange)}
 .mrow.on{background:rgba(228,89,51,0.1);box-shadow:inset 2px 0 0 var(--orange);border-radius:6px}.mrow.on .mt{font-weight:600}
+.modalbg{position:fixed;inset:0;background:rgba(0,0,0,0.55);opacity:0;pointer-events:none;transition:opacity .2s var(--ease);z-index:70}.modalbg.open{opacity:1;pointer-events:auto}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-46%);width:min(400px,92vw);background:#15161c;border:1px solid var(--bh);border-radius:16px;padding:24px;z-index:71;opacity:0;pointer-events:none;transition:all .22s var(--ease);box-shadow:0 24px 70px rgba(0,0,0,0.55)}
+.modal.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.modal-t{font-family:var(--serif);font-size:22px;margin-bottom:16px}
+.modal-in{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--b);color:var(--t);border-radius:8px;padding:11px 13px;font-size:14px;font-family:var(--body)}.modal-in:focus{outline:none;border-color:var(--bh)}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
@@ -335,6 +341,8 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 <button class="sidenav right" id=navR onclick=goNext() title="próximo áudio">›</button>
 <div id=panelbg class=panelbg onclick=closePanel()></div>
 <div id=panel class=panel></div>
+<div id=tagmodalbg class=modalbg onclick=closeTagModal()></div>
+<div id=tagmodal class=modal><div class=modal-t>Nova tag de erro</div><input id=tagmodalin class=modal-in placeholder="ex: vogal cortada, estalo, respiração" onkeydown="if(event.key=='Enter'){event.preventDefault();submitTag();}else if(event.key=='Escape'){closeTagModal();}"><div class=modal-btns><button class=btn onclick=closeTagModal()>cancelar</button><button class="btn mark" onclick=submitTag()>adicionar</button></div></div>
 <script>
 let clips=[],ratings={},i=0;
 let MAP={nodes:[],lanes:[],hypotheses:[],state:{now:'',next:[]}};
@@ -355,7 +363,9 @@ function sevInfo(s){
 }
 function tagOpts(sel){const ger=PROBS.concat(['pausa estranha','ênfase errada']).concat(CUSTOM);return '<optgroup label="geral">'+ger.map(function(p){return '<option'+(p===sel?' selected':'')+'>'+esc(p)+'</option>';}).join('')+'</optgroup><optgroup label="fonema pt-BR">'+PTBR.map(function(p){return '<option'+(p===sel?' selected':'')+'>'+esc(p)+'</option>';}).join('')+'</optgroup>';}
 function setTag(t){window._selTag=t;renderTagPicker();saveDraft();}
-function addCustomTag(){const t=(prompt('Nova tag de erro:')||'').trim();if(!t)return;if(CUSTOM.indexOf(t)<0){CUSTOM.push(t);try{localStorage.setItem('customtags',JSON.stringify(CUSTOM));}catch(e){}}window._selTag=t;renderTagPicker();saveDraft();}
+function addCustomTag(){const bg=document.getElementById('tagmodalbg'),m=document.getElementById('tagmodal'),inp=document.getElementById('tagmodalin');if(inp)inp.value='';if(bg)bg.classList.add('open');if(m)m.classList.add('open');if(inp)setTimeout(function(){inp.focus();},60);}
+function closeTagModal(){const bg=document.getElementById('tagmodalbg'),m=document.getElementById('tagmodal');if(bg)bg.classList.remove('open');if(m)m.classList.remove('open');}
+function submitTag(){const inp=document.getElementById('tagmodalin');const t=(inp?inp.value:'').trim();if(!t){closeTagModal();return;}if(CUSTOM.indexOf(t)<0){CUSTOM.push(t);try{localStorage.setItem('customtags',JSON.stringify(CUSTOM));}catch(e){}}window._selTag=t;closeTagModal();renderTagPicker();saveDraft();}
 function toggleGroup(g){window._tgOpen[g]=!window._tgOpen[g];renderTagPicker();}
 function renderTagPicker(){const el=document.getElementById('tagpick');if(!el)return;
  const ger=PROBS.concat(['pausa estranha','ênfase errada']).concat(CUSTOM);
@@ -442,8 +452,8 @@ function setupWave(c){
  if(a){a.loop=true;a.ontimeupdate=function(){updatePlayhead();updateTransport();segTick();};a.onplay=updateTransport;a.onpause=updateTransport;a.onloadedmetadata=updateTransport;}
  const w=document.getElementById('wave');
  if(w){
-  w.onmousedown=function(e){e.preventDefault();stopSeg();window._mStart=timeAt(e,w);window._mEnd=window._mStart;window._mDrag=true;if(a)a.currentTime=window._mStart;renderSel();labelSel();updatePlayhead();};
-  w.onmousemove=function(e){if(window._mDrag){window._mEnd=timeAt(e,w);renderSel();labelSel();}};
+  w.onmousedown=function(e){e.preventDefault();stopSeg();window._downX=e.clientX;window._downT=timeAt(e,w);window._mDrag=true;window._marking=false;window._mStart=null;window._mEnd=null;const sl=document.getElementById('sel');if(sl)sl.style.display='none';if(a)a.currentTime=window._downT;updatePlayhead();};
+  w.onmousemove=function(e){if(!window._mDrag)return;if(!window._marking&&Math.abs(e.clientX-window._downX)>6){window._marking=true;window._mStart=window._downT;}if(window._marking){window._mEnd=timeAt(e,w);renderSel();labelSel();}};
  }
  if(!window._selTag)window._selTag=PROBS[0];
  const sel=document.getElementById('sel');if(sel)sel.style.display='none';
@@ -453,9 +463,13 @@ function fmt(s){s=Math.max(0,s||0);const m=Math.floor(s/60),x=Math.floor(s%60);r
 function togglePlay(){const a=document.getElementById('au');if(!a)return;if(a.paused){const p=a.play();if(p)p.catch(function(){flash('clique na onda pra liberar o som');});}else{a.pause();clearTimeout(window._segTimer);}updateTransport();}
 function updateTransport(){const a=document.getElementById('au'),pb=document.getElementById('playbtn'),pt=document.getElementById('ptime');if(a&&pb)pb.textContent=a.paused?'▶':'⏸';if(a&&pt)pt.textContent=fmt(a.currentTime)+' / '+fmt(clipDur());}
 function endDrag(){if(!window._mDrag)return;window._mDrag=false;
- if(window._mEnd<window._mStart){const t=window._mStart;window._mStart=window._mEnd;window._mEnd=t;}
- if(Math.abs(window._mEnd-window._mStart)<0.06){window._mStart=null;window._mEnd=null;const sel=document.getElementById('sel');if(sel)sel.style.display='none';const a=document.getElementById('au');if(a&&a.paused){const p=a.play();if(p)p.catch(function(){});}}
- labelSel();saveDraft();
+ if(window._marking&&window._mStart!=null){
+  if(window._mEnd<window._mStart){const t=window._mStart;window._mStart=window._mEnd;window._mEnd=t;}
+  labelSel();saveDraft();
+ }else{
+  window._mStart=null;window._mEnd=null;const sel=document.getElementById('sel');if(sel)sel.style.display='none';labelSel();
+ }
+ window._marking=false;
 }
 function renderSel(){const el=document.getElementById('sel');if(!el||window._mStart==null)return;const d=clipDur();const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);el.style.left=(100*a/d)+'%';el.style.width=Math.max(0.4,100*(b-a)/d)+'%';el.style.display='block';}
 function labelSel(){const mt=document.getElementById('mtime');if(!mt)return;if(window._mStart==null){mt.textContent='arraste na onda pra marcar o trecho (início → fim) do erro';return;}const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);mt.innerHTML='trecho: <b style="color:var(--orange)">'+a.toFixed(2)+'s → '+b.toFixed(2)+'s</b> ('+(b-a).toFixed(2)+'s) — escolha o tipo e marque';}
@@ -622,7 +636,7 @@ function openNode(id){
 }
 function closePanel(){document.getElementById('panel').classList.remove('open');document.getElementById('panelbg').classList.remove('open');}
 document.addEventListener('keydown',e=>{
- if(e.key=='Escape'){closePanel();}
+ if(e.key=='Escape'){closePanel();closeTagModal();}
  const tg=e.target.tagName;if(tg=='INPUT'||tg=='SELECT'||tg=='TEXTAREA')return;
  if(!document.getElementById('av').classList.contains('hide')){
   if(e.key==' '){e.preventDefault();togglePlay();}
@@ -632,6 +646,7 @@ document.addEventListener('keydown',e=>{
  }
 });
 document.addEventListener('mouseup',function(){endDrag();});
+document.addEventListener('click',function(e){if(e.target&&e.target.tagName=='BUTTON')e.target.blur();});
 window.addEventListener('resize',function(){if(!document.getElementById('tr').classList.contains('hide'))drawEdges();});
 boot();
 </script></body></html>"""

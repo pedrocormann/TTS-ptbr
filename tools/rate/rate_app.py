@@ -653,7 +653,41 @@ boot();
 
 
 class H(BaseHTTPRequestHandler):
+    protocol_version = 'HTTP/1.1'
+
     def log_message(self, *a): pass
+
+    def _serve_range(self, data, ctype):
+        """Serve bytes com suporte a HTTP Range (206) — necessário pro <audio> dar seek."""
+        total = len(data)
+        rng = self.headers.get('Range')
+        start, end, partial = 0, total - 1, False
+        if rng and rng.startswith('bytes='):
+            try:
+                s, e = rng[6:].split('-', 1)
+                if s.strip():
+                    start = int(s); end = int(e) if e.strip() else total - 1
+                else:
+                    start = max(0, total - int(e)); end = total - 1
+                end = min(end, total - 1)
+                if start < 0 or start > end or start >= total:
+                    self.send_response(416); self.send_header('Content-Range', f'bytes */{total}')
+                    self.send_header('Content-Length', '0'); self.end_headers(); return
+                partial = True
+            except Exception:
+                start, end, partial = 0, total - 1, False
+        chunk = data[start:end + 1]
+        self.send_response(206 if partial else 200)
+        self.send_header('Content-Type', ctype)
+        self.send_header('Accept-Ranges', 'bytes')
+        if partial:
+            self.send_header('Content-Range', f'bytes {start}-{end}/{total}')
+        self.send_header('Content-Length', str(len(chunk)))
+        self.end_headers()
+        try:
+            self.wfile.write(chunk)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
 
     def _send(self, code, body, ctype='application/json'):
         if isinstance(body, (dict, list)): body = json.dumps(body, ensure_ascii=False).encode()
@@ -679,9 +713,7 @@ class H(BaseHTTPRequestHandler):
             run = q.get('run', [''])[0]; cid = q.get('id', [''])[0]
             matches = list((SAMPLES / run).rglob(f'{cid}.wav'))
             if matches:
-                data = matches[0].read_bytes()
-                self.send_response(200); self.send_header('Content-Type', 'audio/wav')
-                self.send_header('Content-Length', str(len(data))); self.end_headers(); self.wfile.write(data)
+                self._serve_range(matches[0].read_bytes(), 'audio/wav')
             else:
                 self._send(404, b'no audio', 'text/plain')
         else:

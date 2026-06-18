@@ -53,3 +53,4 @@ tools/rate/ratings.jsonl
 tools/rate/*.tmp
 .firecrawl/
 tools/rate/markers_enriched.jsonl
+data/raw/elevenlabs2024/transcribed_clean_auto.jsonl

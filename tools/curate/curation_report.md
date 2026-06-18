@@ -1,0 +1,140 @@
+# Curadoria automática (passe 1, sem GPU) — transcribed.jsonl
+
+- **362** clipes → **262 mantidos** (24.5 min) · **100 descartados** · **32 a revisar (spot-check)**
+- ⚠️ Este passe NÃO conserta transcrição (Whisper ~5-10% erro) nem pega 2-vozes/corte sutil — isso é re-transcrição (pod/ASR) + teu ouvido nos flaggados.
+
+## Descartados (lixo determinístico)
+- `found_00_seg010` — longo 12.3s · "foi que eles pegaram cada foto e mostram no mapa para onde e"
+- `found_00_seg012` — longo 14.4s · "Então você consegue, o Rio de Janeiro não é tão grande, prin"
+- `found_00_seg014` — longo 20.0s · "e você vê paisagens diferentes em tempos diferentes, e não s"
+- `found_00_seg017` — longo 20.0s · "E a partir desse projeto incrível, incrível, incrível, que t"
+- `found_00_seg019` — longo 20.0s · "Então a gente está mapeando todas as rodas de samba contempo"
+- `found_00_seg020` — fragmento (2 pal); curto 0.8s · "Várias rodas..."
+- `found_01_seg006` — longo 12.1s · "Então, ele percebeu um potencial e eu acabei sendo o primeir"
+- `found_01_seg010` — longo 13.3s · "e acabou que a gente conversou e decidiu fazer alguma coisa "
+- `found_01_seg011` — longo 18.1s · "valores muito relevantes em projetos e entregou, especialmen"
+- `found_01_seg012` — longo 20.0s · "arte, tecnologia, principalmente essa interseção de arte, te"
+- `found_01_seg016` — longo 13.0s · "e já fizemos vários projetos internacionais. E aí como eu co"
+- `found_01_seg017` — longo 15.3s · "em cultura, eu acabei tendo a oportunidade de viajar para vá"
+- `found_01_seg019` — fragmento (2 pal) · "muito interessante."
+- `found_01_seg020` — vazio
+- `found_01_seg022` — longo 13.1s · "e depois a gente busca referências de coisas diferentes pelo"
+- `found_01_seg023` — longo 16.3s · "em que a arte-tecnologia geralmente tem. A gente gosta de um"
+- `found_01_seg024` — longo 20.0s · "E não necessariamente usar um AI para mostrar que é um AI qu"
+- `found_01_seg025` — longo 20.0s · "Eu gosto muito de Machine Learning ultimamente, tenho estuda"
+- `found_01_seg027` — longo 20.0s · "virtual aumentada, ele por muito tempo liderou a área comerc"
+- `found_01_seg028` — longo 20.0s · "A Gabi foi nossa última contratada, uma contratação incrível"
+- `found_01_seg034` — fragmento (1 pal) · "sobre"
+- `found_01_seg036` — longo 17.5s · "da tecnologia que te abraça, que te acolhe mais o que parece"
+- `found_01_seg037` — longo 20.0s · "não só o superficial, mas a parte hardtec que a gente chama "
+- `found_01_seg039` — longo 12.3s · "no lugar de deixar a tecnologia mais legal, fazer um entrete"
+- `found_01_seg040` — longo 20.0s · "a entrarem nesse mundo também porque tem muita oportunidade "
+- `found_01_seg041` — fragmento (1 pal); curto 0.6s · "mesmo."
+- `found_01_seg042` — longo 20.0s · "Então, daí a gente criou esse conceito que eu vou ler para v"
+- `found_01_seg046` — fragmento (2 pal) · "de experimentação."
+- `found_01_seg047` — longo 20.0s · "com essas ferramentas que já não são mais vistas apenas como"
+- `found_01_seg048` — longo 20.0s · "que propõe um experimento entre tradição e inovação, entre c"
+- `found_01_seg049` — longo 18.9s · "o que torna o terreno fértil para um diálogo com a tecnologi"
+- `found_01_seg051` — fragmento (2 pal) · "e sensorial."
+- `found_01_seg052` — longo 14.5s · "Aqui, o nome Tecnologias Quentes, para além da percepção da "
+- `found_01_seg053` — fragmento (2 pal) · "Dá isquente."
+- `found_01_seg058` — longo 17.4s · "Ao longo do percurso, o público será convidado a experimenta"
+- `found_01_seg060` — longo 20.0s · "paisagem e paisagens do samba. Não se trata apenas de aplica"
+- `found_01_seg061` — longo 14.5s · "para ajudar a contar, prolongar e transformar narrativas do "
+- `found_02_seg003` — longo 12.9s · "Eu quero usar uns instrumentos clássicos de chorinho, cavaqu"
+- `found_02_seg005` — fragmento (2 pal) · "sax, oboé."
+- `found_03_seg001` — longo 20.0s · "em que eu gostaria de destacar como Cartola, Noé Rosa, Cande"
+- `found_03_seg007` — fragmento (2 pal) · "Mário Lago"
+- `found_03_seg009` — fragmento (2 pal) · "auxílpines vermelho"
+- `found_03_seg015` — fragmento (1 pal) · "vadico."
+- `found_03_seg020` — fragmento (2 pal) · "Paulinho Boca."
+- `found_04_seg007` — longo 13.4s · "Então nessa reflexão de imaginar alguém numa cabine, meio es"
+- `found_04_seg019` — longo 14.0s · "A gente vai captar os batimentos cardíacos, vai captar a res"
+- `found_04_seg023` — longo 20.0s · "grande felicidade de ter concebido isso e dos meus amigos te"
+- `found_04_seg024` — longo 12.1s · "na zona cerebrais da pessoa e captar mais profundamente aind"
+- `found_04_seg025` — longo 20.0s · "há muito tempo. Então, eu tô com muita, muita, muita expecta"
+- `found_04_seg026` — longo 18.4s · "super animado, assim, é uma das grandes obras que o estúdio "
+- `found_04_seg027` — longo 19.2s · "Estamos muito animados. Quem está trabalhando de noite iníci"
+- `found_04_seg029` — longo 12.0s · "Tudo o que a gente tem feito, ela une diversas habilidades d"
+- `found_05_seg006` — longo 12.2s · "Desde sons misteriosos nos túneis, dos metrôs até luzes inex"
+- `found_06_seg001` — fragmento (2 pal) · "No araneio."
+- `found_06_seg004` — longo 20.0s · "Principalmente são os primeiros, Cartola, Noé Rosa, Candeia,"
+- `found_06_seg006` — longo 14.8s · "Dudu Nobre, Jogo Nogueira, Leguim da Veja-flor, Dudu Nobre, "
+- `found_07_seg003` — longo 12.7s · "com oito instrumentos levemente iluminados dentro de uma peq"
+- `found_07_seg023` — longo 16.4s · "escolher ter mais gente em vez de mais técnica e ter mais ge"
+- `found_07_seg024` — longo 20.0s · "Então, pra tocar tem que ter gente, tem que ter gente encost"
+- `found_07_seg025` — longo 14.9s · "representações vão se misturar. Então a gente vai ter um esp"
+- `found_07_seg027` — longo 20.0s · "e gerar esses visuais únicos em cima de cada música, em cima"
+- `found_07_seg028` — longo 19.5s · "A gente está super animado, e muito em breve a gente vai rea"
+- `found_07_seg030` — longo 12.9s · "Desenvolver, se tudo der certo, no ano que vem a gente vai p"
+- `found_08_seg007` — longo 12.8s · "de cada viradinha da bateria, então a ideia é que a pessoa t"
+- `found_08_seg010` — longo 20.0s · "e ir atrás deles é aprender essa linguagem totalmente difere"
+- `found_08_seg013` — fragmento (1 pal) · "de..."
+- `found_08_seg015` — longo 19.3s · "Então, eu tô muito animado pra cair dentro disso, pra trocar"
+- `found_08_seg017` — fragmento (2 pal) · "e poder..."
+- `found_08_seg018` — longo 15.0s · "é dar essa experiência de todo mundo puxar uma bateria virtu"
+- `found_08_seg022` — longo 14.7s · "nesse universo de bateria de escola de samba e aprender mais"
+- `found_09_seg000` — longo 15.3s · "Essa terceira obra a gente chama de Escolinha. Escolinha por"
+- `found_10_seg012` — longo 20.0s · "que isso já é cultural, ela está dizendo qual o código que e"
+- `found_10_seg022` — longo 19.2s · "as pessoas se encontrarem, para pelo menos encontrar o centr"
+- `found_10_seg024` — longo 20.0s · "e associar a lógica ao sentimento, por exemplo, com uma músi"
+- `found_10_seg031` — longo 14.6s · "dentro dessa tonalidade, o que a gente acha que vai ser muit"
+- `found_11_seg014` — longo 20.0s · "E a gente quer que isso se torne um projeto muito maior, com"
+- `found_11_seg015` — fragmento (1 pal) · "academia."
+- `found_11_seg017` — longo 20.0s · "Então, a gente respeita muito, obvio, todos os acadêmicos qu"
+- `found_11_seg018` — fragmento (2 pal); curto 0.9s · "ouvido nisso."
+- `found_11_seg019` — longo 15.9s · "pra gerar mais interatividade, pra gerar mais conhecimento, "
+- `found_12_seg001` — longo 20.0s · "A gente quer conversar sobre diferentes tipos de ritmos e su"
+- `found_12_seg002` — fragmento (2 pal); curto 0.8s · "do Auto."
+- `found_12_seg006` — longo 20.0s · "das diferentes formas de samba e misturar tudo isso, entende"
+- `found_12_seg009` — longo 12.0s · "em que a gente já vai fazer nessa onda da exposição, que é s"
+- `found_13_seg002` — longo 14.8s · "mostrar a vibração de uma música, então a gente vai mostrar "
+- `found_13_seg003` — longo 12.9s · "que é construir um braço mecânico que toque violão de sete c"
+- `found_13_seg004` — longo 15.7s · "Enfim, fiquei parado por um tempo, mas agora estou voltando "
+- `found_13_seg008` — longo 20.0s · "vai conseguir tocar tão bem quanto um humano, porque o violã"
+- `found_13_seg009` — longo 16.7s · "humano, mas a parte mais mecânica, mais quadrada ela pode to"
+- `found_13_seg014` — longo 19.4s · "de uma forma meio... depois do trabalho, assim, ou quando de"
+- `found_13_seg015` — longo 20.0s · "Então, isso é muito prazeroso, eu adoro esses compositores, "
+- `found_13_seg017` — longo 12.8s · "contar um pouco da história deles, aprender mais e trabalhar"
+- `found_14_seg004` — longo 20.0s · "Agora acho que a gente já comprou uns 70 discos de vinil de "
+- `found_14_seg005` — longo 15.6s · "Você tem que tocar, sentir a materialidade da música e també"
+- `found_14_seg006` — fragmento (1 pal) · "Então..."
+- `found_14_seg012` — longo 20.0s · "E além disso, a gente está criando uma inteligência artifici"
+- `found_14_seg014` — longo 20.0s · "para mostrar no mundo inteiro o que a gente está fazendo. É "
+- `found_14_seg015` — longo 17.0s · "ver, que vê muita coisa. O processo de ensinar coisas a AI t"
+- `found_14_seg018` — longo 15.1s · "entender e exaltar mais a história do samba e, de novo, com "
+- `found_14_seg019` — longo 14.6s · "Ela gostar da cultura do vinil também, mas principalmente da"
+
+## A revisar / spot-check (32 mantidos, mas suspeitos)
+- `found_00_seg000` — quase no teto (10.6s)
+- `found_00_seg005` — tem número (alvo de re-transcrição); quase no teto (11.2s)
+- `found_00_seg015` — tem número (alvo de re-transcrição)
+- `found_01_seg002` — tem número (alvo de re-transcrição)
+- `found_01_seg009` — tem número (alvo de re-transcrição)
+- `found_01_seg014` — tem número (alvo de re-transcrição)
+- `found_01_seg015` — tem número (alvo de re-transcrição)
+- `found_01_seg044` — quase no teto (10.8s)
+- `found_01_seg062` — quase no teto (10.7s)
+- `found_02_seg006` — tem número (alvo de re-transcrição)
+- `found_03_seg004` — quase no teto (10.6s)
+- `found_05_seg007` — tem número (alvo de re-transcrição)
+- `found_05_seg008` — tem número (alvo de re-transcrição)
+- `found_07_seg007` — quase no teto (12.0s); run-on (44 pal)
+- `found_07_seg009` — quase no teto (11.4s)
+- `found_07_seg014` — tem número (alvo de re-transcrição)
+- `found_07_seg017` — tem número (alvo de re-transcrição); quase no teto (11.7s)
+- `found_07_seg029` — quase no teto (11.4s)
+- `found_09_seg023` — quase no teto (11.2s)
+- `found_10_seg008` — tem número (alvo de re-transcrição)
+- `found_10_seg018` — run-on (42 pal)
+- `found_10_seg020` — tem número (alvo de re-transcrição)
+- `found_11_seg003` — tem número (alvo de re-transcrição)
+- `found_11_seg007` — run-on (42 pal)
+- `found_11_seg008` — tem número (alvo de re-transcrição)
+- `found_11_seg009` — tem número (alvo de re-transcrição)
+- `found_11_seg010` — quase no teto (10.9s)
+- `found_12_seg005` — quase no teto (11.5s)
+- `found_12_seg010` — quase no teto (11.2s)
+- `found_12_seg013` — quase no teto (11.0s); run-on (45 pal)
+- `found_14_seg007` — tem número (alvo de re-transcrição); quase no teto (10.6s); run-on (41 pal)
+- `found_14_seg009` — quase no teto (10.5s)

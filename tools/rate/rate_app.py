@@ -300,6 +300,16 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .mrowsel{max-width:215px;font-size:12px;padding:5px 8px;flex-shrink:0}
 .msev2{width:46px;text-align:center;font-size:12px;padding:5px 4px;flex-shrink:0}.msev2.grave{color:var(--red)}.msev2.medio{color:var(--orange)}.msev2.leve{color:var(--tm)}
 .mnt2{flex:1;min-width:70px;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t2);border-radius:6px;padding:5px 8px;font-size:13px;font-family:var(--body)}
+.tagpick{margin:6px 0 4px}
+.taggroup{margin-bottom:4px}
+.tghead{font-family:var(--mono);font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:var(--tm);cursor:pointer;user-select:none;padding:3px 0}
+.tghead:hover{color:var(--t2)}.tgcaret{display:inline-block;width:12px;color:var(--tm)}
+.tgchips{display:flex;flex-wrap:wrap;gap:5px;padding:3px 0 4px}.tgchips.hide{display:none}
+.tchip{font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid var(--b);background:var(--surface);color:var(--t2);cursor:pointer;transition:all .12s var(--ease);white-space:nowrap}
+.tchip:hover{border-color:var(--bh);color:var(--t)}
+.tchip.on{background:var(--orange);color:#fff;border-color:var(--orange);font-weight:500}
+.tchip.add{border-style:dashed;color:var(--tm)}.tchip.add:hover{color:var(--t)}
+.tagsel{font-size:12px;color:var(--t2);margin:4px 0 2px}.tagsel b{color:var(--t)}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
@@ -327,6 +337,8 @@ const K=(r,id)=>r+'|'+id;
 const NUM=[1,2,3,4,5];
 const PROBS=["palavra errada (WER)","sotaque gringo","fonema errado","entonação robótica","cortou/incompleto","ruído/chiado","emoção errada","repetiu","rápido/devagar","metálico/artefato"];
 const PTBR=["R forte /ʁ/ virou fraco","vogal nasal sem nasalizar (ã/õ/em)","ti/di sem palatal (tchi/dji)","S coda sem chiado carioca","L coda virou /l/ (não /w/)","vogal aberta/fechada (ó/ô,é/ê)","lh/nh sem palatal","ão/ditongo nasal errado","sílaba tônica errada","ritmo silábico de gringo"];
+let CUSTOM=[];try{CUSTOM=JSON.parse(localStorage.getItem('customtags')||'[]');}catch(e){}
+window._drafts={};window._tgOpen={geral:true,ptbr:false};window._selTag="palavra errada (WER)";
 async function boot(){clips=await(await fetch('/api/clips')).json();ratings=await(await fetch('/api/ratings')).json();try{MAP=await(await fetch('/api/map')).json();}catch(e){}renderTrail();render();}
 function cur(){return clips[i];}
 function rOf(c){return ratings[K(c.run,c.id)]||{};}
@@ -335,7 +347,20 @@ function sevInfo(s){
  if(typeof s==='number'){const b=s<=2?'leve':(s<=3?'medio':'grave');return {n:s,bucket:b,label:s+'/5'};}
  const map={leve:1,'médio':3,medio:3,grave:5};const n=map[s]||3;const b=n<=2?'leve':(n<=3?'medio':'grave');return {n:n,bucket:b,label:(s||'médio')};
 }
-function tagOpts(sel){return '<optgroup label="geral">'+PROBS.map(function(p){return '<option'+(p===sel?' selected':'')+'>'+esc(p)+'</option>';}).join('')+['pausa estranha','ênfase errada'].map(function(p){return '<option'+(p===sel?' selected':'')+'>'+p+'</option>';}).join('')+'</optgroup><optgroup label="fonema pt-BR">'+PTBR.map(function(p){return '<option'+(p===sel?' selected':'')+'>'+esc(p)+'</option>';}).join('')+'</optgroup>';}
+function tagOpts(sel){const ger=PROBS.concat(['pausa estranha','ênfase errada']).concat(CUSTOM);return '<optgroup label="geral">'+ger.map(function(p){return '<option'+(p===sel?' selected':'')+'>'+esc(p)+'</option>';}).join('')+'</optgroup><optgroup label="fonema pt-BR">'+PTBR.map(function(p){return '<option'+(p===sel?' selected':'')+'>'+esc(p)+'</option>';}).join('')+'</optgroup>';}
+function setTag(t){window._selTag=t;renderTagPicker();saveDraft();}
+function addCustomTag(){const t=(prompt('Nova tag de erro:')||'').trim();if(!t)return;if(CUSTOM.indexOf(t)<0){CUSTOM.push(t);try{localStorage.setItem('customtags',JSON.stringify(CUSTOM));}catch(e){}}window._selTag=t;renderTagPicker();saveDraft();}
+function toggleGroup(g){window._tgOpen[g]=!window._tgOpen[g];renderTagPicker();}
+function renderTagPicker(){const el=document.getElementById('tagpick');if(!el)return;
+ const ger=PROBS.concat(['pausa estranha','ênfase errada']).concat(CUSTOM);
+ function chips(list){return list.map(function(t){return '<span class="tchip'+(t===window._selTag?' on':'')+'" data-t="'+esc(t)+'" onclick="setTag(this.dataset.t)">'+esc(t)+'</span>';}).join('');}
+ el.innerHTML='<div class=taggroup><div class=tghead onclick="toggleGroup(\'geral\')"><span class=tgcaret>'+(window._tgOpen.geral?'▾':'▸')+'</span> geral</div><div class="tgchips'+(window._tgOpen.geral?'':' hide')+'">'+chips(ger)+'<span class="tchip add" onclick="addCustomTag()">+ tag</span></div></div>'+
+  '<div class=taggroup><div class=tghead onclick="toggleGroup(\'ptbr\')"><span class=tgcaret>'+(window._tgOpen.ptbr?'▾':'▸')+'</span> fonema pt-BR (onde o gringo erra)</div><div class="tgchips'+(window._tgOpen.ptbr?'':' hide')+'">'+chips(PTBR)+'</div></div>'+
+  '<div class=tagsel>tipo: <b>'+esc(window._selTag||'—')+'</b></div>';
+}
+function saveDraft(){const c=cur();if(!c)return;const mn=document.getElementById('mnote'),sv=document.getElementById('msev');const note=mn?mn.value:'';const sev=sv?+sv.value:3;if(window._mStart==null&&!note){delete window._drafts[K(c.run,c.id)];return;}window._drafts[K(c.run,c.id)]={tag:window._selTag,sev:sev,note:note,mStart:window._mStart,mEnd:window._mEnd};}
+function restoreDraft(c){const d=window._drafts[K(c.run,c.id)];if(!d)return;if(d.tag)window._selTag=d.tag;const sv=document.getElementById('msev');if(sv&&d.sev){sv.value=d.sev;const sl=document.getElementById('sevval');if(sl)sl.textContent=d.sev;}const mn=document.getElementById('mnote');if(mn&&d.note)mn.value=d.note;if(d.mStart!=null){window._mStart=d.mStart;window._mEnd=d.mEnd;renderSel();}}
+function jump(idx){saveDraft();i=Math.max(0,Math.min(clips.length-1,idx));render();setTimeout(playFresh,140);}
 function werMetrics(c){
  const dur=c.dur_s!=null?(c.dur_s.toFixed(1)+'s'):'?';const cap=c.dur_s!=null&&c.dur_s>=12.7;
  const wer=c.wer!=null?Math.round(c.wer*100)+'%':'—';
@@ -364,9 +389,10 @@ function render(){
  <div class=transport><button id=playbtn class=playbtn onclick=togglePlay()>▶</button><span id=ptime class=ptime>0:00 / 0:00</span><span class=loophint>↻ loop até pausar</span></div>
  <div class=wave id=wave><canvas id=wc></canvas><div id=sel class=sel></div><div id=ph class=playhead></div><div id=pins></div></div>
  <div id=mtime class=selhint>arraste na onda pra marcar o trecho (início → fim) do erro · clique = vai pro ponto</div>
- <div class=markbar><select id=mtag class=msel><optgroup label="geral">${PROBS.map(p=>`<option>${esc(p)}</option>`).join('')}<option>pausa estranha</option><option>ênfase errada</option></optgroup><optgroup label="fonema pt-BR (onde o gringo erra)">${PTBR.map(p=>`<option>${esc(p)}</option>`).join('')}</optgroup></select>
-  <div class=sevwrap><span class=sevcap>intensidade</span><input type=range id=msev min=1 max=5 value=3 class=sevsl oninput="document.getElementById('sevval').textContent=this.value"><span id=sevval class=sevval>3</span></div>
-  <input id=mnote class=mnote placeholder="esperado → ouvido (ex: R forte /ʁ/ → R fraco)" onkeydown="if(event.key=='Enter'){event.preventDefault();addMarker();}">
+ <div class=tagpick id=tagpick></div>
+ <div class=markbar>
+  <div class=sevwrap><span class=sevcap>intensidade</span><input type=range id=msev min=1 max=5 value=3 class=sevsl oninput="document.getElementById('sevval').textContent=this.value;saveDraft()"><span id=sevval class=sevval>3</span></div>
+  <input id=mnote class=mnote placeholder="esperado → ouvido (ex: R forte /ʁ/ → R fraco)" oninput="saveDraft()" onkeydown="if(event.key=='Enter'){event.preventDefault();addMarker();}">
   <button id=markbtn class="btn mark" onclick=addMarker()>📍 marcar trecho <span class=ent>↵</span></button></div>
  <div id=mlist class=mlist></div>
  <div id=ctrls></div>`;
@@ -404,8 +430,9 @@ function setupWave(c){
   w.onmousedown=function(e){e.preventDefault();window._mStart=timeAt(e,w);window._mEnd=window._mStart;window._mDrag=true;if(a)a.currentTime=window._mStart;renderSel();labelSel();updatePlayhead();};
   w.onmousemove=function(e){if(window._mDrag){window._mEnd=timeAt(e,w);renderSel();labelSel();}};
  }
+ if(!window._selTag)window._selTag=PROBS[0];
  const sel=document.getElementById('sel');if(sel)sel.style.display='none';
- drawWave(c);renderPins();renderMarkerList();labelSel();updateTransport();
+ drawWave(c);renderPins();renderMarkerList();restoreDraft(c);renderTagPicker();labelSel();updateTransport();
 }
 function fmt(s){s=Math.max(0,s||0);const m=Math.floor(s/60),x=Math.floor(s%60);return m+':'+(x<10?'0':'')+x;}
 function togglePlay(){const a=document.getElementById('au');if(!a)return;if(a.paused){const p=a.play();if(p)p.catch(function(){flash('clique na onda pra liberar o som');});}else{a.pause();}updateTransport();}
@@ -413,7 +440,7 @@ function updateTransport(){const a=document.getElementById('au'),pb=document.get
 function endDrag(){if(!window._mDrag)return;window._mDrag=false;
  if(window._mEnd<window._mStart){const t=window._mStart;window._mStart=window._mEnd;window._mEnd=t;}
  if(Math.abs(window._mEnd-window._mStart)<0.06){window._mStart=null;window._mEnd=null;const sel=document.getElementById('sel');if(sel)sel.style.display='none';const a=document.getElementById('au');if(a&&a.paused){const p=a.play();if(p)p.catch(function(){});}}
- labelSel();
+ labelSel();saveDraft();
 }
 function renderSel(){const el=document.getElementById('sel');if(!el||window._mStart==null)return;const d=clipDur();const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);el.style.left=(100*a/d)+'%';el.style.width=Math.max(0.4,100*(b-a)/d)+'%';el.style.display='block';}
 function labelSel(){const mt=document.getElementById('mtime');if(!mt)return;if(window._mStart==null){mt.textContent='arraste na onda pra marcar o trecho (início → fim) do erro';return;}const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);mt.innerHTML='trecho: <b style="color:var(--orange)">'+a.toFixed(2)+'s → '+b.toFixed(2)+'s</b> ('+(b-a).toFixed(2)+'s) — escolha o tipo e marque';}
@@ -436,12 +463,13 @@ function curMarkers(){const c=cur();return c?(rOf(c).markers||[]):[];}
 function addMarker(){
  if(window._mStart==null){flash('arraste na onda pra marcar o trecho');return;}
  const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);
- const c=cur();const r=rOf(c);const tag=document.getElementById('mtag').value;const note=document.getElementById('mnote').value;
+ const c=cur();const r=rOf(c);const tag=window._selTag||PROBS[0];const note=document.getElementById('mnote').value;
  const sv=document.getElementById('msev');const sev=sv?(+sv.value):3;
  const m=(r.markers||[]).slice();m.push({t_start:Math.round(a*100)/100,t_end:Math.round(b*100)/100,tag:tag,sev:sev,note:note});m.sort(function(x,y){return x.t_start-y.t_start;});
  r.markers=m;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;
  const mn=document.getElementById('mnote');if(mn)mn.value='';
  window._mStart=null;window._mEnd=null;const sel=document.getElementById('sel');if(sel)sel.style.display='none';
+ delete window._drafts[K(c.run,c.id)];
  labelSel();renderPins();renderMarkerList();updateCount();flash('marcado ✓');queueSave(c,r);
 }
 function removeMarker(idx){const c=cur();const r=rOf(c);if(!r.markers)return;r.markers.splice(idx,1);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderPins();renderMarkerList();updateCount();flash('removido');queueSave(c,r);}
@@ -456,14 +484,14 @@ function updateCount(){
  document.getElementById('prog').style.width=(clips.length?100*rated/clips.length:0)+'%';
  renderDots();
 }
-function renderDots(){const el=document.getElementById('dots');if(!el)return;el.innerHTML=clips.map(function(c,idx){return '<i class="pdot'+(rOf(c).geral!=null?' done':'')+(idx==i?' cur':'')+'" title="'+esc(c.run+' · '+c.id)+'" onclick="i='+idx+';render();setTimeout(playFresh,140)"></i>';}).join('');}
+function renderDots(){const el=document.getElementById('dots');if(!el)return;el.innerHTML=clips.map(function(c,idx){return '<i class="pdot'+(rOf(c).geral!=null?' done':'')+(idx==i?' cur':'')+'" title="'+esc(c.run+' · '+c.id)+'" onclick="jump('+idx+')"></i>';}).join('');}
 async function save(r){await fetch('/api/rate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(r)});}
 function queueSave(c,r){const key=K(c.run,c.id);const prev=_sq[key]||Promise.resolve();const p=prev.then(function(){return save(Object.assign({},r));}).catch(function(){});_sq[key]=p;return p;}
 function setv(k,v){const c=cur();const r=rOf(c);r[k]=v;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderCtrls();updateCount();flash('salvo ✓');queueSave(c,r);}
 function saveNota(v){const c=cur();const r=rOf(c);r.nota=v;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;clearTimeout(window._nt);window._nt=setTimeout(function(){queueSave(c,r);},400);}
 function flash(m){const t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(window._ft);window._ft=setTimeout(function(){t.classList.remove('show');},900);}
 function togProb(p){const c=cur();const r=rOf(c);const a=r.problemas||[];const j=a.indexOf(p);if(j<0){a.push(p);}else{a.splice(j,1);}r.problemas=a;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderCtrls();flash('salvo ✓');queueSave(c,r);}
-function go(d){i=Math.max(0,Math.min(clips.length-1,i+d));render();setTimeout(playFresh,140);}
+function go(d){saveDraft();i=Math.max(0,Math.min(clips.length-1,i+d));render();setTimeout(playFresh,140);}
 function playFresh(){const a=document.getElementById('au');if(a){const p=a.play();if(p)p.catch(function(){});}}
 function view(v){
  for(const x of ['av','in','tr']){document.getElementById(x).classList.toggle('hide',x!=v);}
@@ -574,15 +602,14 @@ function openNode(id){
 function closePanel(){document.getElementById('panel').classList.remove('open');document.getElementById('panelbg').classList.remove('open');}
 document.addEventListener('keydown',e=>{
  if(e.key=='Escape'){closePanel();}
- const tg=e.target.tagName;const isText=tg=='INPUT'&&(e.target.type=='text'||!e.target.type);const typing=tg=='INPUT'||tg=='SELECT'||tg=='TEXTAREA';
- if(typing&&!(isText&&(e.key=='ArrowRight'||e.key=='ArrowLeft')))return;
+ const tg=e.target.tagName;if(tg=='INPUT'||tg=='SELECT'||tg=='TEXTAREA')return;
  if(!document.getElementById('av').classList.contains('hide')){
   if(e.key==' '){e.preventDefault();togglePlay();}
   else if(e.key=='Enter'&&window._mStart!=null){e.preventDefault();addMarker();}
   else if(e.key>='1'&&e.key<='5'){setv('geral',+e.key);}
   else if(e.key.toLowerCase()=='p'){setv('parou',!(rOf(cur()).parou===true));}
-  else if(e.key=='ArrowRight'){if(isText)e.target.blur();go(1);}
-  else if(e.key=='ArrowLeft'){if(isText)e.target.blur();go(-1);}
+  else if(e.key=='ArrowRight'){go(1);}
+  else if(e.key=='ArrowLeft'){go(-1);}
  }
 });
 document.addEventListener('mouseup',function(){endDrag();});

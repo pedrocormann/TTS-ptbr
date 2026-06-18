@@ -1,12 +1,13 @@
 {
  "state": {
-  "now": "Os fundamentos da Trilha A (voz) estão FEITOS e validados: Estágio A deu BASE-PT em português inteligível (CML, LR 5e-4, 180min → WER 21%), o bug do balbúcio foi diagnosticado na raiz (EOS = label 0 no frame de parada [0]×32, não 128003) e o Estágio B Final clona a voz do Pedro com WER 12-17% e para 14/14 (vs 0/14 antes do fix). O pipeline da Trilha M (cascata Maya-BR) tem VAD/ASR/LLM prontos e o TTS condicionado a áudio funcionando; turn-engine/barge-in ainda em integração. O que falta à frente: curar o dataset do Pedro (ferramenta pronta, ainda não rodada — não existe transcribed_clean.jsonl), e aí seguem emoções, sotaque nativo, montar a Maya-BR v0 e a aposta de longo prazo do spine full-duplex (Moshi).",
+  "now": "TREINO 1 fechado (42 avaliações): a voz/timbre do Pedro está PROVADA (stage_b_final geral 3.1, voz 3.4, para 93%, WER 12%) — o moat funciona, não mexer nela. O gap inteiro é SOTAQUE ('gringo' é o problema #1, 'soa nativo' ~2.8/5 em TODOS os modelos), PROSÓDIA robótica e LEITURA DE NÚMERO. A maior parte do que move 'soa nativo' é mais barata que re-treinar: começar pelos quick-wins sem GPU (normalizar número), depois o baseline limpo (curar o dataset, que nunca rodou), e só então gastar compute em G2P (fonemizar a entrada) e trocar a base CML formal/paulista por dado carioca espontâneo. Emoção (G2) é o caminho certo mas o último da fila.",
   "next": [
-   "Rodar tools/curate/curate_app.py sobre o dataset do Pedro (corrigir Whisper, descartar fragmentos/ruído) e exportar data/.../transcribed_clean.jsonl — destrava a-stageB2 e é pré-requisito de tudo o mais na voz",
-   "Re-treinar Estágio B v2 sobre o dataset curado (mesma receita validada: LR 5e-5, run curto, EOS=0) e medir WER+paradas no eval harness; meta WER ≤16% vs 17% do v1 sujo",
-   "Usar o rate_app sobre os samples (stage_b_final/cml_long) pra ranquear defeitos reais — separar 'soa gringo/fonema errado' (invisível no WER) do que o WER já pega, e decidir se o próximo ataque é sotaque nativo ou emoções",
-   "Montar a Maya-BR v0 (cascata VAD→ASR→LLM→CSM) com o CSM-pt-BR atual e fechar o turn-engine+barge-in+watermark, medindo latência p50 (<800ms) vs Moshi-pt em preferência humana",
-   "Gravar G2 (8 estilos de emoção com âncoras+intensidades) pra atacar a prosódia robótica do dataset mono-emoção — é o gargalo de naturalidade depois que a inteligibilidade está resolvida"
+   "Quick-win sem GPU: normalizador de número/sigla/moeda pt-BR no front-end (conserta os 3 trechos graves do hard-01)",
+   "Baseline limpo: rodar curate_app + re-treinar Estágio B no dataset curado (alvo WER 8-10%) — limpeza vale mais que algoritmo",
+   "G2P pt-BR: fonemizar a entrada antes do CSM (ramo de ablação no Estágio B v2) — ataca o 'gringo' #1 e os fonemas errados",
+   "Estágio A em base carioca/espontânea (NURC se a licença MIT confirmar; senão ablação de proporção base↔voz do Pedro)",
+   "enrich_markers.py: forced-alignment + GOP/MDD pt-BR pra localizar o fonema errado no tempo (fecha o loop do feedback)",
+   "Gravar G2 (8 emoções) — emoção é o caminho único (task-vector não funciona em TTS-LM), por último/mais caro"
   ]
  },
  "hypotheses": [
@@ -777,7 +778,14 @@
     "Leitura de NÚMEROS quebra (hard-01: CEP/protocolo/R$ em 3 trechos graves) → problema de front-end/normalização de texto, não de voz.",
     "stage_b v1 era lixo (para 36%, WER 73%) — confirma que LR baixo + EOS são essenciais no Estágio B."
    ],
-   "proximos": []
+   "proximos": [
+    "1. Normalizador de número/sigla/moeda pt-BR no front-end (baixo)",
+    "2. Baseline limpo: rodar curate_app e re-treinar stage_b_final no dataset curado (baixo)",
+    "3. G2P pt-BR como front-end (medio)",
+    "4. Estágio A em base CARIOCA/espontânea (alto)",
+    "5. enrich_markers.py: forced-alignment + GOP/MDD pt-BR pra localizar o fonema errado no tempo (medio)",
+    "6. Gravar G2 (alto)"
+   ]
   }
  ]
 }

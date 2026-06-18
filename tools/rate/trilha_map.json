@@ -729,5 +729,55 @@
    ],
    "deep": "Método eficaz: revisar/smoke-test ANTES de gastar GPU. (1) Warmup: era warmup_steps = ratio × 99 epochs, com ratio~0.06 = ~6 steps de TODA a run no warmup → LR quase nula. Fix: warmup_steps=20 fixo. (2) Streaming: encodec padding+truncation na prep (~11min GPU ociosa) vs streaming com decode=False = atraso pro forward. (3) Audio real: dataset TAGARELA/mix crashava (clipes curtos vs texto longo). Fix: cutoff real (áudio até onde existe) + collator por-batch, max_length 384. (4) EOS: label ingênuo 128003 (token raro) estoura depth decoder. Raiz: modelo escapa do intervalo [0, vocab-1]. Label=0 = usar frame silence [0]×32, sinal claro de parada. (5) Stage B: v2 (decode=False) overfit (WER 300%—memorizou CML, destruiu pt). v3 com LR 5e-5 + 15min = equilibrado (WER 85%, menos balbúcio). Final (EOS correto + 5e-5 + 90min) = WER 17%, para 14/14. Insight: trade-off LR vs run duration é crítico; smoke-test em 5-10min antes de soltar 180min."
   }
+ ],
+ "blocks": [
+  {
+   "id": "treino-1",
+   "label": "Treino 1",
+   "date": "2026-06-17",
+   "avaliador": "Pedro",
+   "status": "fechado",
+   "runs": [
+    "cml_long",
+    "stage_b",
+    "stage_b_final"
+   ],
+   "n": 42,
+   "metrics": {
+    "cml_long": {
+     "geral": 2.6,
+     "nativo": 2.3,
+     "natural": 2.6,
+     "voz": null,
+     "parou": 79,
+     "wer": null
+    },
+    "stage_b": {
+     "geral": 1.7,
+     "nativo": 2.1,
+     "natural": 1.4,
+     "voz": 2.7,
+     "parou": 36,
+     "wer": 73
+    },
+    "stage_b_final": {
+     "geral": 3.1,
+     "nativo": 2.8,
+     "natural": 3.1,
+     "voz": 3.4,
+     "parou": 93,
+     "wer": 12
+    }
+   },
+   "learnings": [
+    "Voz/timbre do Pedro PROVADO: stage_b_final geral 3.1, voz 3.4, para 93%, WER 12% — fix do EOS + LR baixo funcionam.",
+    "Sotaque gringo é o problema #1 disparado (28× marcado); nota 'soa nativo' ~2.8/5 mesmo no melhor — soa pouco nativo em TODOS.",
+    "Entonação robótica é o 2º maior (18×); naturalidade baixa — prosódia é o próximo gargalo.",
+    "Sotaque carioca quase não transfere (2/14 'sim') — suspeita: a base CML (leitura formal) domina o sotaque sobre a voz do Pedro.",
+    "Leitura de NÚMEROS quebra (hard-01: CEP/protocolo/R$ em 3 trechos graves) → problema de front-end/normalização de texto, não de voz.",
+    "stage_b v1 era lixo (para 36%, WER 73%) — confirma que LR baixo + EOS são essenciais no Estágio B."
+   ],
+   "proximos": []
+  }
  ]
 }

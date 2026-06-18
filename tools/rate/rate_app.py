@@ -22,7 +22,15 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent.parent
 RATINGS = Path(__file__).resolve().parent / 'ratings.jsonl'
 MAP_JSON = Path(__file__).resolve().parent / 'trilha_map.json'
+BLOCK_FILE = Path(__file__).resolve().parent / 'block.txt'
 _RLOCK = threading.Lock()
+
+
+def load_block():
+    try:
+        return BLOCK_FILE.read_text(encoding='utf-8').strip() or 'treino-1'
+    except Exception:
+        return 'treino-1'
 ap = argparse.ArgumentParser()
 ap.add_argument('--dir', default=str(REPO / 'runpod_samples'))
 ap.add_argument('--port', type=int, default=8081)
@@ -222,6 +230,12 @@ h2{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.01e
 .hyp.aberta{border-color:rgba(228,89,51,0.3)}.hyp.aberta b{color:var(--orange)}
 .hyp.refutada{opacity:0.55}.hyp.refutada b{color:var(--red)}
 .nexts{margin:8px 0 0 18px;color:var(--t2)}.nexts li{margin:5px 0;padding-left:4px}
+.block{border:1px solid var(--b);border-radius:10px;padding:14px 16px;margin-bottom:12px;background:var(--surface)}
+.block-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}.block-h b{font-family:var(--disp);font-size:14px}
+.block-meta{font-family:var(--mono);font-size:10px;color:var(--tm);letter-spacing:0.04em;text-transform:uppercase}
+.blockt{width:100%;border-collapse:collapse;margin:6px 0 10px}.blockt th{font-family:var(--mono);font-size:9px;text-transform:uppercase;color:var(--tm);text-align:left;padding:4px 8px;border-bottom:1px solid var(--b)}.blockt td{font-family:var(--mono);font-size:12px;color:var(--t2);padding:4px 8px;border-bottom:1px solid var(--b)}.blockt td:first-child{font-family:var(--body);color:var(--t)}
+.block-l{margin:6px 0 0 18px;color:var(--t2)}.block-l li{margin:4px 0}
+.block-next{margin-top:10px;font-size:13px;color:var(--t2)}.block-next b{color:var(--blue)}
 #mapwrap{overflow-x:auto;overflow-y:hidden;padding:6px 0 14px;margin-top:6px}
 #map{position:relative;min-width:920px}
 .lane{position:relative;padding:16px 0;border-top:1px solid var(--b)}.lane:first-child{border-top:none}
@@ -561,6 +575,18 @@ async function exportFeedback(){
   flash('exportado: feedback.jsonl');}catch(e){flash('falha ao exportar');}
 }
 const STATUS={done:'feito',wip:'em curso',next:'a seguir',idea:'hipótese'};
+function blocksHTML(m){
+ if(!m.blocks||!m.blocks.length)return '';
+ return `<div class=card><div class=ihead>Blocos de avaliação <span class=exp>o que cada leva de teste ensinou — alimenta a trilha</span></div>`+
+  m.blocks.slice().reverse().map(function(b){
+   let mt='';
+   if(b.metrics){mt='<table class=blockt><tr><th>run</th><th>geral</th><th>nativo</th><th>natural</th><th>voz</th><th>parou</th><th>WER</th></tr>'+
+    Object.keys(b.metrics).map(function(run){const x=b.metrics[run]||{};return '<tr><td>'+esc(run)+'</td><td>'+(x.geral!=null?x.geral:'-')+'</td><td>'+(x.nativo!=null?x.nativo:'-')+'</td><td>'+(x.natural!=null?x.natural:'-')+'</td><td>'+(x.voz!=null?x.voz:'-')+'</td><td>'+(x.parou!=null?x.parou+'%':'-')+'</td><td>'+(x.wer!=null?x.wer+'%':'-')+'</td></tr>';}).join('')+'</table>';}
+   return '<div class=block><div class=block-h><b>'+esc(b.label||b.id)+'</b><span class=block-meta>'+esc((b.date||'')+' · '+(b.n||'?')+' avaliações'+(b.avaliador?' · '+b.avaliador:''))+'</span></div>'+mt+
+    '<ul class=block-l>'+(b.learnings||[]).map(function(l){return '<li>'+esc(l)+'</li>';}).join('')+'</ul>'+
+    ((b.proximos&&b.proximos.length)?'<div class=block-next><b>→ próximos:</b> '+b.proximos.map(esc).join(' · ')+'</div>':'')+'</div>';
+  }).join('')+`</div>`;
+}
 function renderTrail(){
  const m=MAP;
  const overall=m.lanes&&m.lanes.length?Math.round(m.lanes.reduce(function(s,l){return s+l.progress;},0)/m.lanes.length):0;
@@ -572,6 +598,7 @@ function renderTrail(){
   <div class=ihead style="margin-top:22px">Próximos passos</div>
   <ol class=nexts>${((m.state&&m.state.next)||[]).map(function(s){return `<li>${esc(s)}</li>`;}).join('')}</ol></div>`;
  h+=`<div class=card><div class=ihead>Mapa · o que depende do quê <span class=exp>clique num bloco pro aprofundamento técnico · ↔ arraste se precisar</span></div><div id=mapwrap><div id=map></div></div></div>`;
+ h+=blocksHTML(m);
  document.getElementById('tr').innerHTML=h;
  const map=document.getElementById('map');
  const COLS=Math.max(0,...m.nodes.map(function(n){return n.col;}))+1;
@@ -723,6 +750,7 @@ class H(BaseHTTPRequestHandler):
         if self.path == '/api/rate':
             n = int(self.headers.get('Content-Length', 0))
             r = json.loads(self.rfile.read(n))
+            r['block'] = r.get('block') or load_block()
             with _RLOCK:
                 data = load_ratings()
                 data.setdefault((r['run'], r['id']), {}).update(r)   # merge defensivo (não apaga campos de POST parcial)

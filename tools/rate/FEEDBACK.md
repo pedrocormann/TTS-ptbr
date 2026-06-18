@@ -42,9 +42,9 @@ A aba **Insights** mostra a **cobertura** (quantos clipes/instantes marcados, po
     "voz": 4, "parou": true, "carioca": "sim", "nota": "texto livre"
   },
   "problems": ["sotaque gringo", "fonema errado"],   // tags no nível do clipe
-  "markers": [                     // ⭐ o sinal perceptual localizado no tempo
-    { "t": 2.30, "tag": "R forte /ʁ/ virou fraco", "sev": "grave", "note": "rato → R de gringo" },
-    { "t": 3.81, "tag": "ruído/chiado", "sev": "leve", "note": "" }
+  "markers": [                     // ⭐ o sinal perceptual no tempo — trecho início→fim
+    { "t_start": 2.30, "t_end": 2.55, "tag": "R forte /ʁ/ virou fraco", "sev": "grave", "note": "rato → R de gringo" },
+    { "t_start": 3.81, "t_end": 4.20, "tag": "ruído/chiado", "sev": "leve", "note": "" }
   ],
   "rated_ts": 1718560000000,
   "schema_version": 1              // versionado: os agentes futuros sabem ler/migrar
@@ -52,7 +52,7 @@ A aba **Insights** mostra a **cobertura** (quantos clipes/instantes marcados, po
 ```
 
 ### `markers[]` — o coração agent-ready
-- `t` (float, segundos): instante do erro no áudio. Resolução de centésimo.
+- `t_start` / `t_end` (float, segundos): início e fim do trecho do erro (arraste na waveform). Resolução de centésimo. Um clique seco vira trecho de duração ~0 (ponto). O agente recorta exatamente `[t_start, t_end]`.
 - `tag` (string): categoria do erro (taxonomia abaixo).
 - `sev` (string): gravidade — `leve` | `medio` | `grave`. Prioriza o que o agente ataca primeiro.
 - `note` (string): descrição humana livre — pra fonema, idealmente **esperado → ouvido**.
@@ -83,14 +83,14 @@ Regra: o store fica em PT (não renomear dados antigos); o **export é o contrat
 
 **Veredito de um painel adversarial (4 lentes: arquiteto-do-agente, fonético pt-BR, metodologia, robustez):** pra ESTA fase (preparar o terreno, não rodar agentes) **o pool já é suficiente**. O que falta **não é schema, é DADO** — hoje 1 avaliador, ~4/14 frases, **zero marcadores salvos**. O único furo real pra ação autônoma é o **alinhamento texto↔tempo** (qual fonema cai em t=2.3s), e isso é **forced-alignment offline, depois** — não pesa a anotação de hoje. Ação: fazer a 1ª leva (14/14, marcando o tempo) → medir cobertura no Insights → só então decidir v2. **Não inflar o schema antes disso.**
 
-**Já aplicado (v1):** `severity` · taxonomia **pt-BR-aware** de fonema · `wer_ops` · `schema_version` · merge defensivo no save.
+**Já aplicado (v1):** `severity` · taxonomia **pt-BR-aware** de fonema · `wer_ops` · `schema_version` · merge defensivo no save · **trecho `t_start`/`t_end`** (região, não ponto).
 
 **Candidatos a v2** — decidir **depois da 1ª leva real**, por ordem de desbloqueio:
 - **forced-alignment offline** (`enrich_markers.py`, roda 1×/dia): injeta `expected_grapheme/phoneme` em cada `marker.t`. É o que de fato **destrava o agente AGIR**, mas é pós-captura — captura rápida hoje, alinhamento overnight depois.
 - **taxonomia — watch-list** (adicionar só se a 1ª leva mostrar frequência; até lá, usar `fonema errado` + nota): `Z/ʒ` sonora (z→ʒ, j/g em "já/queijo") · **sândi/ligação** entre palavras ("café é") · **epêntese** ("adIvogado", "rItimo") · separar `/ʁ/` inicial vs coda. Ligar as tags aos `traits` de `eval/benchmark_sotaque_carioca.jsonl` (gabarito de escuta).
 - **`context`** como sub-campo opcional do marcador (intervocálico/onset/coda/pós-nasal/sândi), só aparece quando a tag é fonética — mantém o dropdown enxuto.
 - **multi-rater**: hoje só o Pedro avalia (viés a vigiar). 1º passo barato = convidar 2-3 cariocas + campo `rater` no POST; **formal (ICC/Kappa) é v2** e exige re-keyar o store por `(run,id,rater)`.
-- **região `[t_start,t_end]`** · **`expected/heard` em IPA** · **exemplos positivos** (`valence`) · **`audio_sha1`/backup** · **+frases** (25-30, conversacional) — todos quando o volume/foco pedir.
+- **`expected/heard` em IPA** · **exemplos positivos** (`valence`) · **`audio_sha1`/backup** · **+frases** (25-30, conversacional) — todos quando o volume/foco pedir.
 
 Princípio: **enxuto e versionado**. Mede a cobertura → adiciona só o que a anotação real provar necessário → bumpa `schema_version`.
 

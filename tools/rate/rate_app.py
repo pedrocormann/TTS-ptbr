@@ -249,13 +249,16 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .panel .deep{color:var(--t2);font-size:14px;line-height:1.65}.panel .deep p{margin:9px 0}.panel .deep b{color:var(--t)}.panel .deep code{font-family:var(--mono);font-size:12px;background:var(--surface-h);padding:1px 5px;border-radius:4px;color:var(--t)}.panel .deep ul{margin:9px 0 9px 18px}.panel .deep li{margin:4px 0}
 .panel .hyp{display:block;margin:7px 0;cursor:default}
 .links{display:flex;flex-wrap:wrap;gap:7px}.linknode{font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid var(--b);background:var(--surface);color:var(--t2);cursor:pointer}.linknode:hover{border-color:var(--bh);color:var(--t)}
-.wave{position:relative;width:100%;height:64px;margin:12px 0 6px;background:rgba(255,255,255,0.02);border:1px solid var(--b);border-radius:var(--rsm);overflow:hidden;cursor:crosshair}
+.wave{position:relative;width:100%;height:64px;margin:12px 0 6px;background:rgba(255,255,255,0.02);border:1px solid var(--b);border-radius:var(--rsm);overflow:hidden;cursor:crosshair;user-select:none;-webkit-user-select:none}
 .wave canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.playhead{position:absolute;top:0;bottom:0;width:1.5px;background:var(--orange);left:0;pointer-events:none;z-index:2}
+.playhead{position:absolute;top:0;bottom:0;width:1.5px;background:var(--orange);left:0;pointer-events:none;z-index:4}
+.sel{position:absolute;top:0;height:100%;background:rgba(228,89,51,0.22);border-left:1.5px solid var(--orange);border-right:1.5px solid var(--orange);pointer-events:none;z-index:2;display:none}
 #pins{position:absolute;inset:0;pointer-events:none;z-index:3}
-.pin{position:absolute;top:0;width:2px;height:100%;background:var(--red);pointer-events:auto;cursor:pointer;transform:translateX(-1px)}
+.pin{position:absolute;top:0;height:100%;min-width:2px;background:rgba(199,48,45,0.16);border-left:2px solid var(--red);pointer-events:auto;cursor:pointer}
 .pin::after{content:'';position:absolute;top:-2px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--red)}
-.pin.sev-grave,.pin.sev-grave::after{background:var(--red)}.pin.sev-medio,.pin.sev-medio::after{background:var(--orange)}.pin.sev-leve,.pin.sev-leve::after{background:var(--tm)}
+.pin.sev-grave{border-left-color:var(--red);background:rgba(199,48,45,0.18)}.pin.sev-grave::after{background:var(--red)}
+.pin.sev-medio{border-left-color:var(--orange);background:rgba(228,89,51,0.16)}.pin.sev-medio::after{background:var(--orange)}
+.pin.sev-leve{border-left-color:var(--tm);background:rgba(245,245,247,0.07)}.pin.sev-leve::after{background:var(--tm)}
 .sevb{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase;padding:2px 6px;border-radius:5px;border:1px solid var(--b);white-space:nowrap}
 .sevb.grave{color:var(--red);border-color:rgba(199,48,45,0.4)}.sevb.medio{color:var(--orange);border-color:rgba(228,89,51,0.4)}.sevb.leve{color:var(--tm)}
 .markbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
@@ -324,12 +327,12 @@ function render(){
  <div class=text>${esc(c.text)}</div>
  ${c.wer_ops&&c.wer_ops.length?werDiff(c.wer_ops,c.wer):(c.hyp?`<div class=hyp>ASR ouviu: "${esc(c.hyp)}"</div>`:'')}
  <audio id=au controls src="/audio?run=${encodeURIComponent(c.run)}&id=${encodeURIComponent(c.id)}"></audio>
- <div class=wave id=wave><canvas id=wc></canvas><div id=ph class=playhead></div><div id=pins></div></div>
- <div class=markbar><span id=mtime class=muted>clique na onda pra escolher o instante do erro</span>
+ <div class=wave id=wave><canvas id=wc></canvas><div id=sel class=sel></div><div id=ph class=playhead></div><div id=pins></div></div>
+ <div class=markbar><span id=mtime class=muted>arraste na onda pra marcar o trecho (início → fim) do erro</span>
   <select id=mtag class=msel><optgroup label="geral">${PROBS.map(p=>`<option>${p}</option>`).join('')}<option>pausa estranha</option><option>ênfase errada</option></optgroup><optgroup label="fonema pt-BR (onde o gringo erra)">${PTBR.map(p=>`<option>${p}</option>`).join('')}</optgroup></select>
   <select id=msev class=msel title="gravidade"><option value=medio>médio</option><option value=leve>leve</option><option value=grave>grave</option></select>
   <input id=mnote class=mnote placeholder="esperado → ouvido (ex: R forte /ʁ/ → R fraco)" onkeydown="if(event.key=='Enter'){event.preventDefault();addMarker();}">
-  <button class=btn onclick=addMarker()>📍 marcar momento</button></div>
+  <button class=btn onclick=addMarker()>📍 marcar trecho</button></div>
  <div id=mlist class=mlist></div>
  <div class=leg><b>WER</b> = erro do reconhecedor (palavras certas? menor=melhor) — mas <b>NÃO</b> mede sotaque. Um áudio pode ter WER 0% e soar gringo: por isso os critérios + os marcadores no tempo abaixo (a base pros agentes do futuro).</div>
  <div id=ctrls></div>`;
@@ -357,14 +360,22 @@ function renderCtrls(){
 let _audioCtx=null;
 function audioCtx(){if(!_audioCtx){try{_audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return _audioCtx;}
 function clipDur(){const a=document.getElementById('au');return (a&&a.duration&&isFinite(a.duration)&&a.duration>0)?a.duration:((cur()&&cur().dur_s)||1);}
+function timeAt(e,w){const rc=w.getBoundingClientRect();const d=clipDur();return Math.max(0,Math.min(d,(e.clientX-rc.left)/rc.width*d));}
 function setupWave(c){
- window._mt=null;
+ window._mStart=null;window._mEnd=null;window._mDrag=false;
  const a=document.getElementById('au');
  if(a){a.ontimeupdate=updatePlayhead;a.onended=updatePlayhead;a.onplay=updatePlayhead;}
  const w=document.getElementById('wave');
- if(w){w.onclick=function(e){const rc=w.getBoundingClientRect();const d=clipDur();const t=Math.max(0,Math.min(d,(e.clientX-rc.left)/rc.width*d));window._mt=t;if(a)a.currentTime=t;const mt=document.getElementById('mtime');if(mt)mt.innerHTML='instante: <b style="color:var(--orange)">'+t.toFixed(2)+'s</b> — escolha o tipo e marque';updatePlayhead();};}
- drawWave(c);renderPins();renderMarkerList();
+ if(w){
+  w.onmousedown=function(e){e.preventDefault();window._mStart=timeAt(e,w);window._mEnd=window._mStart;window._mDrag=true;if(a)a.currentTime=window._mStart;renderSel();labelSel();};
+  w.onmousemove=function(e){if(window._mDrag){window._mEnd=timeAt(e,w);renderSel();labelSel();}};
+ }
+ const sel=document.getElementById('sel');if(sel)sel.style.display='none';
+ drawWave(c);renderPins();renderMarkerList();labelSel();
 }
+function endDrag(){if(!window._mDrag)return;window._mDrag=false;if(window._mEnd<window._mStart){const t=window._mStart;window._mStart=window._mEnd;window._mEnd=t;}labelSel();}
+function renderSel(){const el=document.getElementById('sel');if(!el||window._mStart==null)return;const d=clipDur();const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);el.style.left=(100*a/d)+'%';el.style.width=Math.max(0.4,100*(b-a)/d)+'%';el.style.display='block';}
+function labelSel(){const mt=document.getElementById('mtime');if(!mt)return;if(window._mStart==null){mt.textContent='arraste na onda pra marcar o trecho (início → fim) do erro';return;}const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);mt.innerHTML='trecho: <b style="color:var(--orange)">'+a.toFixed(2)+'s → '+b.toFixed(2)+'s</b> ('+(b-a).toFixed(2)+'s) — escolha o tipo e marque';}
 function updatePlayhead(){const a=document.getElementById('au'),ph=document.getElementById('ph');if(!a||!ph)return;ph.style.left=(100*(a.currentTime/clipDur()))+'%';}
 async function drawWave(c){
  const cv=document.getElementById('wc');if(!cv)return;
@@ -382,19 +393,21 @@ async function drawWave(c){
 }
 function curMarkers(){const c=cur();return c?(rOf(c).markers||[]):[];}
 function addMarker(){
- if(window._mt==null){flash('clique na onda pra escolher o instante');return;}
+ if(window._mStart==null){flash('arraste na onda pra marcar o trecho');return;}
+ const a=Math.min(window._mStart,window._mEnd),b=Math.max(window._mStart,window._mEnd);
  const c=cur();const r=rOf(c);const tag=document.getElementById('mtag').value;const note=document.getElementById('mnote').value;
  const sv=document.getElementById('msev');const sev=sv?sv.value:'medio';
- const m=(r.markers||[]).slice();m.push({t:Math.round(window._mt*100)/100,tag:tag,sev:sev,note:note});m.sort(function(a,b){return a.t-b.t;});
+ const m=(r.markers||[]).slice();m.push({t_start:Math.round(a*100)/100,t_end:Math.round(b*100)/100,tag:tag,sev:sev,note:note});m.sort(function(x,y){return x.t_start-y.t_start;});
  r.markers=m;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;
- const mn=document.getElementById('mnote');if(mn)mn.value='';window._mt=null;
- const mt=document.getElementById('mtime');if(mt)mt.textContent='clique na onda pra escolher o instante do erro';
- renderPins();renderMarkerList();updateCount();flash('marcado ✓');queueSave(c,r);
+ const mn=document.getElementById('mnote');if(mn)mn.value='';
+ window._mStart=null;window._mEnd=null;const sel=document.getElementById('sel');if(sel)sel.style.display='none';
+ labelSel();renderPins();renderMarkerList();updateCount();flash('marcado ✓');queueSave(c,r);
 }
 function removeMarker(idx){const c=cur();const r=rOf(c);if(!r.markers)return;r.markers.splice(idx,1);r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderPins();renderMarkerList();updateCount();flash('removido');queueSave(c,r);}
 function seekTo(t){const a=document.getElementById('au');if(a){a.currentTime=t;const p=a.play();if(p)p.catch(function(){});}}
-function renderPins(){const el=document.getElementById('pins');if(!el)return;const d=clipDur();el.innerHTML=curMarkers().map(function(m){return '<i class="pin sev-'+(m.sev||'medio')+'" style="left:'+(100*(m.t/d))+'%" title="'+esc((m.sev?'['+m.sev+'] ':'')+m.tag+' @ '+m.t+'s'+(m.note?' — '+m.note:''))+'" onclick="seekTo('+m.t+')"></i>';}).join('');}
-function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — cada um é um instante (com gravidade) que um agente futuro recorta e corrige</span></div>`+ms.map(function(m,idx){return `<div class=mrow><span class=mt onclick="seekTo(${m.t})">${m.t.toFixed(2)}s</span><span class="sevb ${m.sev||'medio'}">${m.sev||'médio'}</span><span class=mtg>${esc(m.tag)}</span><span class=mnt>${esc(m.note||'')}</span><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
+function mSpan(m){const a=m.t_start!=null?m.t_start:m.t;const b=m.t_end!=null?m.t_end:a;return [a,b];}
+function renderPins(){const el=document.getElementById('pins');if(!el)return;const d=clipDur();el.innerHTML=curMarkers().map(function(m){const s=mSpan(m),a=s[0],b=s[1];return '<i class="pin sev-'+(m.sev||'medio')+'" style="left:'+(100*a/d)+'%;width:'+Math.max(0.6,100*(b-a)/d)+'%" title="'+esc((m.sev?'['+m.sev+'] ':'')+m.tag+' @ '+a.toFixed(2)+'–'+b.toFixed(2)+'s'+(m.note?' — '+m.note:''))+'" onclick="seekTo('+a+')"></i>';}).join('');}
+function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — cada trecho (início→fim) que um agente futuro recorta e corrige</span></div>`+ms.map(function(m,idx){const s=mSpan(m),a=s[0],b=s[1];return `<div class=mrow><span class=mt onclick="seekTo(${a})">${a.toFixed(2)}–${b.toFixed(2)}s</span><span class="sevb ${m.sev||'medio'}">${m.sev||'médio'}</span><span class=mtg>${esc(m.tag)}</span><span class=mnt>${esc(m.note||'')}</span><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
 function updateCount(){
  const rated=clips.filter(x=>rOf(x).geral!=null).length;
  document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} avaliados`;
@@ -530,6 +543,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key=='ArrowLeft'){if(inInput)e.target.blur();go(-1);}
  }
 });
+document.addEventListener('mouseup',function(){endDrag();});
 window.addEventListener('resize',function(){if(!document.getElementById('tr').classList.contains('hide'))drawEdges();});
 boot();
 </script></body></html>"""

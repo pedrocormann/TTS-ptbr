@@ -7,7 +7,8 @@
    "Em paralelo, sem GPU: enrich_markers offline (forced-align + GOP/MDD) sobre o Treino 1 → fonema-errado-no-tempo",
    "Eval camada perceptual antes do gate: BRSpeechMOS pt-BR (treinar o nosso) + BIPA (pronúncia dialetal) — NÃO decidir sotaque por WER",
    "NURC/base carioca só DEPOIS do NILC confirmar licença (upstream CC-BY-NC-ND); até lá a proporção cobre o teste de sotaque",
-   "G2 emoções por ÚLTIMO (caminho único, sem atalho — refutado): 8 estilos × 3 intensidades, rótulo em 3 camadas"
+   "G2 emoções por ÚLTIMO (caminho único, sem atalho — refutado): 8 estilos × 3 intensidades, rótulo em 3 camadas",
+   "Depois do sotaque (caminho A→M pra virar Maya): rodar a cascata src/duplex e2e + medir latência (TTFA, p50/p95, barge-in) + gravar G1 (4-6h). Moshi parkeado — reabrir só se o gate F4 falhar."
   ]
  },
  "hypotheses": [
@@ -81,7 +82,7 @@
   {
    "key": "M",
    "label": "Trilha M · Maya (cascata)",
-   "progress": 32
+   "progress": 28
   },
   {
    "key": "B",
@@ -538,7 +539,8 @@
    "lane": "M",
    "col": 6,
    "deps": [
-    "m-turn"
+    "m-turn",
+    "m-latency"
    ],
    "title": "Maya-BR v0",
    "status": "idea",
@@ -554,7 +556,7 @@
      "status": "aberta"
     }
    ],
-   "deep": "Maya-BR v0 = reprodução da cascata Sesame (VAD→ASR→LLM→CSM) num protótipo funcional no Mac. Pré-requisitos (REPLAN §155-159): (1) CSM pt-BR com voz (F1) + emoções (F2 = Estágio B+G2); (2) LLM pt plugável (Sabiá/Gemini Flash); (3) turn-engine com VAD+barge-in (scaffold pronto). Entrega: CLI `python -m src.duplex.chat_loop --tts csm --voice ref.wav --llm-base-url --llm-model`. Latência design-budget p50 300-500ms (REPLAN §70). **Gate F4** (decisão estratégica): latência p50 <800ms E preferência humana ≥ Moshi-pt em escuta cega com 3 cariocas nativos → M vira a abordagem principal (sem descartar Trilha B). Critérios em maya_parity.md (latência percebida, backchannel, overlap, persona, memória, CMOS). Bloqueadores atuais: (1) CSM-pt-BR Estágio B precisa de G1 (4-6h core) — em coleta; (2) dataset curado; (3) harness de parity. Status BLOCKED em G1."
+   "deep": "Maya-BR v0 = reprodução da cascata Sesame (VAD→ASR→LLM→CSM) num protótipo funcional no Mac. Pré-requisitos (REPLAN §155-159): (1) CSM pt-BR com voz (F1) + emoções (F2 = Estágio B+G2); (2) LLM pt plugável (Sabiá/Gemini Flash); (3) turn-engine com VAD+barge-in (scaffold pronto). Entrega: CLI `python -m src.duplex.chat_loop --tts csm --voice ref.wav --llm-base-url --llm-model`. Latência design-budget p50 300-500ms (REPLAN §70). **Gate F4** (decisão estratégica): latência p50 <800ms E preferência humana ≥ Moshi-pt em escuta cega com 3 cariocas nativos → M vira a abordagem principal (sem descartar Trilha B). Critérios em maya_parity.md (latência percebida, backchannel, overlap, persona, memória, CMOS). Bloqueadores atuais: (1) CSM-pt-BR Estágio B precisa de G1 (4-6h core) — em coleta; (2) dataset curado; (3) harness de parity. Status BLOCKED em G1. [latência 18/jun] Gate F4 depende do m-latency: TTFA + cascata src/duplex e2e (nunca rodou) medidos em vídeo, ANTES de decidir M vs B. Bloqueador real = rodar a cascata e2e + gravar G1 (4-6h)."
   },
   {
    "id": "b-flywheel",
@@ -614,7 +616,7 @@
      "status": "aberta"
     }
    ],
-   "deep": "Moshi (Kyutai, CC-BY-4.0) = modelo full-duplex único: fala E ouve simultaneamente (RVQ auto-regressivo contínuo), não alterna turnos como a cascata Maya. O codec Mimi (12.5 Hz = 80ms por token) é compartilhado com o CSM-1B. Para pt-BR: fine-tuning leve (LoRA r=128) sobre os pesos Kyutai (moshiko-pytorch-bf16, 7B), via pipeline oficial `moshi-finetune`. Estado real: a receita/notebook foi LIDA e entendida; nada rodou em pt-BR ainda (G4 flywheel está em 'idea', o Mimi roundtrip é só um smoke em spike_c_moshi/mimi_ptbr_roundtrip.py). F4 está ~2-3 meses no futuro (REPLAN §293-299). Notebook 5 estende o config oficial: dados estéreo pt-BR (sintético + G4 gravado), transcrições com timestamps (whisper-medium --lang pt), treino A100-80/G4-96GB (~39.6GB pico, batch=4). Params: duration_sec=100 (janela de ENTRADA do treino — samples truncados a 100s, não uma garantia de latência), lr=2e-6 cosine, gradient_checkpointing=True, max_steps=2000 (~12h). Gate F4 (REPLAN §4): pt-BR inteligível em FD, latência <800ms p50 (design-budget alcançável com pipelining, não propriedade do config), turn-taking sem regress, sem PAD blowup. Antes de comprometer: avaliar SoulX-Duplug (arXiv 2603.14877), módulo plug-and-play que poderia dar 'duplex' sobre a cascata Maya sem treinar spine do zero. F5: RL com moshika-rl-seamless (CC-BY, saiu 2026-06-10). [OSINT 18/jun] NÃO tocar esta rodada (aposta de médio prazo; depende do flywheel escalar). J-Moshi (arXiv 2506.02979) prova a transferência de língua (Mimi congela) mas é CARO (CPT 128×V100/36h). SoulX-Duplug (arXiv 2603.14877, plug-and-play sobre TTS streaming) pode dar 'duplex' sobre a cascata Maya SEM treinar spine — avaliar só após o Maya-BR v0."
+   "deep": "Moshi (Kyutai, CC-BY-4.0) = modelo full-duplex único: fala E ouve simultaneamente (RVQ auto-regressivo contínuo), não alterna turnos como a cascata Maya. O codec Mimi (12.5 Hz = 80ms por token) é compartilhado com o CSM-1B. Para pt-BR: fine-tuning leve (LoRA r=128) sobre os pesos Kyutai (moshiko-pytorch-bf16, 7B), via pipeline oficial `moshi-finetune`. Estado real: a receita/notebook foi LIDA e entendida; nada rodou em pt-BR ainda (G4 flywheel está em 'idea', o Mimi roundtrip é só um smoke em spike_c_moshi/mimi_ptbr_roundtrip.py). F4 está ~2-3 meses no futuro (REPLAN §293-299). Notebook 5 estende o config oficial: dados estéreo pt-BR (sintético + G4 gravado), transcrições com timestamps (whisper-medium --lang pt), treino A100-80/G4-96GB (~39.6GB pico, batch=4). Params: duration_sec=100 (janela de ENTRADA do treino — samples truncados a 100s, não uma garantia de latência), lr=2e-6 cosine, gradient_checkpointing=True, max_steps=2000 (~12h). Gate F4 (REPLAN §4): pt-BR inteligível em FD, latência <800ms p50 (design-budget alcançável com pipelining, não propriedade do config), turn-taking sem regress, sem PAD blowup. Antes de comprometer: avaliar SoulX-Duplug (arXiv 2603.14877), módulo plug-and-play que poderia dar 'duplex' sobre a cascata Maya sem treinar spine do zero. F5: RL com moshika-rl-seamless (CC-BY, saiu 2026-06-10). [OSINT 18/jun] NÃO tocar esta rodada (aposta de médio prazo; depende do flywheel escalar). J-Moshi (arXiv 2506.02979) prova a transferência de língua (Mimi congela) mas é CARO (CPT 128×V100/36h). SoulX-Duplug (arXiv 2603.14877, plug-and-play sobre TTS streaming) pode dar 'duplex' sobre a cascata Maya SEM treinar spine — avaliar só após o Maya-BR v0. [latência 18/jun] Reabrir a Trilha B só se o gate F4 da cascata (M) FALHAR. SoulX-Duplug tirou o Moshi do caminho crítico."
   },
   {
    "id": "b-rl",
@@ -808,6 +810,25 @@
     },
     {
      "claim": "O sinal de fonema esperado×ouvido por marker melhora o ranking de defeitos do rate_app vs só notas Likert",
+     "status": "aberta"
+    }
+   ]
+  },
+  {
+   "id": "m-latency",
+   "lane": "M",
+   "col": 4,
+   "deps": [
+    "m-tts"
+   ],
+   "title": "Latência / streaming",
+   "status": "next",
+   "progress": 5,
+   "summary": "Medir o que NUNCA medimos: TTFA do CSM (alvo 100-400ms), p50/p95 por estágio (ASR/LLM/TTS), barge-in cut-time (<300ms), total <800ms",
+   "deep": "O gargalo da Maya NÃO é a voz (CSM é streaming-nativo) — é a LATÊNCIA da cascata, que nunca rodamos/medimos. csm-streaming publica só RTF (throughput), não TTFA; TTFA estimado 100-400ms, não confirmado. Maya p50 <800ms é plausível mas incerto (soma naive ~850ms; só passa com PIPELINING + LLM local). Eixo de eval (eval/latency.py + chat_loop persistindo latency_run.jsonl): TTFA isolado do stage_b_final; t_asr/t_llm_first/t_tts_first p50/p95; barge-in cut-time; RTF; falsos turnos no endpointing; win-rate cego vs Moshi-pt. Nenhum lever de qualidade prejudica latência.",
+   "hyp": [
+    {
+     "claim": "Maya-BR p50 <800ms é alcançável com a cascata, mas só com pipelining + LLM local (soma naive ~850ms)",
      "status": "aberta"
     }
    ]

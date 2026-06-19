@@ -27,6 +27,7 @@ def main():
     ap.add_argument('--minutes', type=int, default=60)
     ap.add_argument('--batch', type=int, default=8, help='per_device batch (era 2; 8 satura a H100)')
     ap.add_argument('--accum', type=int, default=4, help='grad accum (batch*accum = effective; 8*4=32 = recipe validada)')
+    ap.add_argument('--workers', type=int, default=8, help='dataloader workers (prefetch p/ não deixar a GPU data-starved)')
     ap.add_argument('--data-file', default='transcribed.jsonl', help='jsonl de dados dentro de --data-dir')
     ap.add_argument('--text-mode', default='raw', choices=['raw', 'normalize', 'g2p'],
                     help='front-end de texto aplicado no treino E no eval (TEXT_FN). '
@@ -104,6 +105,11 @@ def main():
         num_train_epochs=99, learning_rate=args.lr, lr_scheduler_type='cosine', warmup_steps=20,
         bf16=tb.BF16, fp16=not tb.BF16, logging_steps=10, optim='adamw_8bit', weight_decay=0.01,
         seed=3407, output_dir=args.out, report_to='none', save_steps=200, save_total_limit=1,
+        # SATURA A H100: sem workers a GPU ficava data-starved (util 0%↔92% picotado — a
+        # collation de áudio rodava no main thread entre steps). Workers prefetcham batches
+        # em paralelo → a GPU não espera. persistent evita re-spawn por época.
+        dataloader_num_workers=args.workers, dataloader_pin_memory=True,
+        dataloader_persistent_workers=(args.workers > 0), dataloader_prefetch_factor=(4 if args.workers else None),
         remove_unused_columns=False), callbacks=[TimeCap(args.minutes)])
     tr.train()
     model.save_pretrained(f'{args.out}/final'); processor.save_pretrained(f'{args.out}/final')

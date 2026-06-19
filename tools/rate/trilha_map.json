@@ -1,14 +1,13 @@
 {
  "state": {
-  "now": "TREINO 1 fechado (42 avaliações): a voz/timbre do Pedro está PROVADA (stage_b_final geral 3.1, voz 3.4, para 93%, WER 12%) — o moat funciona, não mexer nela. O gap inteiro é SOTAQUE ('gringo' é o problema #1, 'soa nativo' ~2.8/5 em TODOS os modelos), PROSÓDIA robótica e LEITURA DE NÚMERO. A maior parte do que move 'soa nativo' é mais barata que re-treinar: começar pelos quick-wins sem GPU (normalizar número), depois o baseline limpo (curar o dataset, que nunca rodou), e só então gastar compute em G2P (fonemizar a entrada) e trocar a base CML formal/paulista por dado carioca espontâneo. Emoção (G2) é o caminho certo mas o último da fila.",
+  "now": "TREINO 1 provou a VOZ do Pedro (não mexer). TREINO 2 (grid overnight, voz CURADA à mão, H100 ~12h/$38) RODANDO — primeiros resultados redirecionam o sotaque: (a) c_nobase (sem base CML) = WER 79% vs 18-25% com base → a base é LOAD-BEARING, REFUTADA a suspeita 'base abafa o carioca'; o gap NÃO é a base. (b) G2P-substituição (grafema→IPA num LM de grafema) saiu fluente mas com PALAVRAS ERRADAS (54-79%) → caminho é fonema-NATIVO, não substituição. (c) curado-vs-auto empatado no WER em 35min (ouvir decide). Próximo gargalo do sotaque: mais DADO carioca espontâneo sobre a base + método de PROSÓDIA, não trocar a base nem substituir grafema por IPA.",
   "next": [
-   "PRIMEIRO (sem GPU): rodar curate_app → transcribed_clean.jsonl (único bloqueador 100% nosso; sem isso todo arm fica contaminado por Whisper+fragmentos)",
-   "Sprint do sotaque JÁ (~9h ≈ $30 H100 / $14 A100): B2-limpo + B2-G2P (CharsiuG2P/LatPhon, NÃO esperar BIPA) + ablação de proporção base↔Pedro (30/70, 50/50, 100%)",
-   "Em paralelo, sem GPU: enrich_markers offline (forced-align + GOP/MDD) sobre o Treino 1 → fonema-errado-no-tempo",
-   "Eval camada perceptual antes do gate: BRSpeechMOS pt-BR (treinar o nosso) + BIPA (pronúncia dialetal) — NÃO decidir sotaque por WER",
-   "NURC/base carioca só DEPOIS do NILC confirmar licença (upstream CC-BY-NC-ND); até lá a proporção cobre o teste de sotaque",
-   "G2 emoções por ÚLTIMO (caminho único, sem atalho — refutado): 8 estilos × 3 intensidades, rótulo em 3 camadas",
-   "Depois do sotaque (caminho A→M pra virar Maya): rodar a cascata src/duplex e2e + medir latência (TTFA, p50/p95, barge-in) + gravar G1 (4-6h). Moshi parkeado — reabrir só se o gate F4 falhar."
+   "MANHÃ: ouvir os 14 wavs/arm do Treino 2 no rate_app (WER não mede sotaque) → eleger vencedor por voz+naturalidade, fechar o bloco.",
+   "SOTAQUE redirecionado (pós c_nobase): a base fica; atacar com (a) MAIS dado carioca espontâneo sobre a base e (b) método de PROSÓDIA (pitch/duração ~3min) — não ditch-base nem G2P-substituição.",
+   "G2P só vale fonema-NATIVO (tokenizer de fonemas + treino do zero da camada de texto), não trocar grafema por IPA no LM pré-treinado. Avaliar custo/benefício vs prosódia.",
+   "Próximo round de GPU: subir num_train_epochs pra o cap de --minutes morder → medir CONVERGÊNCIA de verdade (c_long/c_deep ficaram = aos curtos).",
+   "Eval camada perceptual antes do gate: BRSpeechMOS pt-BR + BIPA (pronúncia dialetal) — decidir sotaque por percepção, não WER.",
+   "Cascata Maya-BR v0 (src/duplex) + latência (TTFA, p50/p95, barge-in) depois do sotaque. G2 emoções por último. Moshi parkeado."
   ]
  },
  "hypotheses": [
@@ -58,7 +57,7 @@
    "node": "b-moshi"
   },
   {
-   "claim": "Sotaque DECOMPÕE em fonético (G2P + léxico ~5k) + prosódico (pitch/duração, ~3min de fala basta) → atacar em 2 arms SEPARADOS, não treino monolítico (arXiv 2305.04816)",
+   "claim": "Sotaque DECOMPÕE em fonético (G2P + léxico ~5k) + prosódico (pitch/duração, ~3min de fala basta) → atacar em 2 arms SEPARADOS, não treino monolítico (arXiv 2305.04816)  [Treino 2: G2P como SUBSTITUIÇÃO de grafema (CharsiuG2P) deu WER 54-79% = palavras erradas; a decomposição pode valer mas a parte FONÉTICA precisa de fonema-NATIVO, não substituir grafema por IPA num LM de grafema.]",
    "status": "aberta",
    "node": "a-accent"
   },
@@ -66,6 +65,11 @@
    "claim": "CSM-1B basta pra naturalidade; a escala (3B/8B) compra long-tail, não naturalidade (Sesame CTO, a16z) → não escalar backbone antes do Maya-BR v0 validar UX",
    "status": "validada",
    "node": "m-tts"
+  },
+  {
+   "claim": "A base CML formal/paulista ABAFA o sotaque carioca — tirar/trocar a base ajudaria o sotaque a transferir (suspeita do Treino 1).",
+   "status": "refutada",
+   "node": "a-accent"
   }
  ],
  "lanes": [
@@ -284,7 +288,7 @@
     "ds-pedro"
    ],
    "title": "Curar dataset",
-   "status": "next",
+   "status": "done",
    "progress": 15,
    "summary": "Curar dataset — ferramenta pronta (curate_app), AINDA NÃO rodada. Pré-requisito do Estágio B v2 (passo #2 do roadmap)",
    "hyp": [
@@ -312,7 +316,7 @@
     "a-stageB"
    ],
    "title": "Estágio B v2 · limpo",
-   "status": "next",
+   "status": "wip",
    "progress": 10,
    "summary": "Estágio B v2 · limpo — arms declarados em runpod/experiments.py (b2_clean/g2p/proporção); aguarda só o dataset curado (a-curate ainda não rodou)",
    "hyp": [
@@ -366,7 +370,7 @@
     "a-stageB2"
    ],
    "title": "Sotaque nativo",
-   "status": "idea",
+   "status": "wip",
    "progress": 0,
    "summary": "Sotaque nativo — converter pronúncia de 'estrangeiro' para carioca (fonemas errados que o WER não pega). Atalhos: G2P (fonemizar entrada), dados sintéticos de TTS nativo, GOP/MDD (localiza o fonema errado no tempo)",
    "hyp": [
@@ -776,7 +780,7 @@
     "a-stageB2"
    ],
    "title": "G2P pt-BR (fonemizar entrada)",
-   "status": "next",
+   "status": "wip",
    "progress": 30,
    "summary": "G2P pt-BR (fator FONÉTICO do sotaque) — engine CharsiuG2P/LatPhon (MIT, HF, inclui pt), NÃO bloquear no BIPA; léxico semeado construído. Arm b2_g2p separado da prosódia",
    "deep": "Ramo de ablação contra o problema #1 (sotaque 'gringo'). Hoje o CSM recebe TEXTO cru; condicionar em FONEMAS (G2P pt-BR) melhora alinhamento e pronúncia, segundo os papers de AC (arXiv 2410.14997) e transfer-learning low-resource (arXiv 2306.00535). Plano: testar um front-end G2P pt-BR (fonemizar antes do CSM) como braço do Estágio B v2 e comparar contra a entrada por texto no eval perceptual + WER. Custa compute (re-treino do braço fonemizado), por isso vem depois do baseline limpo. Dep: a-stageB2 (precisa do pipeline de Estágio B v2 pronto pra ramificar). [OSINT 18/jun] Sotaque decompõe em fonético (G2P) + prosódico (arXiv 2305.04816): G2P resolve a parte fonética com léxico ~5k. Engine pronto SEM depender do BIPA: CharsiuG2P (ByT5, MIT, arXiv 2204.03067) ou LatPhon (3.5% PER, MIT, arXiv 2509.03300). BIPA-RIO (2.66% PER carioca) é o ideal mas licença/HF não confirmados — confirmar em paralelo, sem-GPU.",
@@ -888,6 +892,64 @@
     "4. Estágio A em base CARIOCA/espontânea (alto)",
     "5. enrich_markers.py: forced-alignment + GOP/MDD pt-BR pra localizar o fonema errado no tempo (medio)",
     "6. Gravar G2 (alto)"
+   ]
+  },
+  {
+   "id": "treino-2",
+   "label": "Treino 2 — grid overnight (voz curada)",
+   "date": "2026-06-19",
+   "avaliador": "grid auto-WER (Pedro ouve de manhã)",
+   "status": "rodando",
+   "runs": [
+    "c0_curated",
+    "a0_auto",
+    "c_g2p",
+    "c_nobase",
+    "c_g2p_r128",
+    "+12 arms+fill"
+   ],
+   "n": 0,
+   "metrics": {
+    "a0_auto": {
+     "geral": null,
+     "nativo": null,
+     "natural": null,
+     "voz": null,
+     "parou": null,
+     "wer": 18
+    },
+    "c0_curated": {
+     "geral": null,
+     "nativo": null,
+     "natural": null,
+     "voz": null,
+     "parou": null,
+     "wer": 25
+    },
+    "c_g2p": {
+     "geral": null,
+     "nativo": null,
+     "natural": null,
+     "voz": null,
+     "parou": null,
+     "wer": 54
+    },
+    "c_nobase": {
+     "geral": null,
+     "nativo": null,
+     "natural": null,
+     "voz": null,
+     "parou": null,
+     "wer": 79
+    }
+   },
+   "learnings": [
+    "SETUP: 17 arms + fill na voz CURADA à mão do Pedro (260), H100 12h (~$38), batch 8 + dataloader workers (gargalo era data-starvation: util 21%→saturada). Eval determinístico (manual_seed). Revisado adversarialmente antes (2 blockers de idle pegos).",
+    "c_nobase (CSM cru, SEM base CML) = WER 79% vs 18-25% com base → REFUTA a suspeita do Treino 1 de que 'a base CML abafa o carioca'. A base é LOAD-BEARING (faz o português). O gap de sotaque NÃO é a base — é falta de dado carioca sobre ela / método de prosódia.",
+    "G2P (CharsiuG2P como substituição de grafema) = WER 54% (r64) — saiu fala fluente mas com PALAVRAS ERRADAS (o LM de grafema 'meio entende' o IPA). G2P-substituição não serve a finetune curto; caminho é fonema-nativo (tokenizer próprio), não trocar grafema por IPA. (c_g2p_r128/long testam se +capacidade/+treino resgata.)",
+    "Curado-vs-auto preliminar: a0_auto 18% < c0_curated 25% em 35min — a curadoria NÃO baixou o WER (n=1, curto; ouvir + arms longos decidem se ajuda voz/sotaque, que o WER não pega).",
+    "Os arms completam 99 épocas (~21min) com decaimento cosine completo ANTES do cap de --minutes → treinos completos, mas c_long/c_deep (budget 90/140min) ficam redundantes. Pro próximo round: subir num_train_epochs pra o --minutes morder e medir convergência de verdade.",
+    "PENDENTE (manhã): ouvir os 14 wavs/arm no rate_app (WER mede balbúcio, NÃO sotaque) → eleger vencedor por voz+naturalidade, fechar o bloco e atualizar as métricas humanas."
    ]
   }
  ],

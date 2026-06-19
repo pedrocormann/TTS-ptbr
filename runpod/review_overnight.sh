@@ -15,10 +15,10 @@ echo "===== REVIEW $(date) ====="
 
 # 1) estado do pod (1 só SSH): processos, GPU, tail dos logs, watchdog vivo?
 STATE=$($SSHC 'bash -lc "
-echo TRAIN=\$(pgrep -fc train_voice.py 2>/dev/null)
-echo ORCH=\$(pgrep -fc grid_overnight.sh 2>/dev/null)
-echo WD=\$(pgrep -fc watchdog_overnight.sh 2>/dev/null)
-echo SUP=\$(pgrep -fc supervise.sh 2>/dev/null)
+echo TRAIN=\$(pgrep -fc \"[t]rain_voice.py\" 2>/dev/null)
+echo ORCH=\$(pgrep -fc \"[g]rid_overnight.sh\" 2>/dev/null)
+echo WD=\$(pgrep -fc \"[w]atchdog_overnight.sh\" 2>/dev/null)
+echo SUP=\$(pgrep -fc \"[s]upervise.sh\" 2>/dev/null)
 echo BLOCKED=\$(cat /workspace/grid/overnight.blocked 2>/dev/null)
 echo GPU=\$(nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader,nounits 2>/dev/null | head -1 | tr -d \" \")
 echo ---OVERNIGHT---

@@ -28,6 +28,7 @@ def main():
     ap.add_argument('--batch', type=int, default=8, help='per_device batch (era 2; 8 satura a H100)')
     ap.add_argument('--accum', type=int, default=4, help='grad accum (batch*accum = effective; 8*4=32 = recipe validada)')
     ap.add_argument('--workers', type=int, default=8, help='dataloader workers (prefetch p/ não deixar a GPU data-starved)')
+    ap.add_argument('--seed', type=int, default=3407, help='seed (varia nos fill arms p/ medir variância)')
     ap.add_argument('--data-file', default='transcribed.jsonl', help='jsonl de dados dentro de --data-dir')
     ap.add_argument('--text-mode', default='raw', choices=['raw', 'normalize', 'g2p'],
                     help='front-end de texto aplicado no treino E no eval (TEXT_FN). '
@@ -104,7 +105,7 @@ def main():
         per_device_train_batch_size=args.batch, gradient_accumulation_steps=args.accum,
         num_train_epochs=99, learning_rate=args.lr, lr_scheduler_type='cosine', warmup_steps=20,
         bf16=tb.BF16, fp16=not tb.BF16, logging_steps=10, optim='adamw_8bit', weight_decay=0.01,
-        seed=3407, output_dir=args.out, report_to='none', save_steps=200, save_total_limit=1,
+        seed=args.seed, output_dir=args.out, report_to='none', save_steps=200, save_total_limit=1,
         # SATURA A H100: sem workers a GPU ficava data-starved (util 0%↔92% picotado — a
         # collation de áudio rodava no main thread entre steps). Workers prefetcham batches
         # em paralelo → a GPU não espera. persistent evita re-spawn por época.
@@ -118,7 +119,7 @@ def main():
     wer = tb.eval_wer(model, processor, raw[0], args.out)
     json.dump({'stage': 'B', 'base_adapter': args.base_adapter, 'clips': len(raw),
                'lr': args.lr, 'rank': args.lora_r, 'batch': args.batch, 'accum': args.accum,
-               'text_mode': args.text_mode, 'data_file': args.data_file,
+               'text_mode': args.text_mode, 'data_file': args.data_file, 'seed': args.seed,
                'steps': tr.state.global_step, 'wer': wer},
               open(f'{args.out}/stage_b_result.json', 'w'), ensure_ascii=False, indent=1)
     print(f"✅ STAGE B: WER {wer:.1%} · áudios (voz do Pedro) em {args.out}/gen/ · adapter em {args.out}/final")

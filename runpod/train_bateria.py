@@ -241,6 +241,10 @@ def eval_wer(model, processor, ref, out):
     import soundfile as sf, jiwer
     from faster_whisper import WhisperModel
     model.eval()
+    # EVAL DETERMINÍSTICO (revisão overnight): generate() amostra via multinomial (do_sample,
+    # temp 0.9) SEM seed → re-rodar o MESMO adapter dava WER diferente (ruído de decode). Seed
+    # fixo aqui torna cada arm um ponto reproduzível (curado-vs-auto vira comparação limpa).
+    torch.manual_seed(1234)
     bench = [json.loads(l) for l in open(REPO_ROOT/'eval/benchmark_ptbr.jsonl', encoding='utf-8') if l.strip()]
     gd = pathlib.Path(f'{out}/gen'); gd.mkdir(exist_ok=True, parents=True)
     # Teto ALTO de propósito: pós-fix, o modelo deve emitir <|audio_eos|> e PARAR sozinho

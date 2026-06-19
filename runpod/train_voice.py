@@ -39,6 +39,23 @@ def main():
     assert os.environ.get('HF_TOKEN'), '❌ HF_TOKEN ausente'
     os.environ['HF_HUB_ENABLE_HF_TRANSFER'] = '1'
     os.makedirs(args.out, exist_ok=True)
+
+    # BACKSTOP DE HANG (revisão overnight): TimeCap só capa on_step_end; um step/eval travado
+    # em Python nunca para. O SIGALRM mata o processo no teto TOTAL (setup+treino+eval+margem) e
+    # grava um sentinel pra a fila resumível AVANÇAR (não re-rodar o mesmo hang). NÃO resolve
+    # deadlock C-level de CUDA (aí o watchdog externo via pkill é a rede primária) — é o cinto.
+    if not args.load_only:
+        import signal
+        def _walltime_kill(signum, frame):
+            try:
+                json.dump({'stage': 'B', 'wer': None, 'killed': 'walltime',
+                           'data_file': args.data_file, 'seed': args.seed},
+                          open(f'{args.out}/stage_b_result.json', 'w'))
+            finally:
+                os._exit(2)
+        signal.signal(signal.SIGALRM, _walltime_kill)
+        signal.alarm((args.minutes + 18) * 60)   # +18min cobre setup (~4) + eval (~8) + margem
+
     tb.heavy_imports()
     from datasets import Dataset, Audio
     import torch

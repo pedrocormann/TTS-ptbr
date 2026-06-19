@@ -15,9 +15,11 @@ echo "===== REVIEW $(date) ====="
 
 # 1) estado do pod (1 só SSH): processos, GPU, tail dos logs, watchdog vivo?
 STATE=$($SSHC 'bash -lc "
-echo TRAIN=\$(pgrep -fc train_voice.py 2>/dev/null || echo 0)
-echo ORCH=\$(pgrep -fc grid_overnight.sh 2>/dev/null || echo 0)
-echo WD=\$(pgrep -fc watchdog_overnight.sh 2>/dev/null || echo 0)
+echo TRAIN=\$(pgrep -fc train_voice.py 2>/dev/null)
+echo ORCH=\$(pgrep -fc grid_overnight.sh 2>/dev/null)
+echo WD=\$(pgrep -fc watchdog_overnight.sh 2>/dev/null)
+echo SUP=\$(pgrep -fc supervise.sh 2>/dev/null)
+echo BLOCKED=\$(cat /workspace/grid/overnight.blocked 2>/dev/null)
 echo GPU=\$(nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader,nounits 2>/dev/null | head -1 | tr -d \" \")
 echo ---OVERNIGHT---
 tail -n 8 /workspace/grid/overnight.log 2>/dev/null
@@ -58,11 +60,14 @@ for arm in $($SSHC "ls -d $RUNS/ov_* 2>/dev/null | xargs -n1 basename" 2>/dev/nu
   fi
 done
 
-# 4) anti-idle do lado do Mac (redundante com o watchdog do pod): se passou do deadline, nada;
-#    senão, se watchdog caiu, re-lança.
-WD=$(echo "$STATE" | grep -oE "^WD=[0-9]+" | cut -d= -f2)
-if [ "$NOW_UTC" -lt "$DEADLINE" ] && [ "${WD:-0}" = "0" ]; then
-  echo "  watchdog caiu → re-lançando no pod"
-  $SSHC 'cd /workspace && nohup bash /workspace/watchdog_overnight.sh >/workspace/grid/watchdog.out 2>&1 &' 2>/dev/null
+# 4) anti-idle do lado do Mac (3ª camada; o supervise.sh no pod é a 1ª). Se o SUPERVISE
+#    caiu E não está 'blocked' E antes do deadline → re-lança o supervise (que respawna o watchdog).
+SUP=$(echo "$STATE" | grep -oE "^SUP=[0-9]+" | cut -d= -f2)
+BLOCKED=$(echo "$STATE" | grep -oE "^BLOCKED=.+" | cut -d= -f2-)
+if [ -n "$BLOCKED" ]; then
+  echo "  ⚠️ POD BLOCKED (preflight abortou): $BLOCKED — precisa de intervenção (dado/base faltando)"
+elif [ "$NOW_UTC" -lt "$DEADLINE" ] && [ "${SUP:-0}" = "0" ]; then
+  echo "  supervise caiu → re-lançando no pod (respawna o watchdog)"
+  $SSHC 'cd /workspace/TTS-ptbr && setsid nohup bash /workspace/TTS-ptbr/runpod/supervise.sh >/workspace/grid/supervise.out 2>&1 < /dev/null &' 2>/dev/null
 fi
 echo "===== fim review ====="

@@ -20,7 +20,7 @@ echo ORCH=\$(pgrep -fc \"[g]rid_overnight.sh\" 2>/dev/null)
 echo WD=\$(pgrep -fc \"[w]atchdog_overnight.sh\" 2>/dev/null)
 echo SUP=\$(pgrep -fc \"[s]upervise.sh\" 2>/dev/null)
 echo BLOCKED=\$(cat /workspace/grid/overnight.blocked 2>/dev/null)
-echo GPU=\$(nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader,nounits 2>/dev/null | head -1 | tr -d \" \")
+echo GPU=\$(for k in 1 2 3 4 5; do nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null | head -1; sleep 0.4; done | sort -n | tail -1)%max,\$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits 2>/dev/null | head -1)MiB
 echo ---OVERNIGHT---
 tail -n 8 /workspace/grid/overnight.log 2>/dev/null
 echo ---WATCHDOG---

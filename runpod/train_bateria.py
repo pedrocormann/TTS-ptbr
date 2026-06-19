@@ -30,6 +30,11 @@ import argparse, os, sys, time, json, gc, hashlib, pathlib, traceback
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent   # raiz do repo clonado
 MODEL_ID = 'unsloth/csm-1b'   # mirror Apache ungated (mesmos pesos do sesame/csm-1b)
 
+# Hook de texto (ponto de injeção único): build_prep e o eval aplicam TEXT_FN no texto
+# ANTES de tokenizar. Default = identidade. Os arms (experiments) trocam por
+# text_frontend (normalizar número / fonemizar G2P) — mesmo texto no treino E na geração.
+TEXT_FN = lambda t: t
+
 
 # ───────────────────────── CONFIG (CLI > env > default) ─────────────────────────
 def parse_args():
@@ -137,7 +142,7 @@ def build_prep(processor, max_audio):
         return str(int(hashlib.md5(str(ex.get('speaker_id', i)).encode()).hexdigest(), 16) % 10)
     def prep(ex, idx):
         arr = np.asarray(ex['audio']['array'], dtype=np.float32)[:CLIP]   # só crop ao teto; SEM zero-pad
-        conv = [{'role': spk(ex, idx), 'content': [{'type':'text','text':str(ex['text']).strip()},
+        conv = [{'role': spk(ex, idx), 'content': [{'type':'text','text':TEXT_FN(str(ex['text']).strip())},
                                                    {'type':'audio','path':arr}]}]
         o = processor.apply_chat_template(conv, tokenize=True, return_dict=True, output_labels=True,
             # max_length 384 (era 256): com áudio real, um clipe de 12s = ~150 placeholders de áudio;
@@ -246,8 +251,11 @@ def eval_wer(model, processor, ref, out):
     cap_sec = GEN_CAP_TOKENS * 0.08 - 0.4   # ~12.5ms/token (80 frames/s); margem p/ ruído de borda
     gen_durs = []
     for i, it in enumerate(bench):
-        conv = [{'role':'0','content':[{'type':'text','text':str(ref['text'])},{'type':'audio','path':ref['audio']['array']}]},
-                {'role':'0','content':[{'type':'text','text':it['text']}]}]
+        # gera com o MESMO front-end usado no treino (TEXT_FN: normalize/G2P); o WER continua
+        # medido contra it['text'] ORIGINAL (graphema pt-BR) lá embaixo — assim G2P/normalize
+        # melhoram o áudio sem "trapacear" a métrica.
+        conv = [{'role':'0','content':[{'type':'text','text':TEXT_FN(str(ref['text']))},{'type':'audio','path':ref['audio']['array']}]},
+                {'role':'0','content':[{'type':'text','text':TEXT_FN(str(it['text']))}]}]
         inp = processor.apply_chat_template(conv, tokenize=True, return_dict=True).to('cuda')
         with torch.no_grad():
             au = model.generate(**inp, output_audio=True, max_new_tokens=GEN_CAP_TOKENS)

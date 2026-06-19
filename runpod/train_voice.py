@@ -25,6 +25,12 @@ def main():
     ap.add_argument('--lr', type=float, default=1e-4)
     ap.add_argument('--lora-r', type=int, default=64)
     ap.add_argument('--minutes', type=int, default=60)
+    ap.add_argument('--batch', type=int, default=8, help='per_device batch (era 2; 8 satura a H100)')
+    ap.add_argument('--accum', type=int, default=4, help='grad accum (batch*accum = effective; 8*4=32 = recipe validada)')
+    ap.add_argument('--data-file', default='transcribed.jsonl', help='jsonl de dados dentro de --data-dir')
+    ap.add_argument('--text-mode', default='raw', choices=['raw', 'normalize', 'g2p'],
+                    help='front-end de texto aplicado no treino E no eval (TEXT_FN). '
+                         'raw=grafema · normalize=número→palavra · g2p=fonemização CharsiuG2P (experimental)')
     ap.add_argument('--load-only', action='store_true', help='só valida o dataset (sem treinar)')
     args = ap.parse_args()
 
@@ -36,7 +42,7 @@ def main():
     import torch
 
     # --- dataset do Pedro (jsonl local) ---
-    rows = [json.loads(l) for l in open(f'{args.data_dir}/transcribed.jsonl', encoding='utf-8') if l.strip()]
+    rows = [json.loads(l) for l in open(f'{args.data_dir}/{args.data_file}', encoding='utf-8') if l.strip()]
     data = []
     for r in rows:
         wav = os.path.join(args.data_dir, 'segments', os.path.basename(r['audio']))
@@ -48,6 +54,23 @@ def main():
     raw = raw.filter(lambda ex: 1.0 <= len(ex['audio']['array']) / 24000 <= 12 and len(str(ex['text']).split()) >= 2)   # ≤12s: casa texto/áudio + cabe em 384
     raw = raw.shuffle(seed=42)
     print(f"após filtro: {len(raw)} clipes")
+
+    # --- front-end de texto (TEXT_FN): mesmo texto no TREINO e no EVAL ---
+    if args.text_mode == 'raw':
+        print("text-mode: raw (grafema pt-BR)")
+    elif args.text_mode == 'normalize':
+        from recipe import text_frontend
+        tb.TEXT_FN = lambda t: text_frontend(t, normalize_numbers=True, g2p=None)
+        print(f"text-mode: normalize · ex: {tb.TEXT_FN('liguei pro 0800 e paguei R$ 1.250')!r}")
+    elif args.text_mode == 'g2p':
+        from recipe import text_frontend
+        try:
+            from g2p_ptbr import phonemize
+            tb.TEXT_FN = lambda t: text_frontend(t, normalize_numbers=True, g2p=phonemize)
+            print(f"text-mode: g2p (CharsiuG2P) · ex: {tb.TEXT_FN('eu tô indo pra praia')!r}")
+        except Exception as e:
+            tb.TEXT_FN = lambda t: text_frontend(t, normalize_numbers=True, g2p=None)
+            print(f"⚠️ g2p indisponível ({e}); caí pra normalize")
     if args.load_only:
         print(f"✓ load-only OK · sample: {raw[0]['text'][:50]!r} · {len(raw[0]['audio']['array'])} samples")
         sys.stdout.flush(); os._exit(0)
@@ -77,7 +100,7 @@ def main():
             if time.time() > s.dl: c.should_training_stop = True
             return c
     tr = CSMTrainer(model=model, train_dataset=ds, args=TrainingArguments(
-        per_device_train_batch_size=2, gradient_accumulation_steps=16,
+        per_device_train_batch_size=args.batch, gradient_accumulation_steps=args.accum,
         num_train_epochs=99, learning_rate=args.lr, lr_scheduler_type='cosine', warmup_steps=20,
         bf16=tb.BF16, fp16=not tb.BF16, logging_steps=10, optim='adamw_8bit', weight_decay=0.01,
         seed=3407, output_dir=args.out, report_to='none', save_steps=200, save_total_limit=1,
@@ -88,7 +111,9 @@ def main():
     # --- gera as 14 frases NA VOZ DO PEDRO (clipe dele = contexto) ---
     wer = tb.eval_wer(model, processor, raw[0], args.out)
     json.dump({'stage': 'B', 'base_adapter': args.base_adapter, 'clips': len(raw),
-               'lr': args.lr, 'rank': args.lora_r, 'steps': tr.state.global_step, 'wer': wer},
+               'lr': args.lr, 'rank': args.lora_r, 'batch': args.batch, 'accum': args.accum,
+               'text_mode': args.text_mode, 'data_file': args.data_file,
+               'steps': tr.state.global_step, 'wer': wer},
               open(f'{args.out}/stage_b_result.json', 'w'), ensure_ascii=False, indent=1)
     print(f"✅ STAGE B: WER {wer:.1%} · áudios (voz do Pedro) em {args.out}/gen/ · adapter em {args.out}/final")
     sys.stdout.flush(); os._exit(0)

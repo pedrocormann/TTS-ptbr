@@ -66,6 +66,24 @@ input:focus,select:focus{border-color:var(--orange)}
 .recover button{margin-top:10px;background:var(--orange);color:#fff;border:none;border-radius:var(--rs);padding:9px 16px;font-weight:600;cursor:pointer;font-size:13px}
 .foot{font-family:'Geist Mono',monospace;font-size:10px;color:var(--tx4);letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-top:30px}
 .dotline{display:flex;gap:6px;justify-content:center;margin:14px 0;color:var(--tx4);font-size:11px;font-family:'Geist Mono',monospace}
+.cfg{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
+.cfgttl{font-family:'Geist Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--tx3);margin-bottom:10px}
+.cfgttl span{color:var(--orange)}
+.cfgrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;border-top:1px solid var(--border)}
+.cfgrow:first-of-type{border-top:none}
+.cfgrow>span{color:var(--tx3);font-family:'Geist Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.cfgrow>b{font-family:'Geist Mono',monospace;font-size:12px;color:var(--tx)}
+.cfgrow>b.warn{color:var(--orange)}
+.done{display:none;background:rgba(40,200,64,.07);border:1px solid rgba(40,200,64,.4);border-radius:var(--r);padding:20px;margin-bottom:16px;text-align:center}
+.done.on{display:block}
+.donehdr{font-family:'Instrument Serif',serif;font-size:24px;color:var(--green)}
+.donefile{font-family:'Geist Mono',monospace;font-size:12px;color:var(--tx2);margin:6px 0 14px;word-break:break-all}
+.donemsg{font-size:14px;color:var(--tx2);margin-bottom:14px}
+.drivebtn{display:inline-block;background:var(--blue);color:#fff;text-decoration:none;border-radius:var(--rs);padding:12px 20px;font-weight:600;font-size:14px;transition:.2s}
+.drivebtn:hover{filter:brightness(1.2)}
+.drivebtn.off{background:var(--surface-hi);color:var(--tx3);pointer-events:none}
+.donecfg{font-family:'Geist Mono',monospace;font-size:10px;color:var(--tx4);margin-top:14px;letter-spacing:.06em}
+.again{margin-top:16px;background:none;border:1px solid var(--border-hi);color:var(--tx2);border-radius:var(--rs);padding:9px 18px;font-size:13px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -104,13 +122,31 @@ input:focus,select:focus{border-color:var(--orange)}
     <div class="prog" id="prog"><i id="progbar"></i></div>
   </div>
 
-  <div class="dotline">24 kHz · mono · WAV · cru (sem AGC/supressão)</div>
-  <div class="foot">salva local sempre · sobe pro Supabase sa-east-1 · faixas separadas</div>
+  <div class="cfg" id="cfg">
+    <div class="cfgttl">Configuração da gravação <span>(confira)</span></div>
+    <div class="cfgrow"><span>taxa</span><b id="cfg_sr">24 kHz</b></div>
+    <div class="cfgrow"><span>canais / formato</span><b>mono · WAV 16-bit (sem perdas)</b></div>
+    <div class="cfgrow"><span>microfone (cru)</span><b>sem AGC · sem supressão · sem eco</b></div>
+    <div class="cfgrow"><span>device</span><b id="cfg_dev">— (escolha acima)</b></div>
+  </div>
+
+  <div class="done" id="done">
+    <div class="donehdr">✓ Faixa salva no seu computador</div>
+    <div class="donefile" id="donefile"></div>
+    <p class="donemsg">O arquivo baixou na sua pasta <b>Downloads</b>. Agora <b>arraste ele</b> pra pasta do Drive da Unflat:</p>
+    <a class="drivebtn" id="drivebtn" href="#" target="_blank" rel="noopener">📁 Abrir pasta do Drive da Unflat</a>
+    <div class="donecfg" id="donecfg"></div>
+    <button class="again" onclick="reset(true)">Gravar outra faixa</button>
+  </div>
+
+  <div class="foot">salva LOCAL sempre · 1 faixa por pessoa · use FONE de ouvido</div>
 </div>
 
 <script>
-const FN_URL="https://yyxmtjqpmkonxlinflxu.functions.supabase.co/voz-upload-url"; // gera signed upload URL
-const SR=24000;                           // taxa NATIVA do CSM (24k); cabe no free tier do Supabase
+const DRIVE_URL="";                       // ← COLE aqui o link da pasta do Drive da Unflat (Pedro passa)
+const BACKUP_SUPABASE=true;               // backup silencioso opcional no acervo (não bloqueia o fluxo local)
+const FN_URL="https://yyxmtjqpmkonxlinflxu.functions.supabase.co/voz-upload-url"; // signed upload URL
+const SR=24000;                           // taxa NATIVA do CSM (24k); WAV 16-bit mono, mic CRU
 const FLUSH_SEC=10;                       // grava em pedaços de 10s na IndexedDB (anti-crash)
 const $=id=>document.getElementById(id);
 let recording=false, ctx, stream, node, startMs, timerInt, sampleRate=48000;
@@ -160,6 +196,11 @@ async function start(){
       channelCount:1, sampleRate:SR}});
     ctx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:SR});
     sampleRate=ctx.sampleRate;
+    // double-check da config: taxa real capturada + device escolhido
+    const devName=($("mic").options[$("mic").selectedIndex]||{}).text||"padrão do sistema";
+    $("cfg_dev").textContent=devName;
+    $("cfg_sr").textContent=(sampleRate/1000)+" kHz"+(sampleRate===SR?" ✓":" ⚠ (pedimos 24)");
+    $("cfg_sr").className=(sampleRate===SR)?"":"warn";
     await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET],{type:"application/javascript"})));
     const src=ctx.createMediaStreamSource(stream);
     node=new AudioWorkletNode(ctx,"cap");
@@ -215,19 +256,19 @@ async function stop(){
   const blob=wavBlob(samples,meta.sr||sampleRate);
   const ts=(meta.started||new Date().toISOString()).replace(/[:.]/g,"-");
   const fname=`${meta.who}__${ts}.wav`;
-  // 1) SEMPRE salva local primeiro (à prova de falha de rede)
-  const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=fname; a.click();
   const dur=fmt(samples.length/(meta.sr||sampleRate)), mb=(blob.size/1048576).toFixed(1);
-  $("status").textContent=`✓ salvo local: ${fname} (${dur}, ${mb}MB) — subindo…`; $("status").className="status ok";
-  // 2) upload (best-effort, com barra)
-  try{
-    await uploadBlob(meta,blob);
-    await idbClear();
-    $("status").innerHTML=`✅ pronto! salvo local <b>e</b> no acervo (${dur}, ${mb}MB).`; $("status").className="status ok";
-  }catch(e){
-    $("status").innerHTML=`⚠️ salvo LOCAL ok, mas upload falhou (${e.message}). O arquivo já baixou — me manda ou tenta de novo.`; $("status").className="status err";
-  }
-  $("prog").classList.remove("on"); setTimeout(reset,400);
+  // 1) SEMPRE salva LOCAL primeiro (é o caminho principal; à prova de rede)
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+  await idbClear();
+  // 2) tela de sucesso: LOCAL salvo + arrasta pro Drive
+  $("status").textContent=""; $("prog").classList.remove("on");
+  $("donefile").textContent=`${fname} · ${dur} · ${mb} MB`;
+  $("donecfg").textContent=`24 kHz · mono · WAV 16-bit · mic cru · ${meta.sr||sampleRate} Hz reais`;
+  if(DRIVE_URL){ $("drivebtn").href=DRIVE_URL; $("drivebtn").classList.remove("off"); $("drivebtn").textContent="📁 Abrir pasta do Drive da Unflat"; }
+  else { $("drivebtn").classList.add("off"); $("drivebtn").textContent="⚠️ pasta do Drive ainda não configurada"; }
+  $("done").classList.add("on");
+  // 3) backup silencioso opcional no acervo (não bloqueia o fluxo local→Drive)
+  if(BACKUP_SUPABASE){ uploadBlob(meta,blob).then(()=>{ $("donecfg").textContent+=" · backup ✓"; }).catch(()=>{ $("donecfg").textContent+=" · (sem backup)"; }); }
 }
 
 async function uploadBlob(meta,blob){
@@ -250,6 +291,7 @@ async function uploadBlob(meta,blob){
 }
 
 function reset(){
+  $("done").classList.remove("on");
   $("rec").classList.remove("stop"); $("rec").disabled=false; $("reclbl").textContent="Iniciar gravação";
   $("live").classList.remove("on"); $("timer").textContent="00:00"; $("meterbar").style.width="0";
   $("meeting").disabled=$("who").disabled=$("mic").disabled=false; validate();

@@ -7,7 +7,8 @@
       "APRENDIZADO SOTA (barato, alto ROI, paralelo ao flywheel): (1) re-formatar dado+inferência como TURNOS/contexto — provável causa direta da prosódia chapada, NÃO custa dado novo; (2) DPO via rate_app (preferência já coletada); (3) curadoria padrão DNSMOS. GATE: testar turnos/contexto antes de assumir que o teto do 1B é o problema.",
       "FASE 2 — DADOS (caminho crítico): gravar o flywheel das 3 vozes JÁ (segunda) + MEDIR a taxa real em 2 semanas (minutos limpos/pessoa pós-curadoria); e-mail NILC HOJE. Marco 1 = 3-6h limpas/locutor. GATE: sem isto nada move o sotaque de 2.8.",
       "FASE 3 — PROSÓDIA + emoção (defeito #2, 100% no papel): implementar mecanismo de áudio-contexto/reference-encoder; gravar G2 (+5-7h/locutor); TESTAR HONESTO o teto do CSM-1B com pouco dado. GATE F2: emoção reconhecível 70%+ cega.",
-      "FASE 4 — CASCATA medida e2e (o produto): rodar chat_loop 1× com mic+Gemini e gravar latency_run.jsonl REAL (TTFA/p50/p95) — o medidor atual é stub; trocar Gemini por LLM local; streaming por sentença. GATE F4: p50 <800ms REAL + preferência ≥ Moshi cega."
+      "FASE 4 — CASCATA medida e2e (o produto): rodar chat_loop 1× com mic+Gemini e gravar latency_run.jsonl REAL (TTFA/p50/p95) — o medidor atual é stub; trocar Gemini por LLM local; streaming por sentença. GATE F4: p50 <800ms REAL + preferência ≥ Moshi cega.",
+      "FERRAMENTAS DE EMOÇÃO (do workflow de datasets): usar EmoUERJ (CC-BY, SER) como JUIZ pra auto-conferir nossos rótulos de emoção + métrica; avaliar Chatterbox (MIT) pra augmentar com emoção sintética (cuidado: watermark/similaridade); NÃO usar output ElevenLabs/Voxtral (licença). O treino de emoção em si = flywheel próprio."
     ],
     "blockers": [
       "DADO carioca limpo ≈ 0h. ~0.4h (24min) do Pedro, mono-emoção, com erros de transcrição vs 10-30h/locutor nível-Maya e ~30-40h pras 3 vozes. Flywheel a ZERO gravações (começa segunda). Gargalo dominante, mede-se em MESES, não em horas de H100.",
@@ -139,8 +140,8 @@
     {
       "status": "refutada",
       "claim": "Existe dataset pt-BR de emoção bom e usável pra treinar TTS",
-      "evidence": "Cruzamento pt-BR × emoção × TTS-grade × licença livre ≈ vazio: os de emoção são SER atuado minúsculo; os grandes limpos não têm rótulo.",
-      "detail": "Datasets pt-BR de EMOÇÃO (VERBO, CORAA-SER, EmoUERJ) = SER (reconhecimento): poucas horas, ATUADO, pra classificação — não servem pra treinar TTS, e vários são NC. Os grandes e limpos (CML-TTS, Common Voice, Emilia-pt) NÃO têm rótulo de emoção. Logo emoção tem que vir do FLYWHEEL próprio (gravar as 3 vozes cobrindo emoções marcadas — a G2) — o mesmo fosso que a Eleven preenche pagando labelers. (Tabela verificada com fonte saindo do workflow.)",
+      "evidence": "Verificado: pt-BR × emoção × TTS-grade × licença-livre = vazio. EmoUERJ (377 frases, CC-BY) é SER, não treina TTS; os grandes limpos (CML/Emilia) não têm emoção.",
+      "detail": "**Refutado com fonte (workflow 20/jun).** Tabela verificada:\n- **EmoUERJ** — 377 frases, **CC-BY**, mas é **SER (atuado, classificação)** → NÃO treina TTS. USO REAL: como **JUIZ** — um classificador de emoção pra auto-conferir nossos rótulos + virar métrica de emoção.\n- **CML-TTS** — grande, CC-BY, **sem emoção** → continua sendo só a base.\n- **Chatterbox** (MIT, com emotion-steering) → dá pra **augmentar** com emoção sintética (ressalva: watermark; sintético degrada similaridade).\n- **NÃO usar** output de ElevenLabs/Voxtral (licença proíbe treinar modelo concorrente).\nCONCLUSÃO: emoção pt-BR TTS-grade só sai do **flywheel próprio** (gravar as 3 vozes sobre a base CML, com emoção marcada na curadoria — que acabamos de ligar). EmoUERJ entra como juiz, não como treino.",
       "node": "a-emo"
     }
   ],

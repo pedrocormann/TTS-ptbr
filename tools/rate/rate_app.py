@@ -390,7 +390,11 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .modal-t{font-family:var(--serif);font-size:22px;margin-bottom:16px}
 .modal-in{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--b);color:var(--t);border-radius:8px;padding:11px 13px;font-size:14px;font-family:var(--body)}.modal-in:focus{outline:none;border-color:var(--bh)}
 .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
-.curtext{width:100%;min-height:72px;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:10px 12px;font-family:var(--body);font-size:15px;line-height:1.5;resize:vertical}.curtext:focus{outline:none;border-color:var(--bh)}
+.curtext{width:100%;min-height:64px;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:14px 16px;font-family:var(--serif);font-size:25px;line-height:1.35;letter-spacing:-0.01em;resize:vertical}.curtext:focus{outline:none;border-color:var(--bh)}
+.curnl{width:100%;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:9px 12px;font-family:var(--body);font-size:14px}.curnl:focus{outline:none;border-color:var(--bh)}
+.emorow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:5px 0}
+.emogl{font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--tm);width:74px;flex-shrink:0;text-align:right;margin-right:4px}
+.btn.fl.pri{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
 .curcmp{margin:10px 0;font-size:13px;color:var(--t2);line-height:1.7}.curcmp .curlbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--tm);margin-right:4px}
 .btn.mini{font-size:11px;padding:3px 8px}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -675,20 +679,27 @@ async function showCurate(){
  ci=Math.max(0,Math.min(ci,CUR.length-1));renderCur();
 }
 function renderCurPicker(){
- const u={};ALLCUR.forEach(function(x){const k=x.usuario||'?';(u[k]=u[k]||{t:0,r:0,e:0});u[k].t++;if(x.edited)u[k].r++;if(x.emocao)u[k].e++;});
+ const u={};ALLCUR.forEach(function(x){const k=x.usuario||'?';(u[k]=u[k]||{t:0,r:0,e:0});u[k].t++;if(x.edited)u[k].r++;if(x.emocoes&&x.emocoes.length)u[k].e++;});
  const cards=Object.keys(u).sort().map(function(k){const d=u[k];return `<div class=usercard onclick="pickUser('${k.replace(/'/g,"\\\\'")}')"><div class=usern>${esc(k)}</div><div class=usermeta><b>${d.t-d.e}</b> sem emoção <span class=exp>· ${d.t} clipes · ${d.e} c/ emoção · ${d.t-d.r} a revisar</span></div></div>`;}).join('');
  document.getElementById('cu').innerHTML=`<div class=card><div class=ihead>Curar por pessoa <span class=exp>escolha quem você vai curar — todos veem todos, mas na prática cure o seu</span></div><div class=usergrid>${cards}</div></div>`;
 }
 function pickUser(u){curUser=u;ci=0;showCurate();}
 const CFLAGS=['2 vozes','ruído','corte ruim','sobreposição','eco/metálico','outro'];
-const EMOS=['neutro','animado','caloroso','empático','sério','triste','surpreso','irônico'];
+const EMO_GROUPS=[
+ {g:"positivas",axis:'affect',e:[['happy','feliz/contente',"Bom humor geral, leveza positiva — o tom alegre default (estilo read 'happy' do Expresso)."],['excited','animado/empolgado',"Energia alta e positiva, fala acelerada e enfática — 'que isso, demais!'."],['affectionate','caloroso/afetuoso',"Carinho e proximidade na voz, acolhedor — falando com alguém querido."],['amused','divertido/achando graça',"Achando engraçado, beirando o riso, leveza brincalhona (sem necessariamente rir)."],['calm','calmo/sereno',"Tranquilo, sem tensão, ritmo baixo e estável (estilo 'calm' do Expresso)."],['proud','orgulhoso',"Satisfação com a própria conquista ou de alguém — peito cheio."],['relieved','aliviado',"Tensão que se desfaz — 'ainda bem', soltando o ar."],['nostalgic','nostálgico/saudoso',"Olhar afetuoso pro passado, saudade leve e quente."]]},
+ {g:"negativas",axis:'affect',e:[['sad','triste',"Abatimento, voz pra baixo, energia caída (estilo 'sad' do Expresso)."],['angry','bravo/com raiva',"Irritação forte, tensão e volume — 'tá de sacanagem' (estilo 'angry' do Expresso improvised)."],['frustrated','frustrado',"Travado/impotente diante de algo que não anda — irritação contida."],['anxious','ansioso/nervoso',"Apreensão, fala apressada e hesitante, tensão antecipatória."],['disgusted','com nojo/repulsa',"Repulsa ou desaprovação visceral — 'que nojo', 'credo'."],['bored','entediado',"Desinteresse, fala arrastada e sem energia (estilo 'bored' do Expresso)."],['sleepy','sonolento/cansado',"Cansaço/sono na voz, ritmo lento e mole (estilo 'sleepy' do Expresso)."]]},
+ {g:"social/cognitiva",axis:'affect',e:[['sympathetic','empático/solidário',"Acolhendo a dor do outro, tom de cuidado — 'imagina, eu te entendo' (estilo 'sympathetic' do Expresso)."],['sarcastic','irônico/sarcástico',"Diz o contrário do que sente, deboche fino — carioca clássico (estilo 'sarcastic' do Expresso)."],['surprised','surpreso',"Pego de surpresa, salto de pitch — 'sério?!', 'não acredito'."],['awe','admirado/maravilhado',"Encantamento diante de algo grande ou impressionante — 'caraca' de respeito (estilo 'awe' do Expresso)."],['confused','confuso/em dúvida',"Sem entender, buscando sentido — 'como assim?' (estilo 'confused' do Expresso)."],['contemplative','pensativo/reflexivo',"Pensando alto, ponderando devagar — pausas, tom introspectivo."],['serious','sério',"Sem brincadeira, peso e foco — registro formal/grave (cobre o 'sério' atual; Azure 'serious')."],['neutral','neutro (exclusivo)',"Sem carga emocional marcante — fala reta/informativa. Marcar limpa o resto (estilo 'default' do Expresso)."]]},
+ {g:"entrega",axis:'delivery',e:[['whispering','sussurrado',"Voz baixa sem sonoridade, íntimo/secreto (estilo 'whisper' do Expresso; [whispers] EL)."],['shouting','gritando/projetado',"Volume alto, voz projetada — chamando ou exaltado (Expresso 'projected'; [shouts] EL)."],['fast','acelerado',"Ritmo rápido, atropelando palavras (estilo 'fast' do Expresso)."],['deadpan','monocórdio/seco',"Entrega plana, sem variação prosódica — humor seco ou frieza ([deadpan]/[flatly] EL)."],['playful','brincalhão',"Tom de gracejo/zoeira na entrega, malicioso-leve ([playfully]/[mischievously] EL)."],['hesitant','hesitante',"Trava, gagueja, pausas de incerteza no meio da fala ([hesitates]/[stammers] EL)."],['enunciated','pausado/articulado',"Fala destacando cada sílaba, clareza deliberada (estilo 'enunciated' do Expresso)."],['narration','narração',"Registro de quem conta/lê uma história — locução (estilo 'narration' do Expresso)."]]},
+ {g:"evento",axis:'events',e:[['laughs','risada',"Riso audível no clipe — gargalhada ou riso curto ([laughs] EL; estilo 'laughing' do Expresso)."],['chuckles','risadinha',"Riso baixo/contido, soltinho ([light chuckle]/[chuckles] EL)."],['sighs','suspiro',"Expiração audível — alívio, cansaço ou tédio ([sighs] EL)."],['gasps','arfada/susto',"Inspiração brusca de susto ou espanto ([gasps] EL)."],['breath','respiração audível',"Inspiração/expiração marcada fora de suspiro ([inhales deeply]/[exhales] EL)."],['throat-clear','pigarro',"Limpar a garganta antes/durante a fala ([clears throat] EL)."],['crying','choro',"Voz embargada, choro audível ([crying] EL)."],['non-verbal','vocalização não-verbal',"Som vocal sem palavra — 'hã', 'ãhã', estalo, muxoxo (estilo 'non_verbal' do Expresso; pega o resto)."]]}
+];
 function renderCur(){
  const c=CUR[ci];if(!c)return;
  const done=CUR.filter(x=>x.edited).length;
+ const au="/curate/audio?id="+encodeURIComponent(c.id);
  let h=`<div class=card>
  <button class="btn mini" onclick="curUser=null;showCurate()" style="margin-bottom:12px">← trocar pessoa (${esc(curUser||'')})</button>
- <div class=tags><span>${ci+1}/${CUR.length}</span><span>${esc(c.id)}</span><span>${esc(c.style||'')}</span><span>dur ${c.dur_s!=null?c.dur_s.toFixed(1)+'s':'?'}</span>${c.emocao?`<span style="border-color:var(--blue);color:var(--blue)">${esc(c.emocao)}</span>`:'<span style="border-color:var(--orange);color:var(--orange)">sem emoção</span>'}${c.edited?'<span style="border-color:var(--green);color:var(--green)">✓ revisado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}${c.keep===false?'<span style="border-color:var(--red);color:var(--red)">descartado</span>':''}</div>
- <audio controls src="/curate/audio?id=${encodeURIComponent(c.id)}" style="width:100%;margin:12px 0"></audio>
+ <div class=tags><span>${ci+1}/${CUR.length}</span><span>${esc(c.id)}</span><span>${esc(c.style||'')}</span><span>dur ${c.dur_s!=null?c.dur_s.toFixed(1)+'s':'?'}</span>${(c.emocoes&&c.emocoes.length)?`<span style="border-color:var(--blue);color:var(--blue)">${esc(c.emocoes.join(', '))}</span>`:'<span style="border-color:var(--orange);color:var(--orange)">sem emoção</span>'}${c.edited?'<span style="border-color:var(--green);color:var(--green)">✓ revisado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}${c.keep===false?'<span style="border-color:var(--red);color:var(--red)">descartado</span>':''}</div>
+ ${cPlayer(au)}
  <div class=ihead><b>Transcrição</b> <span class=exp>corrija pra bater EXATO com o áudio</span></div>
  <textarea id=curtext class=curtext oninput="curEdit('text',this.value)" placeholder="transcrição...">${esc(c.text||'')}</textarea>
  <div class=curcmp>
@@ -698,17 +709,43 @@ function renderCur(){
  <div class=ind><div class=ihead><b>Manter?</b></div>
   <button class="btn ok ${c.keep!==false?'on':''}" onclick="curEdit('keep',true)">manter</button>
   <button class="btn no ${c.keep===false?'on':''}" onclick="curEdit('keep',false)">descartar</button></div>
- <div class=ind><div class=ihead><b>Emoção</b> <span class=exp>o tom dominante da frase — o rótulo que falta no dado pt-BR (1 por clipe)</span></div>${EMOS.map(e=>`<button class="btn fl ${c.emocao===e?'on':''}" onclick="setEmo('${e}')">${e}</button>`).join('')}</div>
+ <div class=ind id=emobox></div>
+ <div class=ind><div class=ihead><b>Descrição livre</b> <span class=exp>o estilo em palavras — a camada que a SOTA (EmoVoice/Sesame) diz ser a melhor</span></div><input type=text id=curnl class=curnl value="${esc(c.estilo_nl||'')}" oninput="setNL(this.value)" placeholder="ex: irônico cansado, meio debochado, fala arrastada..."></div>
  <div class=ind><div class=ihead><b>Problemas</b></div>${CFLAGS.map(fl=>`<button class="btn fl ${(c.flags||[]).includes(fl)?'on':''}" onclick="curFlag('${fl}')">${fl}</button>`).join('')}</div>
  <div class=nav><button class=btn onclick="curGo(-1)">‹ anterior</button><button class=btn onclick="curGo(1)">próximo ›</button><span class=muted style="margin-left:12px">${done}/${CUR.length} revisados · mantidos ${CUR.filter(x=>x.keep!==false).length}</span></div>
  </div>`;
  document.getElementById('cu').innerHTML=h;
+ cInit(au);renderEmo();
 }
-function saveCurNow(){const c=CUR[ci];if(!c)return;fetch('/api/curate/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,text:c.text,keep:c.keep!==false,flags:c.flags||[],emocao:c.emocao||''})}).catch(function(){});}
-function setEmo(e){const c=CUR[ci];if(!c)return;c.emocao=(c.emocao===e?'':e);c.edited=true;renderCur();saveCurNow();flash('emoção: '+(c.emocao||'—'));}
+function saveCurNow(){const c=CUR[ci];if(!c)return;fetch('/api/curate/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,text:c.text,keep:c.keep!==false,flags:c.flags||[],emocoes:c.emocoes||[],delivery:c.delivery||[],eventos:c.eventos||[],estilo_nl:c.estilo_nl||'',intensidade:c.intensidade||null})}).catch(function(){});}
 function curEdit(field,val){const c=CUR[ci];if(!c)return;c[field]=val;c.edited=true;if(field=='keep')renderCur();clearTimeout(window._ce);window._ce=setTimeout(saveCurNow,400);flash('salvo ✓');}
 function curFlag(fl){const c=CUR[ci];if(!c)return;const a=c.flags||[];const j=a.indexOf(fl);if(j<0){a.push(fl);}else{a.splice(j,1);}c.flags=a;c.edited=true;renderCur();saveCurNow();flash('salvo ✓');}
 function useV2(){const c=CUR[ci];if(!c||c.text_v2==null)return;c.text=c.text_v2;c.edited=true;renderCur();saveCurNow();flash('usou ASR-v2');}
+
+/* ---- Player com waveform (igual ao Avaliar) pra aba Curar ---- */
+function cfmt(s){s=Math.max(0,s||0);var m=Math.floor(s/60),x=Math.floor(s%60);return m+':'+(x<10?'0':'')+x;}
+function cUpd(){var a=document.getElementById('cau'),b=document.getElementById('cplay'),t=document.getElementById('cptime'),ph=document.getElementById('cph');if(a&&b)b.textContent=a.paused?'▶':'⏸';if(a&&t)t.textContent=cfmt(a.currentTime)+' / '+cfmt(a.duration||0);if(a&&ph&&a.duration)ph.style.left=(100*a.currentTime/a.duration)+'%';}
+function cTog(){var a=document.getElementById('cau');if(!a)return;if(a.paused){var p=a.play();if(p)p.catch(function(){});}else{a.pause();}cUpd();}
+async function cDraw(url){var cv=document.getElementById('cwc');if(!cv)return;var W=Math.max(2,cv.clientWidth||600),H=cv.clientHeight||64;cv.width=W;cv.height=H;var x2=cv.getContext('2d');x2.clearRect(0,0,W,H);try{var ac=audioCtx();var buf=await(await fetch(url)).arrayBuffer();var ab=await ac.decodeAudioData(buf);var d=ab.getChannelData(0);var st=Math.max(1,Math.floor(d.length/W));x2.fillStyle='rgba(245,245,247,0.30)';for(var x=0;x<W;x++){var mn=1,mx=-1;for(var j=0;j<st;j++){var v=d[x*st+j]||0;if(v<mn)mn=v;if(v>mx)mx=v;}var y1=(1-(mx+1)/2)*H,y2=(1-(mn+1)/2)*H;x2.fillRect(x,y1,1,Math.max(1,y2-y1));}}catch(e){x2.strokeStyle='rgba(245,245,247,0.16)';x2.beginPath();x2.moveTo(0,H/2);x2.lineTo(W,H/2);x2.stroke();}}
+function cInit(url){var a=document.getElementById('cau');if(a){a.loop=true;a.ontimeupdate=cUpd;a.onplay=cUpd;a.onpause=cUpd;a.onloadedmetadata=cUpd;}var w=document.getElementById('cwave');if(w){w.onclick=function(e){var a=document.getElementById('cau');if(!a||!a.duration)return;var rc=w.getBoundingClientRect();a.currentTime=Math.max(0,Math.min(a.duration,(e.clientX-rc.left)/rc.width*a.duration));cUpd();var p=a.play();if(p)p.catch(function(){});};}cDraw(url);}
+function cPlayer(url){return '<audio id=cau src="'+url+'" preload=auto style="display:none"></audio><div class=transport><button id=cplay class=playbtn onclick=cTog()>▶</button><span id=cptime class=ptime>0:00 / 0:00</span><span class=loophint>↻ loop · clique na onda pra ir ao ponto</span></div><div class=wave id=cwave style="cursor:pointer"><canvas id=cwc></canvas><div id=cph class=playhead></div></div>';}
+/* ---- Emoção em eixos (affect cap2 + delivery + events + intensidade) ---- */
+function emoBtns(grp,sel,fn,pri){return grp.e.map(function(x){var on=sel.indexOf(x[0])>=0;var isp=pri&&pri===x[0];return '<button class="btn fl'+(on?' on':'')+(isp?' pri':'')+'" title="'+esc(x[2])+'" onclick="'+fn+'(\''+x[0]+'\')">'+x[0]+'</button>';}).join('');}
+function emoUI(c){var em=c.emocoes||[],dl=c.delivery||[],ev=c.eventos||[];var h='';
+ EMO_GROUPS.filter(function(g){return g.axis==='affect';}).forEach(function(g){h+='<div class=emorow><span class=emogl>'+g.g+'</span>'+emoBtns(g,em,'setEmo',em[0])+'</div>';});
+ var dg=EMO_GROUPS.find(function(g){return g.axis==='delivery';});h+='<div class=emorow><span class=emogl>entrega</span>'+emoBtns(dg,dl,'setDeliv')+'</div>';
+ var eg=EMO_GROUPS.find(function(g){return g.axis==='events';});h+='<div class=emorow><span class=emogl>eventos</span>'+emoBtns(eg,ev,'setEvent')+'</div>';
+ return h;}
+function renderEmo(){var c=CUR[ci];if(!c)return;var b=document.getElementById('emobox');if(!b)return;b.innerHTML='<div class=ihead style="margin-top:4px"><b>Emoção</b> <span class=exp>afeto: máx 2 (a 1ª = dominante) · neutral é exclusivo · hover = definição</span></div>'+emoUI(c)+'<div class=ind style="margin-top:10px"><div class=ihead><b>Intensidade</b> <span class=exp>1 sutil → 5 intenso</span></div>'+[1,2,3,4,5].map(function(n){return '<button class="btn '+(c.intensidade===n?'on':'')+'" onclick="setIntensity('+n+')">'+n+'</button>';}).join('')+'</div>';}
+function _tog(a,v){var i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);return a;}
+function setEmo(en){var c=CUR[ci];if(!c)return;var a=(c.emocoes||[]).slice();
+ if(en==='neutral'){a=a.indexOf('neutral')>=0?[]:['neutral'];}
+ else{a=a.filter(function(x){return x!=='neutral';});var i=a.indexOf(en);if(i>=0)a.splice(i,1);else{if(a.length>=2){flash('máx 2 emoções de afeto');return;}a.push(en);}}
+ c.emocoes=a;c.edited=true;renderEmo();saveCurNow();}
+function setDeliv(en){var c=CUR[ci];if(!c)return;c.delivery=_tog((c.delivery||[]).slice(),en);c.edited=true;renderEmo();saveCurNow();}
+function setEvent(en){var c=CUR[ci];if(!c)return;c.eventos=_tog((c.eventos||[]).slice(),en);c.edited=true;renderEmo();saveCurNow();}
+function setIntensity(n){var c=CUR[ci];if(!c)return;c.intensidade=(c.intensidade===n?null:n);c.edited=true;renderEmo();saveCurNow();}
+function setNL(v){var c=CUR[ci];if(!c)return;c.estilo_nl=v;c.edited=true;clearTimeout(window._nlt);window._nlt=setTimeout(saveCurNow,400);}
 function curGo(d){saveCurNow();ci=Math.max(0,Math.min(CUR.length-1,ci+d));renderCur();}
 function view(v){
  for(const x of ['av','tr','cu','gr']){document.getElementById(x).classList.toggle('hide',x!=v);}

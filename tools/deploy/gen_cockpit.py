@@ -35,6 +35,10 @@ PAGE = PAGE.replace(
 PAGE = PAGE.replace(
   'src="/curate/audio?id=${encodeURIComponent(c.id)}"',
   'src="${CAUDIO(c.id)}"')
+# novo player do Curar usa a forma concatenada
+PAGE = PAGE.replace(
+  '"/curate/audio?id="+encodeURIComponent(c.id)',
+  'CAUDIO(c.id)')
 
 # 3) aba Gravar → rota same-origin (getUserMedia simples)
 PAGE = PAGE.replace('src="/gravar"', 'src="/tts-ptbr/gravar"')
@@ -52,8 +56,8 @@ const jr=o=>new Response(JSON.stringify(o),{status:200,headers:{"Content-Type":"
 const mean=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10:null;
 async function loadRatings(){const r=await SB.from("avaliacoes").select("run,clip,payload");const o={};(r.data||[]).forEach(x=>o[x.run+"|"+x.clip]=x.payload);return o;}
 async function saveRate(x){await SB.from("avaliacoes").upsert({run:x.run,clip:x.id,payload:x,atualizado:new Date().toISOString()});return jr({ok:true});}
-async function loadCurate(){const r=await SB.from("curar_itens").select("*").order("usuario");return (r.data||[]).map(x=>({id:x.id,usuario:x.usuario,audio:x.audio,style:"",dur_s:x.dur_s,text_orig:x.text_orig,text_v2:x.text_v2,text:x.texto,keep:x.manter,flags:x.flags||[],edited:x.editado,emocao:x.emocao||""}));}
-async function saveCurate(b){await SB.from("curar_itens").update({texto:b.text,manter:b.keep,flags:b.flags||[],emocao:b.emocao||null,editado:true}).eq("id",b.id);return jr({ok:true});}
+async function loadCurate(){const r=await SB.from("curar_itens").select("*").order("usuario");return (r.data||[]).map(x=>({id:x.id,usuario:x.usuario,audio:x.audio,style:"",dur_s:x.dur_s,text_orig:x.text_orig,text_v2:x.text_v2,text:x.texto,keep:x.manter,flags:x.flags||[],edited:x.editado,emocoes:x.emocoes||[],delivery:x.delivery||[],eventos:x.eventos||[],estilo_nl:x.estilo_nl||"",intensidade:x.intensidade}));}
+async function saveCurate(b){await SB.from("curar_itens").update({texto:b.text,manter:b.keep,flags:b.flags||[],emocoes:b.emocoes||[],delivery:b.delivery||[],eventos:b.eventos||[],estilo_nl:b.estilo_nl||null,intensidade:b.intensidade||null,editado:true}).eq("id",b.id);return jr({ok:true});}
 async function insights(){
  const R=await loadRatings();
  const rated=BUNDLE.clips.map(c=>Object.assign({},c,R[c.run+"|"+c.id]||{})).filter(r=>r.geral!=null);

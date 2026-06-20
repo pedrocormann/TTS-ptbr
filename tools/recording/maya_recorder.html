@@ -90,6 +90,7 @@ input:focus,select:focus{border-color:var(--orange)}
         <div><input id="novanome" placeholder="nome da nova sala (ex: papo 23/jun)" autocomplete="off"></div>
       </div>
       <button class="btn ghost" style="margin-top:10px" onclick="criarSala()">+ Criar sala nova</button>
+      <div id="salamsg" class="lbl" style="margin-top:8px"></div>
     </div>
   </div>
 
@@ -240,7 +241,10 @@ async function criarSala(){
   const code=nome.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,36)+"-"+Math.random().toString(36).slice(2,6);
   try{
     await fetch(SUPABASE_URL+"/rest/v1/salas",{method:"POST",headers:{...SB_HDR,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({code,nome,criada_por:$("who").value})});
-    enterRoom(code);
+    $("novanome").value="";            // criar ≠ entrar: a sala aparece na lista, cada um entra quando quiser
+    await loadSalas();
+    $("salamsg").innerHTML='✓ sala <b>"'+nome+'"</b> criada — clique nela na lista acima pra entrar';
+    setTimeout(()=>{const m=$("salamsg");if(m)m.textContent="";},6000);
   }catch(e){ alert("erro ao criar sala: "+e.message); }
 }
 async function encerrarSala(){

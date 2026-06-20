@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Unflat · Gravador de Voz</title>
+<title>🎧 Gravar · Unflat</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8E%A7</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;900&family=Geist+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -102,7 +103,8 @@ input:focus,select:focus{border-color:var(--orange)}
       <div class="timer" id="timer">00:00</div>
       <div class="meter"><i id="meterbar"></i></div>
       <div class="lbl" id="meterlbl">nível do mic</div>
-      <button class="btn danger" id="endbtn" style="margin-top:14px" onclick="endSession()">Encerrar sessão (pra todos)</button>
+      <button class="btn ghost" id="pipbtn" style="margin-top:12px" onclick="openPiP()">📌 Deixar no cantinho da tela (PiP)</button>
+      <button class="btn danger" id="endbtn" style="margin-top:10px" onclick="endSession()">Encerrar sessão (pra todos)</button>
     </div>
     <div class="status" id="status"></div>
     <div class="row" style="margin-top:10px">
@@ -166,6 +168,27 @@ function chime(kind){
   }catch(e){}
 }
 
+/* ===================== PiP — monitor no cantinho (vive entre janelas) ===================== */
+let pipWin=null,pipBar=null,pipLbl=null,pipTimer=null;
+async function openPiP(){
+  if(pipWin){ try{pipWin.close();}catch(e){} return; }
+  if(!window.documentPictureInPicture){ alert("Picture-in-Picture de documento só no Chrome/Edge recentes. Atualize o navegador."); return; }
+  try{
+    pipWin=await documentPictureInPicture.requestWindow({width:300,height:150});
+    const d=pipWin.document;
+    d.body.style.cssText="margin:0;background:#08080a;color:#f5f5f7;font-family:system-ui,sans-serif;user-select:none";
+    d.body.innerHTML=`<div style="padding:14px 16px">
+      <div style="font:600 11px monospace;letter-spacing:.08em;text-transform:uppercase;color:#9d4edd;margin-bottom:4px">🔴 gravando · ${myName} · ${meetingCode}</div>
+      <div id="pt" style="font:600 30px monospace">00:00</div>
+      <div style="height:14px;background:#000;border:1px solid #333;border-radius:99px;overflow:hidden;margin-top:8px"><i id="pb" style="display:block;height:100%;width:0;background:linear-gradient(90deg,#28c840,#E45933 75%,#C7302D);transition:width .07s"></i></div>
+      <div id="pc" style="font:10px monospace;color:#777;margin-top:5px;text-transform:uppercase;letter-spacing:.08em">nível do mic — não pode estourar</div>
+    </div>`;
+    pipBar=d.getElementById("pb");pipLbl=d.getElementById("pc");pipTimer=d.getElementById("pt");
+    pipWin.addEventListener("pagehide",()=>{pipWin=pipBar=pipLbl=pipTimer=null;});
+  }catch(e){ alert("não consegui abrir o PiP: "+e.message); }
+}
+function closePiP(){ if(pipWin){try{pipWin.close();}catch(e){}} pipWin=pipBar=pipLbl=pipTimer=null; }
+
 /* ===================== Mic test (monitoração + ganho) ===================== */
 async function toggleTest(){ testCtx?stopTest():startTest(); }
 async function startTest(){
@@ -187,6 +210,8 @@ async function startTest(){
 }
 function stopTest(){ try{testStream&&testStream.getTracks().forEach(t=>t.stop());testCtx&&testCtx.close();}catch(e){} testCtx=testStream=testGain=null; $("testbox").classList.add("hidden");$("testbtn").textContent="🎧 Testar microfone (ouvir e ajustar)"; }
 $("gain")&&$("gain").addEventListener("input",()=>{ if(testGain)testGain.gain.value=($("gain").value/100); });
+// trocar o mic na lista DURANTE o teste → troca o device do teste na hora
+$("mic")&&$("mic").addEventListener("change",()=>{ if(testCtx){ stopTest(); startTest(); } });
 
 /* ===================== mics + validação ===================== */
 async function listMics(){
@@ -272,13 +297,14 @@ async function doStart(meeting,started){
     if(channel)channel.track({name:myName,rec:true,t:Date.now()});
     $("startbtn").classList.add("hidden");$("live").classList.remove("hidden");
     $("status").textContent="🔴 gravando (sessão da sala)";$("status").className="status";
-    timerInt=setInterval(()=>$("timer").textContent=fmt((Date.now()-startMs)/1000),250);
+    timerInt=setInterval(()=>{const tt=fmt((Date.now()-startMs)/1000);$("timer").textContent=tt;if(pipTimer)pipTimer.textContent=tt;},250);
   }catch(e){ $("status").textContent="erro ao iniciar: "+e.message;$("status").className="status err"; }
 }
 function onAudio(a){ buf.push(a);bufLen+=a.length;totalSamples+=a.length;
   let p=0;for(let i=0;i<a.length;i+=64){const v=Math.abs(a[i]);if(v>p)p=v;}
   $("meterbar").style.width=Math.min(100,p*140)+"%";
   $("meterlbl").textContent=p>0.97?"⚠ alto demais":"nível do mic";$("meterlbl").className=p>0.97?"lbl clip":"lbl";
+  if(pipBar){pipBar.style.width=Math.min(100,p*140)+"%";if(pipLbl){pipLbl.textContent=p>0.97?"⚠ ESTOURANDO — abaixe o ganho":"nível do mic — não pode estourar";pipLbl.style.color=p>0.97?"#C7302D":"#777";}}
   if(totalSamples-lastFlush>sampleRate*FLUSH_SEC){lastFlush=totalSamples;flush();}
 }
 function wavBlob(s,sr){const n=s.length,b=new ArrayBuffer(44+n*2),v=new DataView(b);
@@ -289,7 +315,7 @@ function wavBlob(s,sr){const n=s.length,b=new ArrayBuffer(44+n*2),v=new DataView
 async function assemble(){const cs=(await idbAll("chunks")).sort((a,b)=>a.k-b.k);let tot=0;for(const c of cs)tot+=c.d.length;const all=new Float32Array(tot);let o=0;for(const c of cs){all.set(c.d,o);o+=c.d.length;}return all;}
 
 async function doStop(){
-  if(!recording)return; recording=false;clearInterval(timerInt);
+  if(!recording)return; recording=false;clearInterval(timerInt);closePiP();
   try{node&&node.disconnect();stream&&stream.getTracks().forEach(t=>t.stop());ctx&&await ctx.close();}catch(e){}
   if(channel)channel.track({name:myName,rec:false,t:Date.now()});
   await flush();

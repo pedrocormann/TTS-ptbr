@@ -17,7 +17,8 @@
       "Carioca conversacional commercial-safe ≈ 0h aberto: TAGARELA/CORAA/NURC = NC/NC-ND (só eval), NURC travado em CC-BY-NC-ND e e-mail NILC não enviado. Sotaque só sai do flywheel próprio (LGPD) — que ainda não produziu nada.",
       "PROSÓDIA: nenhum método (reference-encoder/prosody-tokens) implementado nem rodado; depende de gravar +5-7h/locutor que não existem. Defeito #2 (18× robótica) 100% no papel.",
       "Normalizador de número construído mas NÃO wirado no build_prep/inferência: hard-01 ainda quebra a 88% WER (a-normalize em 80%)."
-    ]
+    ],
+    "tweet": "~2.8/10 vs Maya. O único pilar real é o timbre do Pedro — sotaque e prosódia não andaram em 2 treinos. O gargalo é DADO (flywheel a ZERO), não GPU. 3-6 meses pra um v0, e toda ETA é fantasia até medir a taxa real de gravação."
   },
   "hypotheses": [
     {

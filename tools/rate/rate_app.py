@@ -410,6 +410,30 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .gapreal::before{content:'realismo — ';font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--red)}
 .blockers{list-style:none;margin-top:6px}.blockers li{font-size:12px;color:var(--t2);line-height:1.5;padding-left:18px;position:relative;margin:5px 0}
 .blockers li::before{content:'⛔';position:absolute;left:0;font-size:10px}
+/* ---- Trilha redesign: compacto/visual ---- */
+.tweethd{display:flex;align-items:center;gap:14px;margin-bottom:6px}.tweethd h2{margin:0}
+.tweet{font-family:var(--serif);font-size:19px;line-height:1.4;color:var(--t2)}
+.collapse{max-height:0;overflow:hidden;transition:max-height .35s var(--ease)}.collapse.open{max-height:1600px;margin-top:10px}
+.gaprows{margin-top:8px}.gaprow{cursor:default}.gapbtn{margin-top:12px}
+.fases{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-top:12px}
+.fase{background:var(--surface);border:1px solid var(--b);border-top:2px solid var(--blue);border-radius:var(--rsm);padding:12px;cursor:pointer;transition:all .18s var(--ease)}
+.fase:hover{background:var(--surface-h)}.fasen{font-size:12px;font-weight:600;color:var(--t)}
+.faseb{font-size:11px;color:var(--tm);line-height:1.45;margin-top:6px;max-height:30px;overflow:hidden;transition:max-height .3s var(--ease)}
+.fase.open .faseb{max-height:420px;color:var(--t2)}
+.blgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:10px;margin-top:12px}
+.blcard{background:rgba(199,48,45,.05);border:1px solid rgba(199,48,45,.25);border-radius:var(--rsm);padding:12px;cursor:pointer;transition:all .18s var(--ease)}
+.blcard:hover{background:rgba(199,48,45,.09)}.blt{font-size:12px;font-weight:500;color:var(--t);line-height:1.4}
+.blb{font-size:11px;color:var(--tm);line-height:1.5;max-height:0;overflow:hidden;transition:max-height .3s var(--ease)}
+.blcard.open .blb{max-height:420px;margin-top:7px}
+.gplan{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:10px;margin-top:12px}
+.gcard{background:var(--surface);border:1px solid var(--b);border-radius:var(--rsm);padding:12px;cursor:pointer;transition:all .18s var(--ease)}.gcard:hover{background:var(--surface-h)}
+.gtop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.glabel{font-size:12.5px;font-weight:600;color:var(--t)}.gcost{font-family:var(--mono);font-size:11px;color:var(--green)}
+.gbar{height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin:9px 0 5px}.gbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--orange))}
+.ghours{font-family:var(--mono);font-size:10px;color:var(--tm)}
+.gdetail{font-size:11px;color:var(--tm);line-height:1.55;max-height:0;overflow:hidden;transition:max-height .3s var(--ease)}.gcard.open .gdetail{max-height:240px;margin-top:8px}
+.kpi{display:inline-block;font-family:var(--mono);font-size:10px;color:var(--t2);background:var(--surface-h);border:1px solid var(--b);border-radius:6px;padding:2px 7px;margin-left:6px}
+.block-h{cursor:pointer}.blockbody{max-height:0;overflow:hidden;transition:max-height .4s var(--ease)}.block.open .blockbody{max-height:1200px;margin-top:10px}
+.insbox h3{font-size:12px;margin:14px 0 6px;color:var(--t2)}
 /* ---- Hipóteses kanban ---- */
 .kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
 @media(max-width:920px){.kanban{grid-template-columns:repeat(2,1fr)}}
@@ -438,13 +462,11 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 <button class="tab on" id=tGr onclick=view('gr')>Gravar</button>
 <button class=tab id=tCu onclick=view('cu')>Curar</button>
 <button class=tab id=tAv onclick=view('av')>Avaliar</button>
-<button class=tab id=tIn onclick=view('in')>Insights</button>
 <button class=tab id=tTr onclick=view('tr')>Trilha</button>
 <div class=bar><i id=prog></i></div><span class=muted id=cnt></span><div class=sp></div></header>
 <div class=wrap>
 <div id=av class=hide><div class=avbar><button class="btn mini" id=todobtn onclick=toggleTodo()>só os que faltam</button><button class="btn mini" onclick=nextTodo()>⏭ pular pro próximo que falta</button></div><div class=card id=card></div>
 <div id=dots class=dots></div></div>
-<div id=in class=hide></div>
 <div id=tr class=hide></div>
 <div id=cu class=hide></div>
 <div id=gr></div>
@@ -686,36 +708,34 @@ function curFlag(fl){const c=CUR[ci];if(!c)return;const a=c.flags||[];const j=a.
 function useV2(){const c=CUR[ci];if(!c||c.text_v2==null)return;c.text=c.text_v2;c.edited=true;renderCur();saveCurNow();flash('usou ASR-v2');}
 function curGo(d){saveCurNow();ci=Math.max(0,Math.min(CUR.length-1,ci+d));renderCur();}
 function view(v){
- for(const x of ['av','in','tr','cu','gr']){document.getElementById(x).classList.toggle('hide',x!=v);}
+ for(const x of ['av','tr','cu','gr']){document.getElementById(x).classList.toggle('hide',x!=v);}
  document.getElementById('tAv').classList.toggle('on',v=='av');
- document.getElementById('tIn').classList.toggle('on',v=='in');
  document.getElementById('tTr').classList.toggle('on',v=='tr');
  document.getElementById('tCu').classList.toggle('on',v=='cu');
  document.getElementById('tGr').classList.toggle('on',v=='gr');
  document.getElementById('navL').classList.toggle('hide',v!='av');document.getElementById('navR').classList.toggle('hide',v!='av');
- if(v=='in'){showIns();}
  if(v=='tr'){requestAnimationFrame(drawEdges);}
  if(v=='cu'){showCurate();}
  if(v=='gr'){loadGravar();}
 }
 function loadGravar(){const g=document.getElementById('gr');if(!g.dataset.loaded){g.dataset.loaded=1;
  g.innerHTML='<iframe src="/gravar" allow="microphone" style="width:100%;height:84vh;border:1px solid var(--border);border-radius:14px;background:var(--bg)"></iframe>';}}
-async function showIns(){
+async function loadInsTrilha(){
+ const box=document.getElementById('instr');if(!box)return;
+ if(box.dataset.loaded){box.classList.toggle('open');return;}
+ box.dataset.loaded=1;box.classList.add('open');box.innerHTML='<p class=muted>carregando…</p>';
  const d=await(await fetch('/api/insights')).json();
  const tbl=(o,hd)=>`<table><tr><th>${hd}</th><th>n</th><th>geral</th><th>nativo</th><th>natural</th><th>voz</th><th>parou%</th></tr>`+
   Object.entries(o).map(([k,a])=>`<tr><td>${k}</td><td>${a.n}</td><td>${a.geral??'-'}</td><td>${a.nativo??'-'}</td><td>${a.natural??'-'}</td><td>${a.voz??'-'}</td><td>${a.parou_pct??'-'}</td></tr>`).join('')+`</table>`;
  const probs=Object.entries(d.problemas||{});
  const fb=d.feedback||{clips_marcados:0,total_marcadores:0,por_tag:{}};
  const ftags=Object.entries(fb.por_tag||{});
- document.getElementById('in').innerHTML=`<div class=card><h2>Insights — ${d.total_rated}/${d.total} avaliados</h2>
- <h3>Por run (qual modelo é melhor)</h3>${tbl(d.por_run,'run')}
- <h3>Por emoção (o que falha)</h3>${tbl(d.por_emocao,'emoção')}
- <h3>Problemas mais comuns → o que o próximo treino deve atacar</h3>
- ${probs.length?`<table><tr><th>problema</th><th>nº de clipes</th></tr>${probs.map(([p,n])=>`<tr><td>${p}</td><td>${n}</td></tr>`).join('')}</table>`:'<p class=muted>marque tags de problema nos áudios pra ver o ranking aqui.</p>'}
- <h3>Feedback no tempo → a base pros agentes do futuro</h3>
- <p class=muted>${fb.clips_marcados} clipes com marcadores · ${fb.total_marcadores} instantes marcados. Cada marcador é um trecho (run+id+segundo+tipo+nota) que um loop de agentes pode recortar do áudio e corrigir no próximo treino.</p>
- ${ftags.length?`<table><tr><th>tipo de erro (no tempo)</th><th>marcadores</th></tr>${ftags.map(([p,n])=>`<tr><td>${p}</td><td>${n}</td></tr>`).join('')}</table>`:'<p class=muted>marque instantes na waveform (aba Avaliar) pra começar a construir essa base.</p>'}
- <div style="margin-top:18px"><button class=btn onclick=exportFeedback()>⬇ exportar feedback (agent-ready .jsonl)</button> <span class=exp>schema em tools/rate/FEEDBACK.md</span></div></div>`;
+ box.innerHTML=`<div class=insbox><p class=exp>${d.total_rated}/${d.total} avaliados</p>
+  <h3>Por run</h3>${tbl(d.por_run,'run')}
+  <h3>Por emoção</h3>${tbl(d.por_emocao,'emoção')}
+  <h3>Problemas mais comuns</h3>${probs.length?`<table><tr><th>problema</th><th>clipes</th></tr>${probs.map(([p,n])=>`<tr><td>${p}</td><td>${n}</td></tr>`).join('')}</table>`:'<p class=muted>marque tags de problema nos áudios pra ver o ranking.</p>'}
+  <p class=muted style="margin-top:10px">${fb.clips_marcados} clipes marcados · ${fb.total_marcadores} instantes no tempo (base pros agentes do futuro).</p>
+  <div style="margin-top:14px"><button class=btn onclick=exportFeedback()>⬇ exportar feedback (.jsonl)</button></div></div>`;
 }
 async function exportFeedback(){
  try{const recs=await(await fetch('/api/feedback')).json();
@@ -725,16 +745,19 @@ async function exportFeedback(){
   flash('exportado: feedback.jsonl');}catch(e){flash('falha ao exportar');}
 }
 const STATUS={done:'feito',wip:'em curso',next:'a seguir',idea:'hipótese'};
+function tog(id){const e=document.getElementById(id);if(e)e.classList.toggle('open');}
 function mayaGapHTML(m){
  const g=m.maya_gap;if(!g)return '';
- const eixos=(g.eixos||[]).map(function(e){const w=Math.max(0,Math.min(100,(e.score||0)/10*100));return `<div class=gaprow><span class=gaplbl>${esc(e.nome)}</span><div class=gapbar><i style="width:${w}%"></i></div><span class=gapscore>${e.score}/10</span><span class=gapnota>${esc(e.nota||'')}</span></div>`;}).join('');
+ const eixos=(g.eixos||[]).map(function(e){const w=Math.max(0,Math.min(100,(e.score||0)/10*100));return `<div class=gaprow title="${esc(e.nota||'')}"><span class=gaplbl>${esc(e.nome)}</span><div class=gapbar><i style="width:${w}%"></i></div><span class=gapscore>${e.score}</span></div>`;}).join('');
  const real=m.realismo||g.realismo||'';
- return `<div class="card gapcard"><div class=ihead>Onde estamos <b>de verdade</b> vs Maya <span class=exp>realismo, não otimismo · Maya = 10</span></div>
-  <div class=gapmedia><span class=gapbig>${g.media!=null?g.media:'?'}</span><span class=gapof>/10</span><span class=gapver>${esc(g.veredito||'')}</span></div>
-  ${eixos}${real?`<p class=gapreal>${esc(real)}</p>`:''}</div>`;
+ const ver=(g.veredito||'').split('—')[0].split('. ')[0];
+ return `<div class="card gapcard"><div class=ihead>Onde estamos <b>de verdade</b> vs Maya <span class=exp>Maya=10 · passe o mouse nas barras</span></div>
+  <div class=gapmedia><span class=gapbig>${g.media!=null?g.media:'?'}</span><span class=gapof>/10</span><span class=gapver>${esc(ver)}</span></div>
+  <div class=gaprows>${eixos}</div>
+  ${real?`<button class="btn mini gapbtn" onclick="tog('gapreal')">realismo — o texto duro ▾</button><div id=gapreal class=collapse><p class=gapreal>${esc(real)}</p></div>`:''}</div>`;
 }
 function hypsKanban(m){
- const cols=[{k:'validada',label:'validadas',cls:'kv'},{k:'parcial',label:'parciais',cls:'kp'},{k:'aberta',label:'em aberto',cls:'ka'},{k:'refutada',label:'refutadas',cls:'kr'}];
+ const cols=[{k:'aberta',label:'em aberto',cls:'ka'},{k:'parcial',label:'parciais',cls:'kp'},{k:'refutada',label:'refutadas',cls:'kr'},{k:'validada',label:'validadas',cls:'kv'}];
  const hs=m.hypotheses||[];
  return '<div class=kanban>'+cols.map(function(c){
   const items=hs.filter(function(h){return h.status===c.k;});
@@ -750,38 +773,59 @@ function hypsKanban(m){
 function toggleHyp(cid){const el=document.getElementById('kc-'+cid);if(el)el.classList.toggle('open');}
 function gpuPlanHTML(m){
  if(!m.gpu_plan||!m.gpu_plan.length)return '';
- const cb=m.cost_basis?'<p class=trail style="margin-bottom:10px">'+esc(m.cost_basis)+'</p>':'';
- return `<div class=card><div class=ihead>Plano de GPU · próximos treinos <span class=exp>o que rodar, com que dado, quanto tempo e custo — base: o que já gastamos</span></div>`+cb+
-  '<div style="overflow-x:auto"><table class=gput><tr><th>treino</th><th>trilha</th><th>dataset · fração</th><th>GPU</th><th>horas</th><th>custo</th><th>depende</th></tr>'+
-  m.gpu_plan.map(function(g){return '<tr><td><b>'+esc(g.label)+'</b></td><td>'+esc(g.trilha)+'</td><td>'+esc(g.dataset)+(g.fraction?' · <span class=gpufrac>'+esc(g.fraction)+'</span>':'')+'</td><td>'+esc(g.gpu||'')+'</td><td>'+esc(g.hours||'')+'</td><td>'+esc(g.cost||'')+'</td><td>'+esc(g.depends||'')+'</td></tr>';}).join('')+
-  '</table></div>'+(m.gpu_total?'<div class=block-next><b>→ </b>'+esc(m.gpu_total)+'</div>':'')+`</div>`;
+ const hrs=m.gpu_plan.map(function(g){return parseFloat(String(g.hours||'').replace(',','.'))||0;});
+ const mx=Math.max(1,...hrs);
+ const cards=m.gpu_plan.map(function(g,i){const w=Math.round(hrs[i]/mx*100);
+  return `<div class=gcard onclick="this.classList.toggle('open')">
+   <div class=gtop><span class=glabel>${esc(g.label)}</span><span class=gcost>${esc(g.cost||'')}</span></div>
+   <div class=gbar><i style="width:${w}%"></i></div><div class=ghours>${esc(g.hours||'')} · ${esc(g.gpu||'')}</div>
+   <div class=gdetail>${esc(g.trilha||'')}<br>${esc(g.dataset||'')}${g.fraction?' · '+esc(g.fraction):''}${g.depends?'<br><span class=exp>depende: '+esc(g.depends)+'</span>':''}</div></div>`;}).join('');
+ return `<div class=card><div class=ihead>Plano de GPU <span class=exp>horas por treino · clique num card pro detalhe · base: ${esc(m.cost_basis||'')}</span></div><div class=gplan>${cards}</div>${m.gpu_total?'<div class=block-next><b>→ </b>'+esc(m.gpu_total)+'</div>':''}</div>`;
 }
 function blocksHTML(m){
  if(!m.blocks||!m.blocks.length)return '';
- return `<div class=card><div class=ihead>Blocos de avaliação <span class=exp>o que cada leva de teste ensinou — alimenta a trilha</span></div>`+
+ return `<div class=card><div class=ihead>Treinos · KPIs <span class=exp>clique num bloco pra abrir métricas + aprendizados</span></div>`+
   m.blocks.slice().reverse().map(function(b){
+   let kpi='';
+   if(b.metrics){const rs=Object.keys(b.metrics);const w=rs.map(function(r){return b.metrics[r].wer;}).filter(function(x){return x!=null;});const nt=rs.map(function(r){return b.metrics[r].nativo;}).filter(function(x){return x!=null;});const gr=rs.map(function(r){return b.metrics[r].geral;}).filter(function(x){return x!=null;});
+    kpi='<span class=kpi>'+rs.length+' runs</span>'+(w.length?'<span class=kpi>WER '+Math.min.apply(null,w)+'–'+Math.max.apply(null,w)+'%</span>':'')+(nt.length?'<span class=kpi>nativo ‹'+Math.max.apply(null,nt)+'/5</span>':'')+(gr.length?'<span class=kpi>geral ‹'+Math.max.apply(null,gr)+'/5</span>':'');}
    let mt='';
    if(b.metrics){mt='<table class=blockt><tr><th>run</th><th>geral</th><th>nativo</th><th>natural</th><th>voz</th><th>parou</th><th>WER</th></tr>'+
     Object.keys(b.metrics).map(function(run){const x=b.metrics[run]||{};return '<tr><td>'+esc(run)+'</td><td>'+(x.geral!=null?x.geral:'-')+'</td><td>'+(x.nativo!=null?x.nativo:'-')+'</td><td>'+(x.natural!=null?x.natural:'-')+'</td><td>'+(x.voz!=null?x.voz:'-')+'</td><td>'+(x.parou!=null?x.parou+'%':'-')+'</td><td>'+(x.wer!=null?x.wer+'%':'-')+'</td></tr>';}).join('')+'</table>';}
-   return '<div class=block><div class=block-h><b>'+esc(b.label||b.id)+'</b><span class=block-meta>'+esc((b.date||'')+' · '+(b.n||'?')+' avaliações'+(b.avaliador?' · '+b.avaliador:''))+'</span></div>'+mt+
+   return '<div class=block><div class=block-h onclick="this.parentNode.classList.toggle(\'open\')"><b>'+esc(b.label||b.id)+'</b> '+kpi+'<span class=block-meta>'+esc((b.date||'')+' · '+(b.n||'?')+' aval'+(b.avaliador?' · '+b.avaliador:''))+' ▾</span></div><div class=blockbody>'+mt+
     '<ul class=block-l>'+(b.learnings||[]).map(function(l){return '<li>'+esc(l)+'</li>';}).join('')+'</ul>'+
-    ((b.proximos&&b.proximos.length)?'<div class=block-next><b>→ próximos:</b> '+b.proximos.map(esc).join(' · ')+'</div>':'')+'</div>';
+    ((b.proximos&&b.proximos.length)?'<div class=block-next><b>→ próximos:</b> '+b.proximos.map(esc).join(' · ')+'</div>':'')+'</div></div>';
   }).join('')+`</div>`;
+}
+function nextsCards(m){
+ const nx=(m.state&&m.state.next)||[];if(!nx.length)return '';
+ return `<div class=card><div class=ihead>Próximos passos <span class=exp>clique pra abrir cada fase</span></div><div class=fases>`+
+  nx.map(function(s,i){const ix=s.indexOf(':');const t=ix>0?s.slice(0,ix):('Passo '+(i+1));const b=ix>0?s.slice(ix+1).trim():s;
+   return `<div class=fase onclick="this.classList.toggle('open')"><div class=fasen>${esc(t)}</div><div class=faseb>${esc(b)}</div></div>`;}).join('')+
+  `</div></div>`;
+}
+function blockersCards(m){
+ const bl=(m.state&&m.state.blockers)||[];if(!bl.length)return '';
+ return `<div class=card><div class=ihead>Blockers reais <span class=exp>o que trava de verdade · clique pra abrir</span></div><div class=blgrid>`+
+  bl.map(function(s){let ix=s.indexOf(':');if(ix<0||ix>64)ix=s.indexOf('. ');if(ix<0||ix>64)ix=Math.min(58,s.length);const t=s.slice(0,ix).trim();const b=s.slice(ix).replace(/^[:.]\s*/,'').trim();
+   return `<div class=blcard onclick="this.classList.toggle('open')"><div class=blt>⛔ ${esc(t)}</div>${b?`<div class=blb>${esc(b)}</div>`:''}</div>`;}).join('')+
+  `</div></div>`;
 }
 function renderTrail(){
  const m=MAP;
  const overall=m.lanes&&m.lanes.length?Math.round(m.lanes.reduce(function(s,l){return s+l.progress;},0)/m.lanes.length):0;
- let h=`<div class=card><h2>🧭 Trilha do projeto</h2>
-  <p class=trail>${esc((m.state&&m.state.now)||'')}</p>
-  <div class=t-over><div class=lane-bar style="width:280px;height:4px"><i style="width:${overall}%"></i></div><span class=lane-pct>${overall}% no geral</span></div>
-  <div class=ihead style="margin-top:22px">Próximos passos</div>
-  <ol class=nexts>${((m.state&&m.state.next)||[]).map(function(s){return `<li>${esc(s)}</li>`;}).join('')}</ol>
-  ${((m.state&&m.state.blockers)||[]).length?`<div class=ihead style="margin-top:20px">Blockers reais <span class=exp>o que trava de verdade</span></div><ul class=blockers>${m.state.blockers.map(function(b){return `<li>${esc(b)}</li>`;}).join('')}</ul>`:''}</div>`;
+ const tweet=(m.state&&(m.state.tweet||m.state.now))||'';
+ let h=`<div class="card tweetcard"><div class=tweethd><h2>🧭 Trilha</h2><div class=t-over><div class=lane-bar style="width:140px;height:4px"><i style="width:${overall}%"></i></div><span class=lane-pct>${overall}%</span></div></div>
+  <p class=tweet>${esc(tweet)}</p>
+  ${(m.state&&m.state.now&&m.state.now!==tweet)?`<button class="btn mini" onclick="tog('stnow')">status completo ▾</button><div id=stnow class=collapse><p class=trail>${esc(m.state.now)}</p></div>`:''}</div>`;
  h+=mayaGapHTML(m);
- h+=`<div class=card><div class=ihead>Hipóteses que guiam <span class=exp>por status · clique num card pra expandir o real-talk</span></div>${hypsKanban(m)}</div>`;
- h+=`<div class=card><div class=ihead>Mapa · o que depende do quê <span class=exp>clique num bloco pro aprofundamento técnico · ↔ arraste se precisar</span></div><div id=mapwrap><div id=map></div></div></div>`;
+ h+=`<div class=card><div class=ihead>Mapa · o que depende do quê <span class=exp>a parte boa — clique num bloco pro aprofundamento · ↔ arraste</span></div><div id=mapwrap><div id=map></div></div></div>`;
+ h+=`<div class=card><div class=ihead>Hipóteses <span class=exp>por status · clique num card pra abrir o real-talk</span></div>${hypsKanban(m)}</div>`;
+ h+=nextsCards(m);
+ h+=blockersCards(m);
  h+=gpuPlanHTML(m);
  h+=blocksHTML(m);
+ h+=`<div class=card><button class="btn mini" id=insbtn onclick="loadInsTrilha()">Insights — notas agregadas ▾</button><div id=instr class=collapse></div></div>`;
  document.getElementById('tr').innerHTML=h;
  const map=document.getElementById('map');
  const COLS=Math.max(0,...m.nodes.map(function(n){return n.col;}))+1;

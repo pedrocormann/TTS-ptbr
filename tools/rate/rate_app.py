@@ -390,9 +390,10 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .modal-t{font-family:var(--serif);font-size:22px;margin-bottom:16px}
 .modal-in{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--b);color:var(--t);border-radius:8px;padding:11px 13px;font-size:14px;font-family:var(--body)}.modal-in:focus{outline:none;border-color:var(--bh)}
 .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
-.curtext{width:100%;min-height:64px;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:14px 16px;font-family:var(--serif);font-size:25px;line-height:1.35;letter-spacing:-0.01em;resize:vertical}.curtext:focus{outline:none;border-color:var(--bh)}
-.curnl{width:100%;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:9px 12px;font-family:var(--body);font-size:14px}.curnl:focus{outline:none;border-color:var(--bh)}
-.emorow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:5px 0}
+.curtext{width:100%;min-height:0;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:9px 14px;font-family:var(--serif);font-size:25px;line-height:1.3;letter-spacing:-0.01em;resize:none;overflow:hidden;display:block}.curtext:focus{outline:none;border-color:var(--bh)}
+.curnl{width:100%;background:rgba(255,255,255,0.02);border:1px solid var(--b);color:var(--t);border-radius:var(--rsm);padding:8px 12px;font-family:var(--body);font-size:14px}.curnl:focus{outline:none;border-color:var(--bh)}
+.emorow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:4px 0}
+#cu .ind{margin:11px 0}#cu .ihead{margin-bottom:5px}#cu .curcmp{margin:7px 0;line-height:1.45}#cu .transport{margin:8px 0 2px}#cu .wave{margin:8px 0 4px}
 .emogl{font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--tm);width:74px;flex-shrink:0;text-align:right;margin-right:4px}
 .btn.fl.pri{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
 .curcmp{margin:10px 0;font-size:13px;color:var(--t2);line-height:1.7}.curcmp .curlbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--tm);margin-right:4px}
@@ -701,23 +702,21 @@ function renderCur(){
  <div class=tags><span>${ci+1}/${CUR.length}</span><span>${esc(c.id)}</span><span>${esc(c.style||'')}</span><span>dur ${c.dur_s!=null?c.dur_s.toFixed(1)+'s':'?'}</span>${(c.emocoes&&c.emocoes.length)?`<span style="border-color:var(--blue);color:var(--blue)">${esc(c.emocoes.join(', '))}</span>`:'<span style="border-color:var(--orange);color:var(--orange)">sem emoção</span>'}${c.edited?'<span style="border-color:var(--green);color:var(--green)">✓ revisado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}${c.keep===false?'<span style="border-color:var(--red);color:var(--red)">descartado</span>':''}</div>
  ${cPlayer(au)}
  <div class=ihead><b>Transcrição</b> <span class=exp>corrija pra bater EXATO com o áudio</span></div>
- <textarea id=curtext class=curtext oninput="curEdit('text',this.value)" placeholder="transcrição...">${esc(c.text||'')}</textarea>
+ <textarea id=curtext class=curtext rows=1 oninput="curEdit('text',this.value);grow(this)" placeholder="transcrição...">${esc(c.text||'')}</textarea>
  <div class=curcmp>
   <div><span class=curlbl>original (Whisper):</span> ${esc(c.text_orig||'—')}</div>
   ${c.text_v2!=null?`<div><span class=curlbl>ASR-v2 (medium):</span> ${esc(c.text_v2||'(vazio)')} ${(c.text_v2&&c.text_v2!==c.text)?'<button class="btn mini" onclick=useV2()>usar v2</button>':''}</div>`:'<div class=curlbl>ASR-v2: re-transcrevendo no CPU… (recarregue pra atualizar)</div>'}
  </div>
- <div class=ind><div class=ihead><b>Manter?</b></div>
-  <button class="btn ok ${c.keep!==false?'on':''}" onclick="curEdit('keep',true)">manter</button>
-  <button class="btn no ${c.keep===false?'on':''}" onclick="curEdit('keep',false)">descartar</button></div>
  <div class=ind id=emobox></div>
- <div class=ind><div class=ihead><b>Descrição livre</b> <span class=exp>o estilo em palavras — a camada que a SOTA (EmoVoice/Sesame) diz ser a melhor</span></div><input type=text id=curnl class=curnl value="${esc(c.estilo_nl||'')}" oninput="setNL(this.value)" placeholder="ex: irônico cansado, meio debochado, fala arrastada..."></div>
- <div class=ind><div class=ihead><b>Problemas</b></div>${CFLAGS.map(fl=>`<button class="btn fl ${(c.flags||[]).includes(fl)?'on':''}" onclick="curFlag('${fl}')">${fl}</button>`).join('')}</div>
+ <div class=ind><div class=ihead><b>Descrição livre</b> <span class=exp>o estilo em palavras (livre) — complementa as tags; a SOTA (EmoVoice) treina com isso</span></div><input type=text id=curnl class=curnl value="${esc(c.estilo_nl||'')}" oninput="setNL(this.value)" placeholder="ex: irônico cansado, meio debochado, fala arrastada..."></div>
+ <div class=ind><div class=ihead><b>Problemas</b> <span class=exp>mantido é o padrão — só descarte se o clipe não presta</span></div>${CFLAGS.map(fl=>`<button class="btn fl ${(c.flags||[]).includes(fl)?'on':''}" onclick="curFlag('${fl}')">${fl}</button>`).join('')}<button class="btn no ${c.keep===false?'on':''}" style="margin-left:10px" onclick="curEdit('keep',c.keep===false)">${c.keep===false?'descartado ✓':'descartar clipe'}</button></div>
  <div class=nav><button class=btn onclick="curGo(-1)">‹ anterior</button><button class=btn onclick="curGo(1)">próximo ›</button><span class=muted style="margin-left:12px">${done}/${CUR.length} revisados · mantidos ${CUR.filter(x=>x.keep!==false).length}</span></div>
  </div>`;
  document.getElementById('cu').innerHTML=h;
- cInit(au);renderEmo();
+ cInit(au);renderEmo();var _ta=document.getElementById('curtext');if(_ta)grow(_ta);
 }
-function saveCurNow(){const c=CUR[ci];if(!c)return;fetch('/api/curate/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,text:c.text,keep:c.keep!==false,flags:c.flags||[],emocoes:c.emocoes||[],delivery:c.delivery||[],eventos:c.eventos||[],estilo_nl:c.estilo_nl||'',intensidade:c.intensidade||null})}).catch(function(){});}
+function grow(t){t.style.height='auto';t.style.height=Math.max(40,t.scrollHeight)+'px';}
+function saveCurNow(){const c=CUR[ci];if(!c)return;fetch('/api/curate/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,text:c.text,keep:c.keep!==false,flags:c.flags||[],emocoes:c.emocoes||[],delivery:c.delivery||[],eventos:c.eventos||[],estilo_nl:c.estilo_nl||''})}).catch(function(){});}
 function curEdit(field,val){const c=CUR[ci];if(!c)return;c[field]=val;c.edited=true;if(field=='keep')renderCur();clearTimeout(window._ce);window._ce=setTimeout(saveCurNow,400);flash('salvo ✓');}
 function curFlag(fl){const c=CUR[ci];if(!c)return;const a=c.flags||[];const j=a.indexOf(fl);if(j<0){a.push(fl);}else{a.splice(j,1);}c.flags=a;c.edited=true;renderCur();saveCurNow();flash('salvo ✓');}
 function useV2(){const c=CUR[ci];if(!c||c.text_v2==null)return;c.text=c.text_v2;c.edited=true;renderCur();saveCurNow();flash('usou ASR-v2');}
@@ -731,12 +730,13 @@ function cInit(url){var a=document.getElementById('cau');if(a){a.loop=true;a.ont
 function cPlayer(url){return '<audio id=cau src="'+url+'" preload=auto style="display:none"></audio><div class=transport><button id=cplay class=playbtn onclick=cTog()>▶</button><span id=cptime class=ptime>0:00 / 0:00</span><span class=loophint>↻ loop · clique na onda pra ir ao ponto</span></div><div class=wave id=cwave style="cursor:pointer"><canvas id=cwc></canvas><div id=cph class=playhead></div></div>';}
 /* ---- Emoção em eixos (affect cap2 + delivery + events + intensidade) ---- */
 function emoBtns(grp,sel,fn,pri){return grp.e.map(function(x){var on=sel.indexOf(x[0])>=0;var isp=pri&&pri===x[0];return '<button class="btn fl'+(on?' on':'')+(isp?' pri':'')+'" title="'+esc(x[2])+'" onclick="'+fn+'(\''+x[0]+'\')">'+x[0]+'</button>';}).join('');}
-function emoUI(c){var em=c.emocoes||[],dl=c.delivery||[],ev=c.eventos||[];var h='';
- EMO_GROUPS.filter(function(g){return g.axis==='affect';}).forEach(function(g){h+='<div class=emorow><span class=emogl>'+g.g+'</span>'+emoBtns(g,em,'setEmo',em[0])+'</div>';});
- var dg=EMO_GROUPS.find(function(g){return g.axis==='delivery';});h+='<div class=emorow><span class=emogl>entrega</span>'+emoBtns(dg,dl,'setDeliv')+'</div>';
- var eg=EMO_GROUPS.find(function(g){return g.axis==='events';});h+='<div class=emorow><span class=emogl>eventos</span>'+emoBtns(eg,ev,'setEvent')+'</div>';
- return h;}
-function renderEmo(){var c=CUR[ci];if(!c)return;var b=document.getElementById('emobox');if(!b)return;b.innerHTML='<div class=ihead style="margin-top:4px"><b>Emoção</b> <span class=exp>afeto: máx 2 (a 1ª = dominante) · neutral é exclusivo · hover = definição</span></div>'+emoUI(c)+'<div class=ind style="margin-top:10px"><div class=ihead><b>Intensidade</b> <span class=exp>1 sutil → 5 intenso</span></div>'+[1,2,3,4,5].map(function(n){return '<button class="btn '+(c.intensidade===n?'on':'')+'" onclick="setIntensity('+n+')">'+n+'</button>';}).join('')+'</div>';}
+var showMore=false;
+function renderEmo(){var c=CUR[ci];if(!c)return;var b=document.getElementById('emobox');if(!b)return;var dl=c.delivery||[],ev=c.eventos||[];var nm=dl.length+ev.length;
+ var h='<div class=ihead style="margin-top:0"><b>Emoção</b> <span class=exp>afeto: máx 2 (a 1ª = dominante) · neutral é exclusivo · passe o mouse pra definição</span></div>';
+ EMO_GROUPS.filter(function(g){return g.axis==='affect';}).forEach(function(g){h+='<div class=emorow><span class=emogl>'+g.g+'</span>'+emoBtns(g,c.emocoes||[],'setEmo',(c.emocoes||[])[0])+'</div>';});
+ h+='<button class="btn mini" style="margin-top:4px" onclick="showMore=!showMore;renderEmo()">'+(showMore?'– esconder entrega/eventos':'+ entrega · eventos'+(nm?' ('+nm+')':''))+'</button>';
+ if(showMore){var dg=EMO_GROUPS.find(function(g){return g.axis==='delivery';});h+='<div class=emorow style="margin-top:5px"><span class=emogl>entrega</span>'+emoBtns(dg,dl,'setDeliv')+'</div>';var eg=EMO_GROUPS.find(function(g){return g.axis==='events';});h+='<div class=emorow><span class=emogl>eventos</span>'+emoBtns(eg,ev,'setEvent')+'</div>';}
+ b.innerHTML=h;}
 function _tog(a,v){var i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);return a;}
 function setEmo(en){var c=CUR[ci];if(!c)return;var a=(c.emocoes||[]).slice();
  if(en==='neutral'){a=a.indexOf('neutral')>=0?[]:['neutral'];}
@@ -744,7 +744,6 @@ function setEmo(en){var c=CUR[ci];if(!c)return;var a=(c.emocoes||[]).slice();
  c.emocoes=a;c.edited=true;renderEmo();saveCurNow();}
 function setDeliv(en){var c=CUR[ci];if(!c)return;c.delivery=_tog((c.delivery||[]).slice(),en);c.edited=true;renderEmo();saveCurNow();}
 function setEvent(en){var c=CUR[ci];if(!c)return;c.eventos=_tog((c.eventos||[]).slice(),en);c.edited=true;renderEmo();saveCurNow();}
-function setIntensity(n){var c=CUR[ci];if(!c)return;c.intensidade=(c.intensidade===n?null:n);c.edited=true;renderEmo();saveCurNow();}
 function setNL(v){var c=CUR[ci];if(!c)return;c.estilo_nl=v;c.edited=true;clearTimeout(window._nlt);window._nlt=setTimeout(saveCurNow,400);}
 function curGo(d){saveCurNow();ci=Math.max(0,Math.min(CUR.length-1,ci+d));renderCur();}
 function view(v){
@@ -937,6 +936,8 @@ document.addEventListener('keydown',e=>{
   else if(e.key=='Enter'&&window._mStart!=null){e.preventDefault();addMarker();}
   else if(e.key>='1'&&e.key<='5'){setv('geral',+e.key);}
   else if(e.key.toLowerCase()=='p'){setv('parou',!(rOf(cur()).parou===true));}
+ } else if(!document.getElementById('cu').classList.contains('hide')){
+  if(e.key==' '){e.preventDefault();cTog();}
  }
 });
 document.addEventListener('mouseup',function(){endDrag();});

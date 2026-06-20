@@ -300,6 +300,8 @@ h2{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.01e
 .node-meta .dot{width:5px;height:5px;border-radius:50%;background:var(--tf)}
 .node.done .dot{background:var(--green)}.node.wip .dot{background:var(--orange)}.node.next .dot{background:var(--blue)}
 svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visible}.edge{fill:none;stroke:rgba(245,245,247,0.13);stroke-width:1.5}
+.avbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.btn.mini{font-size:11px;padding:5px 11px}
 .dots{display:flex;flex-wrap:wrap;gap:5px;margin:14px 2px 0}
 .pdot{width:8px;height:8px;border-radius:999px;background:var(--tf);cursor:pointer;transition:all .15s var(--ease)}.pdot:hover{transform:scale(1.3)}.pdot.done{background:var(--green)}.pdot.cur{outline:1px solid var(--t);outline-offset:2px}
 .panelbg{position:fixed;inset:0;background:rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:opacity 0.22s var(--ease);z-index:55}.panelbg.open{opacity:1;pointer-events:auto}
@@ -387,25 +389,64 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .curcmp{margin:10px 0;font-size:13px;color:var(--t2);line-height:1.7}.curcmp .curlbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--tm);margin-right:4px}
 .btn.mini{font-size:11px;padding:3px 8px}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ---- Onde estamos vs Maya (scorecard brutal) ---- */
+.gapcard{border-color:rgba(199,48,45,0.28);background:linear-gradient(180deg,rgba(199,48,45,0.04),var(--surface))}
+.gapmedia{display:flex;align-items:baseline;gap:8px;margin:10px 0 18px;flex-wrap:wrap}
+.gapbig{font-family:var(--serif);font-size:52px;line-height:0.9;color:var(--orange)}
+.gapof{font-size:18px;color:var(--tm)}
+.gapver{font-size:13px;color:var(--t2);margin-left:10px;line-height:1.45;flex:1;min-width:200px}
+.gaprow{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:12px}
+.gaplbl{width:130px;color:var(--t2);flex-shrink:0;text-align:right}
+.gapbar{width:130px;height:5px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;flex-shrink:0}
+.gapbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--orange))}
+.gapscore{font-family:var(--mono);font-size:11px;color:var(--t);width:40px;flex-shrink:0}
+.gapnota{font-size:11px;color:var(--tm);line-height:1.4}
+.gapreal{font-size:12.5px;color:var(--t2);line-height:1.65;margin-top:16px;padding-top:14px;border-top:1px solid var(--b)}
+.gapreal::before{content:'realismo — ';font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--red)}
+.blockers{list-style:none;margin-top:6px}.blockers li{font-size:12px;color:var(--t2);line-height:1.5;padding-left:18px;position:relative;margin:5px 0}
+.blockers li::before{content:'⛔';position:absolute;left:0;font-size:10px}
+/* ---- Hipóteses kanban ---- */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+@media(max-width:920px){.kanban{grid-template-columns:repeat(2,1fr)}}
+.kcol{background:rgba(255,255,255,0.012);border:1px solid var(--b);border-radius:var(--rsm);padding:10px}
+.khead{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--tm);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.kcount{background:var(--surface-h);border-radius:99px;padding:1px 7px;font-size:10px;color:var(--t2)}
+.kcol.kv .khead{color:var(--green)}.kcol.kp .khead{color:var(--orange)}.kcol.ka .khead{color:var(--blue)}.kcol.kr .khead{color:var(--tm)}
+.kcard{background:var(--surface);border:1px solid var(--b);border-left:2px solid var(--bh);border-radius:8px;padding:10px 11px;margin-bottom:8px;cursor:pointer;transition:all 0.18s var(--ease)}
+.kcard:last-child{margin-bottom:0}
+.kcard:hover{background:var(--surface-h);border-color:var(--bh)}
+.kcard.kv{border-left-color:var(--green)}.kcard.kp{border-left-color:var(--orange)}.kcard.ka{border-left-color:var(--blue)}.kcard.kr{border-left-color:var(--red);opacity:0.62}
+.kcard.kr:hover{opacity:0.85}
+.kclaim{font-size:12.5px;font-weight:500;line-height:1.4;color:var(--t);display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.kclaim .kchev{color:var(--tm);font-size:10px;flex-shrink:0;transition:transform 0.2s var(--ease)}
+.kcard.open .kchev{transform:rotate(90deg)}
+.kcard.kr .kclaim{text-decoration:line-through;text-decoration-color:rgba(199,48,45,0.5)}
+.kev{font-size:11px;color:var(--tm);margin-top:5px;line-height:1.45}
+.kdetail{max-height:0;overflow:hidden;transition:max-height 0.3s var(--ease)}
+.kcard.open .kdetail{max-height:680px;margin-top:9px;padding-top:9px;border-top:1px solid var(--b)}
+.kdetail p{margin:5px 0;font-size:11.5px;color:var(--t2);line-height:1.55}
+.kdetail ul{margin:5px 0 5px 15px}.kdetail li{font-size:11.5px;color:var(--t2);line-height:1.5}
+.kdetail code{font-family:var(--mono);font-size:10.5px;background:rgba(255,255,255,0.05);padding:1px 4px;border-radius:4px}
+.kdetail .linknode{margin-top:6px}
 </style></head><body>
 <header><h1>🎧 TTS pt-BR</h1>
-<button class="tab on" id=tAv onclick=view('av')>Avaliar</button>
+<button class="tab on" id=tGr onclick=view('gr')>Gravar</button>
+<button class=tab id=tCu onclick=view('cu')>Curar</button>
+<button class=tab id=tAv onclick=view('av')>Avaliar</button>
 <button class=tab id=tIn onclick=view('in')>Insights</button>
 <button class=tab id=tTr onclick=view('tr')>Trilha</button>
-<button class=tab id=tCu onclick=view('cu')>Curar</button>
-<button class=tab id=tGr onclick=view('gr')>Gravar</button>
 <div class=bar><i id=prog></i></div><span class=muted id=cnt></span><div class=sp></div></header>
 <div class=wrap>
-<div id=av><div class=card id=card></div>
+<div id=av class=hide><div class=avbar><button class="btn mini" id=todobtn onclick=toggleTodo()>só os que faltam</button><button class="btn mini" onclick=nextTodo()>⏭ pular pro próximo que falta</button></div><div class=card id=card></div>
 <div id=dots class=dots></div></div>
 <div id=in class=hide></div>
 <div id=tr class=hide></div>
 <div id=cu class=hide></div>
-<div id=gr class=hide></div>
+<div id=gr></div>
 </div>
 <div id=toast class=toast></div>
-<button class="sidenav left" id=navL onclick=goPrev() title="áudio anterior">‹</button>
-<button class="sidenav right" id=navR onclick=goNext() title="próximo áudio">›</button>
+<button class="sidenav left hide" id=navL onclick=goPrev() title="áudio anterior">‹</button>
+<button class="sidenav right hide" id=navR onclick=goNext() title="próximo áudio">›</button>
 <div id=panelbg class=panelbg onclick=closePanel()></div>
 <div id=panel class=panel></div>
 <div id=tagmodalbg class=modalbg onclick=closeTagModal()></div>
@@ -421,7 +462,10 @@ const PROBS=["palavra errada (WER)","sotaque gringo","fonema errado","entonaçã
 const PTBR=["R forte /ʁ/ virou fraco","vogal nasal sem nasalizar (ã/õ/em)","ti/di sem palatal (tchi/dji)","S coda sem chiado carioca","L coda virou /l/ (não /w/)","vogal aberta/fechada (ó/ô,é/ê)","lh/nh sem palatal","ão/ditongo nasal errado","sílaba tônica errada","ritmo silábico de gringo"];
 let CUSTOM=[];try{CUSTOM=JSON.parse(localStorage.getItem('customtags')||'[]');}catch(e){}
 try{window._drafts=JSON.parse(localStorage.getItem('drafts')||'{}');}catch(e){window._drafts={};}window._tgOpen={geral:true,ptbr:false};window._selTag="palavra errada (WER)";
-async function boot(){clips=await(await fetch('/api/clips')).json();ratings=await(await fetch('/api/ratings')).json();try{MAP=await(await fetch('/api/map')).json();}catch(e){}try{const last=localStorage.getItem('lastclip');if(last){const idx=clips.findIndex(function(c){return K(c.run,c.id)===last;});if(idx>=0)i=idx;}}catch(e){}renderTrail();render();}
+async function boot(){clips=await(await fetch('/api/clips')).json();ratings=await(await fetch('/api/ratings')).json();try{MAP=await(await fetch('/api/map')).json();}catch(e){}try{const last=localStorage.getItem('lastclip');if(last){const idx=clips.findIndex(function(c){return K(c.run,c.id)===last;});if(idx>=0)i=idx;}}catch(e){}renderTrail();render();view('gr');}
+let onlyTodo=false;
+function toggleTodo(){onlyTodo=!onlyTodo;const b=document.getElementById('todobtn');if(b)b.classList.toggle('on',onlyTodo);if(onlyTodo&&cur()&&isComplete(cur()))nextTodo();else{renderDots();updateCount();}flash(onlyTodo?'filtrando: só os que faltam':'mostrando todos');}
+function nextTodo(){for(let k=1;k<=clips.length;k++){const idx=(i+k)%clips.length;if(!isComplete(clips[idx])){jump(idx);return;}}flash('tudo avaliado ✓');}
 function cur(){return clips[i];}
 function rOf(c){return ratings[K(c.run,c.id)]||{};}
 function esc(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
@@ -580,7 +624,7 @@ function updateMarker(idx,field,val){const c=cur();const r=rOf(c);if(!r.markers|
 function renderMarkerList(){const el=document.getElementById('mlist');if(!el)return;const ms=curMarkers();el.innerHTML=ms.length?(`<div class=ihead style="margin-top:12px">Marcadores no tempo <span class=exp>${ms.length} — clique no tempo pra ouvir o trecho em loop (1s de descanso) · edite tipo/intensidade/nota</span></div>`+ms.map(function(m,idx){const s=mSpan(m),a=s[0],b=s[1];const si=sevInfo(m.sev);const on=window._segLoop&&window._segLoop.idx===idx;return `<div class="mrow${on?' on':''}"><span class=mt onclick="loopSeg(${idx})">${on?'↻ ':''}${a.toFixed(2)}–${b.toFixed(2)}s</span><select class="msel mrowsel" onchange="updateMarker(${idx},'tag',this.value)">${tagOpts(m.tag)}</select><select class="msev2 sevb ${si.bucket}" onchange="updateMarker(${idx},'sev',this.value)">`+[1,2,3,4,5].map(function(n){return `<option value=${n}${si.n===n?' selected':''}>${n}</option>`;}).join('')+`</select><input class=mnt2 value="${esc(m.note||'')}" oninput="updateMarker(${idx},'note',this.value)" placeholder="nota"><span class=mx onclick="removeMarker(${idx})">✕</span></div>`;}).join('')):'';}
 function updateCount(){
  const rated=clips.filter(function(x){return isComplete(x);}).length;
- document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} completos`;
+ document.getElementById('cnt').textContent=`${i+1}/${clips.length} · ${rated} completos · ${clips.length-rated} faltam`;
  document.getElementById('prog').style.width=(clips.length?100*rated/clips.length:0)+'%';
  const nl=document.getElementById('navL'),nr=document.getElementById('navR');
  if(nl)nl.classList.toggle('off',i<=0);if(nr)nr.classList.toggle('off',i>=clips.length-1);
@@ -593,7 +637,7 @@ function setv(k,v){const c=cur();const r=rOf(c);r[k]=v;r.run=c.run;r.id=c.id;r.t
 function saveNota(v){const c=cur();const r=rOf(c);r.nota=v;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;clearTimeout(window._nt);window._nt=setTimeout(function(){queueSave(c,r);},400);}
 function flash(m){const t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(window._ft);window._ft=setTimeout(function(){t.classList.remove('show');},900);}
 function togProb(p){const c=cur();const r=rOf(c);const a=r.problemas||[];const j=a.indexOf(p);if(j<0){a.push(p);}else{a.splice(j,1);}r.problemas=a;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderCtrls();flash('salvo ✓');queueSave(c,r);}
-function go(d){saveDraft();i=Math.max(0,Math.min(clips.length-1,i+d));render();setTimeout(playFresh,140);}
+function go(d){saveDraft();let ni=i+d;if(onlyTodo){let k=0;while(ni>=0&&ni<clips.length&&isComplete(clips[ni])&&++k<=clips.length)ni+=d;}i=Math.max(0,Math.min(clips.length-1,ni));render();setTimeout(playFresh,140);}
 function playFresh(){const a=document.getElementById('au');if(a){const p=a.play();if(p)p.catch(function(){});}}
 async function showCurate(){
  try{CUR=await(await fetch('/api/curate')).json();}catch(e){CUR=[];}
@@ -666,6 +710,29 @@ async function exportFeedback(){
   flash('exportado: feedback.jsonl');}catch(e){flash('falha ao exportar');}
 }
 const STATUS={done:'feito',wip:'em curso',next:'a seguir',idea:'hipótese'};
+function mayaGapHTML(m){
+ const g=m.maya_gap;if(!g)return '';
+ const eixos=(g.eixos||[]).map(function(e){const w=Math.max(0,Math.min(100,(e.score||0)/10*100));return `<div class=gaprow><span class=gaplbl>${esc(e.nome)}</span><div class=gapbar><i style="width:${w}%"></i></div><span class=gapscore>${e.score}/10</span><span class=gapnota>${esc(e.nota||'')}</span></div>`;}).join('');
+ const real=m.realismo||g.realismo||'';
+ return `<div class="card gapcard"><div class=ihead>Onde estamos <b>de verdade</b> vs Maya <span class=exp>realismo, não otimismo · Maya = 10</span></div>
+  <div class=gapmedia><span class=gapbig>${g.media!=null?g.media:'?'}</span><span class=gapof>/10</span><span class=gapver>${esc(g.veredito||'')}</span></div>
+  ${eixos}${real?`<p class=gapreal>${esc(real)}</p>`:''}</div>`;
+}
+function hypsKanban(m){
+ const cols=[{k:'validada',label:'validadas',cls:'kv'},{k:'parcial',label:'parciais',cls:'kp'},{k:'aberta',label:'em aberto',cls:'ka'},{k:'refutada',label:'refutadas',cls:'kr'}];
+ const hs=m.hypotheses||[];
+ return '<div class=kanban>'+cols.map(function(c){
+  const items=hs.filter(function(h){return h.status===c.k;});
+  return `<div class="kcol ${c.cls}"><div class=khead>${c.label} <span class=kcount>${items.length}</span></div>`+
+   items.map(function(h,idx){const cid=c.k+'-'+idx;
+    return `<div class="kcard ${c.cls}" id="kc-${cid}" onclick="toggleHyp('${cid}')">
+     <div class=kclaim><span>${esc(h.claim)}</span>${(h.detail||h.node)?'<span class=kchev>▶</span>':''}</div>
+     ${h.evidence?`<div class=kev>${esc(h.evidence)}</div>`:''}
+     <div class=kdetail>${h.detail?md(h.detail):''}${h.node?`<span class=linknode onclick="event.stopPropagation();openNode('${h.node}')">ir ao bloco →</span>`:''}</div>
+    </div>`;}).join('')+`</div>`;
+ }).join('')+'</div>';
+}
+function toggleHyp(cid){const el=document.getElementById('kc-'+cid);if(el)el.classList.toggle('open');}
 function gpuPlanHTML(m){
  if(!m.gpu_plan||!m.gpu_plan.length)return '';
  const cb=m.cost_basis?'<p class=trail style="margin-bottom:10px">'+esc(m.cost_basis)+'</p>':'';
@@ -692,10 +759,11 @@ function renderTrail(){
  let h=`<div class=card><h2>🧭 Trilha do projeto</h2>
   <p class=trail>${esc((m.state&&m.state.now)||'')}</p>
   <div class=t-over><div class=lane-bar style="width:280px;height:4px"><i style="width:${overall}%"></i></div><span class=lane-pct>${overall}% no geral</span></div>
-  <div class=ihead style="margin-top:22px">Hipóteses que guiam <span class=exp>clique pra ir ao bloco</span></div>
-  <div class=hyps>${(m.hypotheses||[]).map(function(hy){return `<span class="hyp ${hy.status}" onclick="openNode('${hy.node}')">${esc(hy.claim)} · <b>${hy.status}</b></span>`;}).join('')}</div>
   <div class=ihead style="margin-top:22px">Próximos passos</div>
-  <ol class=nexts>${((m.state&&m.state.next)||[]).map(function(s){return `<li>${esc(s)}</li>`;}).join('')}</ol></div>`;
+  <ol class=nexts>${((m.state&&m.state.next)||[]).map(function(s){return `<li>${esc(s)}</li>`;}).join('')}</ol>
+  ${((m.state&&m.state.blockers)||[]).length?`<div class=ihead style="margin-top:20px">Blockers reais <span class=exp>o que trava de verdade</span></div><ul class=blockers>${m.state.blockers.map(function(b){return `<li>${esc(b)}</li>`;}).join('')}</ul>`:''}</div>`;
+ h+=mayaGapHTML(m);
+ h+=`<div class=card><div class=ihead>Hipóteses que guiam <span class=exp>por status · clique num card pra expandir o real-talk</span></div>${hypsKanban(m)}</div>`;
  h+=`<div class=card><div class=ihead>Mapa · o que depende do quê <span class=exp>clique num bloco pro aprofundamento técnico · ↔ arraste se precisar</span></div><div id=mapwrap><div id=map></div></div></div>`;
  h+=gpuPlanHTML(m);
  h+=blocksHTML(m);

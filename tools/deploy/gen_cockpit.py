@@ -22,8 +22,8 @@ print(f"clips={len(clips)} · trilha lanes={len(trilha.get('lanes',[]))} nodes={
 # ---- PAGE ----
 PAGE = rate_app.PAGE
 
-# 1) título limpo (sem emoji → favicon padrão da Unflat)
-PAGE = PAGE.replace("<title>Rate — TTS pt-BR</title>", "<title>TTS PT-BR</title>")
+# 1) título limpo + favicon do hub Unflat (/favicon.png)
+PAGE = PAGE.replace("<title>Rate — TTS pt-BR</title>", '<title>TTS PT-BR</title><link rel="icon" href="/favicon.png">')
 
 # 2) reescreve os 3 src de áudio pro Storage público
 PAGE = PAGE.replace(

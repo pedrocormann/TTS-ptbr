@@ -48,6 +48,9 @@ input:focus,select:focus{border-color:var(--orange)}
 .pdot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
 .pchip.rec .pdot{background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 1s infinite}
 .pchip .me{margin-left:auto;color:var(--tx4);font-size:10px;font-family:'Geist Mono',monospace;text-transform:uppercase}
+.salarow{cursor:default}.salaenter{display:flex;align-items:center;gap:9px;flex:1;cursor:pointer}
+.salax{margin-left:8px;color:var(--tx4);cursor:pointer;padding:2px 8px;border-radius:6px;font-size:12px;transition:.15s var(--ease)}
+.salax:hover{color:var(--red);background:rgba(199,48,45,.12)}
 .timer{font-family:'Geist Mono',monospace;font-size:40px;font-weight:600;text-align:center}
 .status{font-size:13px;color:var(--tx2);text-align:center;min-height:18px;margin-top:12px;font-family:'Geist Mono',monospace}
 .status.ok{color:var(--green)}.status.err{color:var(--orange)}
@@ -70,7 +73,7 @@ input:focus,select:focus{border-color:var(--orange)}
   <div class="card" id="setup">
     <div class="hint"><b>Como funciona:</b> alguém <b>cria a sala</b>, os outros 2 <b>entram</b> nela (aparece na lista). Quem iniciar/encerrar a sessão faz pra todos — cada um grava a própria faixa com os mesmos metadados.</div>
     <div class="row" style="margin-bottom:12px">
-      <div><label>Você</label><select id="who"><option value="">—</option><option>pedro</option><option>joao</option><option>guilherme</option><option value="convidado">convidado</option></select></div>
+      <div><label>Você</label><select id="who"><option value="">—</option><option>pedro</option><option>joao</option><option>guilherme</option><option value="convidado">convidado</option></select><div id="whoFixed" style="display:none;font-family:'Geist Mono',monospace;font-size:13px;color:var(--tx2);padding:11px 13px;border:1px solid var(--border);border-radius:var(--rs)"></div></div>
       <div><label>Microfone</label><select id="mic"></select></div>
     </div>
     <!-- TESTE DE MIC -->
@@ -143,6 +146,11 @@ const MIC_TIPS={
 };
 const $=id=>document.getElementById(id);
 
+/* ===================== Identidade (email logado, OTP) ===================== */
+const INJ_EMAIL="__GRAVADOR_USER__";            // a rota /tts-ptbr/gravar injeta o email aqui
+const HAS_EMAIL=INJ_EMAIL.indexOf("@")>0;        // se não injetou (uso local), cai no dropdown
+function whoVal(){return HAS_EMAIL?INJ_EMAIL.split("@")[0].toLowerCase():($("who")?whoVal():"");}
+
 /* ===================== ESTADO ===================== */
 let sb=null, channel=null, myName="", meetingCode="";
 let recording=false, ctx, stream, node, startMs, timerInt, sampleRate=SR;
@@ -201,7 +209,7 @@ async function startTest(){
     const an=testCtx.createAnalyser();an.fftSize=512;const dat=new Float32Array(an.fftSize);
     src.connect(an);src.connect(testGain);testGain.connect(testCtx.destination); // você se ouve
     $("testbox").classList.remove("hidden");$("testbtn").textContent="⏹ Parar teste";
-    $("mictip").textContent=MIC_TIPS[$("who").value]||"Fale num volume normal; o pico não pode bater no vermelho. Use FONE pra não dar microfonia.";
+    $("mictip").textContent=MIC_TIPS[whoVal()]||"Fale num volume normal; o pico não pode bater no vermelho. Use FONE pra não dar microfonia.";
     (function loop(){ if(!testCtx)return; an.getFloatTimeDomainData(dat); let p=0;for(let i=0;i<dat.length;i++){const v=Math.abs(dat[i]);if(v>p)p=v;}
       $("tmeter").style.width=Math.min(100,p*140)+"%";
       $("testlbl").textContent=p>0.97?"⚠ alto demais — abaixe o ganho do mic":"fale — você se ouve no fone";
@@ -220,27 +228,32 @@ async function listMics(){
     $("mic").innerHTML=ds.map((d,i)=>`<option value="${d.deviceId}">${d.label||("Mic "+(i+1))}</option>`).join("");
   }catch(e){ $("status").textContent="permita o microfone ("+e.name+")";$("status").className="status err"; }
 }
-function validate(){ if($("who")&&$("who").value) loadSalas(); }
+function validate(){ if($("who")&&whoVal()) loadSalas(); }
 $("who")&&$("who").addEventListener("change",validate);
 
 /* ===================== SALAS: listar / criar (tabela Supabase) ===================== */
 const SB_HDR={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY};
 async function loadSalas(){
-  if(!$("who").value){ $("salaslist").innerHTML='<div class="lbl">escolha seu nome acima pra ver as salas…</div>'; return; }
+  if(!whoVal()){ $("salaslist").innerHTML='<div class="lbl">escolha seu nome acima pra ver as salas…</div>'; return; }
   try{
     const r=await fetch(SUPABASE_URL+"/rest/v1/salas?select=code,nome,criada_por&ativa=eq.true&order=criada_em.desc",{headers:SB_HDR});
     const ss=await r.json();
     $("salaslist").innerHTML = (Array.isArray(ss)&&ss.length)
-      ? ss.map(s=>`<div class="pchip" style="cursor:pointer" onclick="enterRoom('${s.code}')"><span class="pdot"></span>${s.nome}<span class="me">por ${s.criada_por||"?"} · entrar →</span></div>`).join("")
+      ? ss.map(s=>`<div class="pchip salarow"><span class="pdot"></span><span class="salaenter" onclick="enterRoom('${s.code}')">${s.nome}<span class="me">por ${s.criada_por||"?"} · entrar →</span></span><span class="salax" title="apagar sala" onclick="deleteSala('${s.code}')">✕</span></div>`).join("")
       : '<div class="lbl">nenhuma sala ativa — crie uma abaixo</div>';
   }catch(e){ $("salaslist").innerHTML='<div class="lbl clip">erro ao listar salas</div>'; }
 }
+async function deleteSala(code){
+  if(!confirm("Apagar essa sala? (some da lista pra todos)"))return;
+  try{ await fetch(SUPABASE_URL+"/rest/v1/salas?code=eq."+encodeURIComponent(code),{method:"PATCH",headers:{...SB_HDR,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({ativa:false})}); await loadSalas(); }
+  catch(e){ alert("erro ao apagar: "+e.message); }
+}
 async function criarSala(){
-  if(!$("who").value){ alert("Escolha seu nome primeiro."); return; }
+  if(!whoVal()){ alert("Escolha seu nome primeiro."); return; }
   const nome=($("novanome").value||"").trim(); if(!nome){ alert("Dê um nome pra sala."); return; }
   const code=nome.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,36)+"-"+Math.random().toString(36).slice(2,6);
   try{
-    await fetch(SUPABASE_URL+"/rest/v1/salas",{method:"POST",headers:{...SB_HDR,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({code,nome,criada_por:$("who").value})});
+    await fetch(SUPABASE_URL+"/rest/v1/salas",{method:"POST",headers:{...SB_HDR,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({code,nome,criada_por:whoVal()})});
     $("novanome").value="";            // criar ≠ entrar: a sala aparece na lista, cada um entra quando quiser
     await loadSalas();
     $("salamsg").innerHTML='✓ sala <b>"'+nome+'"</b> criada — clique nela na lista acima pra entrar';
@@ -256,7 +269,7 @@ async function encerrarSala(){
 /* ===================== SALA (Supabase Realtime) ===================== */
 function enterRoom(code){
   stopTest();
-  myName=$("who").value; meetingCode=code;
+  myName=whoVal(); meetingCode=code;
   if(!window.supabase){ $("status").textContent="carregando…"; setTimeout(()=>enterRoom(code),400); return; }
   sb=sb||window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
   channel=sb.channel("sala:"+meetingCode,{config:{broadcast:{self:true},presence:{key:myName}}});
@@ -343,6 +356,7 @@ async function uploadBlob(meta,blob){
   return new Promise((res,rej)=>{x.onload=()=>(x.status>=200&&x.status<300)?res():rej(new Error("HTTP "+x.status));x.onerror=()=>rej(new Error("rede"));x.send(blob);});
 }
 window.addEventListener("beforeunload",e=>{if(recording){e.preventDefault();e.returnValue="Gravando! Encerre antes de fechar.";}});
+if(HAS_EMAIL){ const w=$("who");if(w)w.style.display="none"; const wf=$("whoFixed");if(wf){wf.style.display="block";wf.textContent="você: "+INJ_EMAIL;} loadSalas(); }
 listMics();validate();
 </script>
 </body>

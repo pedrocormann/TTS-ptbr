@@ -393,6 +393,7 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 <button class=tab id=tIn onclick=view('in')>Insights</button>
 <button class=tab id=tTr onclick=view('tr')>Trilha</button>
 <button class=tab id=tCu onclick=view('cu')>Curar</button>
+<button class=tab id=tGr onclick=view('gr')>Gravar</button>
 <div class=bar><i id=prog></i></div><span class=muted id=cnt></span><div class=sp></div></header>
 <div class=wrap>
 <div id=av><div class=card id=card></div>
@@ -400,6 +401,7 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 <div id=in class=hide></div>
 <div id=tr class=hide></div>
 <div id=cu class=hide></div>
+<div id=gr class=hide></div>
 </div>
 <div id=toast class=toast></div>
 <button class="sidenav left" id=navL onclick=goPrev() title="áudio anterior">‹</button>
@@ -625,16 +627,20 @@ function curFlag(fl){const c=CUR[ci];if(!c)return;const a=c.flags||[];const j=a.
 function useV2(){const c=CUR[ci];if(!c||c.text_v2==null)return;c.text=c.text_v2;c.edited=true;renderCur();saveCurNow();flash('usou ASR-v2');}
 function curGo(d){saveCurNow();ci=Math.max(0,Math.min(CUR.length-1,ci+d));renderCur();}
 function view(v){
- for(const x of ['av','in','tr','cu']){document.getElementById(x).classList.toggle('hide',x!=v);}
+ for(const x of ['av','in','tr','cu','gr']){document.getElementById(x).classList.toggle('hide',x!=v);}
  document.getElementById('tAv').classList.toggle('on',v=='av');
  document.getElementById('tIn').classList.toggle('on',v=='in');
  document.getElementById('tTr').classList.toggle('on',v=='tr');
  document.getElementById('tCu').classList.toggle('on',v=='cu');
+ document.getElementById('tGr').classList.toggle('on',v=='gr');
  document.getElementById('navL').classList.toggle('hide',v!='av');document.getElementById('navR').classList.toggle('hide',v!='av');
  if(v=='in'){showIns();}
  if(v=='tr'){requestAnimationFrame(drawEdges);}
  if(v=='cu'){showCurate();}
+ if(v=='gr'){loadGravar();}
 }
+function loadGravar(){const g=document.getElementById('gr');if(!g.dataset.loaded){g.dataset.loaded=1;
+ g.innerHTML='<iframe src="/gravar" allow="microphone" style="width:100%;height:84vh;border:1px solid var(--border);border-radius:14px;background:var(--bg)"></iframe>';}}
 async function showIns(){
  const d=await(await fetch('/api/insights')).json();
  const tbl=(o,hd)=>`<table><tr><th>${hd}</th><th>n</th><th>geral</th><th>nativo</th><th>natural</th><th>voz</th><th>parou%</th></tr>`+
@@ -820,6 +826,9 @@ class H(BaseHTTPRequestHandler):
         u = urllib.parse.urlparse(self.path); q = urllib.parse.parse_qs(u.query)
         if u.path == '/':
             self._send(200, PAGE, 'text/html; charset=utf-8')
+        elif u.path == '/gravar':
+            rec = Path(__file__).resolve().parent.parent / 'recording' / 'maya_recorder.html'
+            self._send(200, rec.read_text(encoding='utf-8'), 'text/html; charset=utf-8')
         elif u.path == '/api/clips':
             self._send(200, build_manifest())
         elif u.path == '/api/ratings':

@@ -68,10 +68,7 @@ input:focus,select:focus{border-color:var(--orange)}
 
   <!-- SETUP -->
   <div class="card" id="setup">
-    <div class="hint"><b>Como funciona:</b> os 3 entram na MESMA sala (mesmo código). Quem iniciar/encerrar a sessão faz isso pra todos — cada um grava a própria faixa com os mesmos metadados.</div>
-    <div class="row" style="margin-bottom:12px">
-      <div><label>Código da reunião (compartilhado)</label><input id="meeting" placeholder="ex: papo-23jun" autocomplete="off"></div>
-    </div>
+    <div class="hint"><b>Como funciona:</b> alguém <b>cria a sala</b>, os outros 2 <b>entram</b> nela (aparece na lista). Quem iniciar/encerrar a sessão faz pra todos — cada um grava a própria faixa com os mesmos metadados.</div>
     <div class="row" style="margin-bottom:12px">
       <div><label>Você</label><select id="who"><option value="">—</option><option>pedro</option><option>joao</option><option>guilherme</option><option value="convidado">convidado</option></select></div>
       <div><label>Microfone</label><select id="mic"></select></div>
@@ -85,7 +82,15 @@ input:focus,select:focus{border-color:var(--orange)}
       <input class="slider" id="gain" type="range" min="0" max="200" value="100">
       <div id="mictip" class="hint" style="margin-top:8px"></div>
     </div>
-    <button class="btn primary" id="enterbtn" style="margin-top:12px" onclick="enterRoom()" disabled>Entrar na sala</button>
+    <!-- SALAS: criar / entrar -->
+    <div id="salasbox" style="margin-top:16px">
+      <div class="section-ttl">Salas ativas <a onclick="loadSalas()" style="color:var(--tx3);cursor:pointer;font-size:10px;margin-left:6px">↻ atualizar</a></div>
+      <div class="presence" id="salaslist"><div class="lbl">escolha seu nome acima pra ver as salas…</div></div>
+      <div class="row" style="margin-bottom:0">
+        <div><input id="novanome" placeholder="nome da nova sala (ex: papo 23/jun)" autocomplete="off"></div>
+      </div>
+      <button class="btn ghost" style="margin-top:10px" onclick="criarSala()">+ Criar sala nova</button>
+    </div>
   </div>
 
   <!-- SALA -->
@@ -100,7 +105,10 @@ input:focus,select:focus{border-color:var(--orange)}
       <button class="btn danger" id="endbtn" style="margin-top:14px" onclick="endSession()">Encerrar sessão (pra todos)</button>
     </div>
     <div class="status" id="status"></div>
-    <button class="btn ghost" style="margin-top:10px" onclick="leaveRoom()">Sair da sala</button>
+    <div class="row" style="margin-top:10px">
+      <div><button class="btn ghost" style="width:100%" onclick="leaveRoom()">Sair da sala</button></div>
+      <div><button class="btn ghost" style="width:100%" onclick="encerrarSala()">Encerrar sala</button></div>
+    </div>
   </div>
 
   <!-- DONE -->
@@ -187,14 +195,41 @@ async function listMics(){
     $("mic").innerHTML=ds.map((d,i)=>`<option value="${d.deviceId}">${d.label||("Mic "+(i+1))}</option>`).join("");
   }catch(e){ $("status").textContent="permita o microfone ("+e.name+")";$("status").className="status err"; }
 }
-function validate(){ $("enterbtn").disabled=!($("meeting").value.trim()&&$("who").value); }
-["meeting","who"].forEach(id=>$(id)&&$(id).addEventListener("input",validate));
+function validate(){ if($("who")&&$("who").value) loadSalas(); }
+$("who")&&$("who").addEventListener("change",validate);
+
+/* ===================== SALAS: listar / criar (tabela Supabase) ===================== */
+const SB_HDR={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY};
+async function loadSalas(){
+  if(!$("who").value){ $("salaslist").innerHTML='<div class="lbl">escolha seu nome acima pra ver as salas…</div>'; return; }
+  try{
+    const r=await fetch(SUPABASE_URL+"/rest/v1/salas?select=code,nome,criada_por&ativa=eq.true&order=criada_em.desc",{headers:SB_HDR});
+    const ss=await r.json();
+    $("salaslist").innerHTML = (Array.isArray(ss)&&ss.length)
+      ? ss.map(s=>`<div class="pchip" style="cursor:pointer" onclick="enterRoom('${s.code}')"><span class="pdot"></span>${s.nome}<span class="me">por ${s.criada_por||"?"} · entrar →</span></div>`).join("")
+      : '<div class="lbl">nenhuma sala ativa — crie uma abaixo</div>';
+  }catch(e){ $("salaslist").innerHTML='<div class="lbl clip">erro ao listar salas</div>'; }
+}
+async function criarSala(){
+  if(!$("who").value){ alert("Escolha seu nome primeiro."); return; }
+  const nome=($("novanome").value||"").trim(); if(!nome){ alert("Dê um nome pra sala."); return; }
+  const code=nome.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,36)+"-"+Math.random().toString(36).slice(2,6);
+  try{
+    await fetch(SUPABASE_URL+"/rest/v1/salas",{method:"POST",headers:{...SB_HDR,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({code,nome,criada_por:$("who").value})});
+    enterRoom(code);
+  }catch(e){ alert("erro ao criar sala: "+e.message); }
+}
+async function encerrarSala(){
+  if(!confirm("Encerrar a sala pra todos? (some da lista)"))return;
+  try{ await fetch(SUPABASE_URL+"/rest/v1/salas?code=eq."+encodeURIComponent(meetingCode),{method:"PATCH",headers:{...SB_HDR,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({ativa:false})}); }catch(e){}
+  leaveRoom();
+}
 
 /* ===================== SALA (Supabase Realtime) ===================== */
-function enterRoom(){
+function enterRoom(code){
   stopTest();
-  myName=$("who").value; meetingCode=$("meeting").value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"-");
-  if(!window.supabase){ $("status").textContent="carregando…"; setTimeout(enterRoom,400); return; }
+  myName=$("who").value; meetingCode=code;
+  if(!window.supabase){ $("status").textContent="carregando…"; setTimeout(()=>enterRoom(code),400); return; }
   sb=sb||window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
   channel=sb.channel("sala:"+meetingCode,{config:{broadcast:{self:true},presence:{key:myName}}});
   channel.on("presence",{event:"sync"},renderPresence);

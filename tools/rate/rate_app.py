@@ -675,18 +675,19 @@ async function showCurate(){
  ci=Math.max(0,Math.min(ci,CUR.length-1));renderCur();
 }
 function renderCurPicker(){
- const u={};ALLCUR.forEach(function(x){const k=x.usuario||'?';(u[k]=u[k]||{t:0,r:0});u[k].t++;if(x.edited)u[k].r++;});
- const cards=Object.keys(u).sort().map(function(k){const d=u[k];return `<div class=usercard onclick="pickUser('${k.replace(/'/g,"\\\\'")}')"><div class=usern>${esc(k)}</div><div class=usermeta><b>${d.t-d.r}</b> pra curar <span class=exp>· ${d.t} no total · ${d.r} revisados</span></div></div>`;}).join('');
+ const u={};ALLCUR.forEach(function(x){const k=x.usuario||'?';(u[k]=u[k]||{t:0,r:0,e:0});u[k].t++;if(x.edited)u[k].r++;if(x.emocao)u[k].e++;});
+ const cards=Object.keys(u).sort().map(function(k){const d=u[k];return `<div class=usercard onclick="pickUser('${k.replace(/'/g,"\\\\'")}')"><div class=usern>${esc(k)}</div><div class=usermeta><b>${d.t-d.e}</b> sem emoção <span class=exp>· ${d.t} clipes · ${d.e} c/ emoção · ${d.t-d.r} a revisar</span></div></div>`;}).join('');
  document.getElementById('cu').innerHTML=`<div class=card><div class=ihead>Curar por pessoa <span class=exp>escolha quem você vai curar — todos veem todos, mas na prática cure o seu</span></div><div class=usergrid>${cards}</div></div>`;
 }
 function pickUser(u){curUser=u;ci=0;showCurate();}
 const CFLAGS=['2 vozes','ruído','corte ruim','sobreposição','eco/metálico','outro'];
+const EMOS=['neutro','animado','caloroso','empático','sério','triste','surpreso','irônico'];
 function renderCur(){
  const c=CUR[ci];if(!c)return;
  const done=CUR.filter(x=>x.edited).length;
  let h=`<div class=card>
  <button class="btn mini" onclick="curUser=null;showCurate()" style="margin-bottom:12px">← trocar pessoa (${esc(curUser||'')})</button>
- <div class=tags><span>${ci+1}/${CUR.length}</span><span>${esc(c.id)}</span><span>${esc(c.style||'')}</span><span>dur ${c.dur_s!=null?c.dur_s.toFixed(1)+'s':'?'}</span>${c.edited?'<span style="border-color:var(--green);color:var(--green)">✓ revisado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}${c.keep===false?'<span style="border-color:var(--red);color:var(--red)">descartado</span>':''}</div>
+ <div class=tags><span>${ci+1}/${CUR.length}</span><span>${esc(c.id)}</span><span>${esc(c.style||'')}</span><span>dur ${c.dur_s!=null?c.dur_s.toFixed(1)+'s':'?'}</span>${c.emocao?`<span style="border-color:var(--blue);color:var(--blue)">${esc(c.emocao)}</span>`:'<span style="border-color:var(--orange);color:var(--orange)">sem emoção</span>'}${c.edited?'<span style="border-color:var(--green);color:var(--green)">✓ revisado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}${c.keep===false?'<span style="border-color:var(--red);color:var(--red)">descartado</span>':''}</div>
  <audio controls src="/curate/audio?id=${encodeURIComponent(c.id)}" style="width:100%;margin:12px 0"></audio>
  <div class=ihead><b>Transcrição</b> <span class=exp>corrija pra bater EXATO com o áudio</span></div>
  <textarea id=curtext class=curtext oninput="curEdit('text',this.value)" placeholder="transcrição...">${esc(c.text||'')}</textarea>
@@ -697,12 +698,14 @@ function renderCur(){
  <div class=ind><div class=ihead><b>Manter?</b></div>
   <button class="btn ok ${c.keep!==false?'on':''}" onclick="curEdit('keep',true)">manter</button>
   <button class="btn no ${c.keep===false?'on':''}" onclick="curEdit('keep',false)">descartar</button></div>
+ <div class=ind><div class=ihead><b>Emoção</b> <span class=exp>o tom dominante da frase — o rótulo que falta no dado pt-BR (1 por clipe)</span></div>${EMOS.map(e=>`<button class="btn fl ${c.emocao===e?'on':''}" onclick="setEmo('${e}')">${e}</button>`).join('')}</div>
  <div class=ind><div class=ihead><b>Problemas</b></div>${CFLAGS.map(fl=>`<button class="btn fl ${(c.flags||[]).includes(fl)?'on':''}" onclick="curFlag('${fl}')">${fl}</button>`).join('')}</div>
  <div class=nav><button class=btn onclick="curGo(-1)">‹ anterior</button><button class=btn onclick="curGo(1)">próximo ›</button><span class=muted style="margin-left:12px">${done}/${CUR.length} revisados · mantidos ${CUR.filter(x=>x.keep!==false).length}</span></div>
  </div>`;
  document.getElementById('cu').innerHTML=h;
 }
-function saveCurNow(){const c=CUR[ci];if(!c)return;fetch('/api/curate/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,text:c.text,keep:c.keep!==false,flags:c.flags||[]})}).catch(function(){});}
+function saveCurNow(){const c=CUR[ci];if(!c)return;fetch('/api/curate/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,text:c.text,keep:c.keep!==false,flags:c.flags||[],emocao:c.emocao||''})}).catch(function(){});}
+function setEmo(e){const c=CUR[ci];if(!c)return;c.emocao=(c.emocao===e?'':e);c.edited=true;renderCur();saveCurNow();flash('emoção: '+(c.emocao||'—'));}
 function curEdit(field,val){const c=CUR[ci];if(!c)return;c[field]=val;c.edited=true;if(field=='keep')renderCur();clearTimeout(window._ce);window._ce=setTimeout(saveCurNow,400);flash('salvo ✓');}
 function curFlag(fl){const c=CUR[ci];if(!c)return;const a=c.flags||[];const j=a.indexOf(fl);if(j<0){a.push(fl);}else{a.splice(j,1);}c.flags=a;c.edited=true;renderCur();saveCurNow();flash('salvo ✓');}
 function useV2(){const c=CUR[ci];if(!c||c.text_v2==null)return;c.text=c.text_v2;c.edited=true;renderCur();saveCurNow();flash('usou ASR-v2');}

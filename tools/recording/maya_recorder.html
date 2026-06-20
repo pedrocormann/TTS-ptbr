@@ -7,318 +7,279 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;900&family=Geist+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --bg:#08080a; --surface:rgba(255,255,255,.025); --surface-hi:rgba(255,255,255,.05);
-  --border:rgba(255,255,255,.06); --border-hi:rgba(255,255,255,.14);
-  --tx:#f5f5f7; --tx2:rgba(245,245,247,.6); --tx3:rgba(245,245,247,.35); --tx4:rgba(245,245,247,.18);
-  --red:#C7302D; --orange:#E45933; --blue:#1E3386; --green:#28c840;
-  --r:14px; --rs:8px; --ease:cubic-bezier(.16,1,.3,1);
+  --bg:#08080a;--surface:rgba(255,255,255,.025);--surface-hi:rgba(255,255,255,.05);
+  --border:rgba(255,255,255,.06);--border-hi:rgba(255,255,255,.14);
+  --tx:#f5f5f7;--tx2:rgba(245,245,247,.6);--tx3:rgba(245,245,247,.35);--tx4:rgba(245,245,247,.18);
+  --red:#C7302D;--orange:#E45933;--blue:#1E3386;--green:#28c840;
+  --r:14px;--rs:8px;--ease:cubic-bezier(.16,1,.3,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:var(--bg);color:var(--tx);font-family:'Geist',system-ui,sans-serif;
-  -webkit-font-smoothing:antialiased;line-height:1.5;position:relative;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.4;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-body::after{content:"";position:fixed;top:0;left:50%;transform:translateX(-50%);width:120vw;height:60vh;pointer-events:none;z-index:0;
-  background:radial-gradient(60% 60% at 50% 0,rgba(228,89,51,.06),transparent 70%)}
-.wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:0 20px 80px}
-header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:18px 4px;margin-bottom:24px}
-.logo{font-weight:900;text-transform:uppercase;letter-spacing:.12em;font-size:14px}
-.logo .dot{color:var(--orange)}
-.tag{font-family:'Geist Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--tx3);margin-left:auto}
-.hero{font-family:'Instrument Serif',serif;font-size:34px;line-height:1.1;margin:8px 0 6px}
+body{background:var(--bg);color:var(--tx);font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding:8px 20px 80px}
+.hero{font-family:'Instrument Serif',serif;font-size:30px;line-height:1.1;margin:14px 0 4px}
 .hero em{color:var(--orange);font-style:italic}
-.sub{color:var(--tx2);font-size:14px;margin-bottom:26px;max-width:46ch}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;transition:.3s var(--ease)}
+.sub{color:var(--tx2);font-size:13px;margin-bottom:22px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px}
 label{display:block;font-family:'Geist Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--tx3);margin:0 0 7px}
-input,select{width:100%;background:var(--bg);border:1px solid var(--border-hi);border-radius:var(--rs);
-  color:var(--tx);font-family:'Geist Mono',monospace;font-size:15px;padding:11px 13px;outline:none;transition:.2s}
+input,select{width:100%;background:var(--bg);border:1px solid var(--border-hi);border-radius:var(--rs);color:var(--tx);font-family:'Geist Mono',monospace;font-size:15px;padding:11px 13px;outline:none}
 input:focus,select:focus{border-color:var(--orange)}
 .row{display:flex;gap:12px}.row>div{flex:1}
-.hint{background:rgba(30,51,134,.12);border:1px solid rgba(30,51,134,.4);border-radius:var(--rs);
-  padding:12px 14px;font-size:13px;color:var(--tx2);margin-bottom:16px;display:flex;gap:10px}
-.hint b{color:var(--tx)}
-.hint .ic{color:var(--blue);font-size:16px;flex:none}
-.recbtn{width:100%;border:none;border-radius:var(--r);padding:22px;font-family:'Geist',sans-serif;font-weight:900;
-  text-transform:uppercase;letter-spacing:.1em;font-size:16px;cursor:pointer;transition:.25s var(--ease);
-  background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;gap:12px}
-.recbtn:hover{filter:brightness(1.1)}
-.recbtn:disabled{opacity:.4;cursor:not-allowed}
-.recbtn.stop{background:var(--surface-hi);border:1px solid var(--border-hi)}
-.recbtn .pulse{width:12px;height:12px;border-radius:50%;background:#fff}
-.recbtn.stop .pulse{background:var(--red);animation:pulse 1.1s infinite}
+.btn{width:100%;border:none;border-radius:var(--r);padding:15px;font-family:'Geist',sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:.08em;font-size:14px;cursor:pointer;transition:.2s var(--ease);display:flex;align-items:center;justify-content:center;gap:10px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:var(--blue);color:#fff}.btn.primary:hover{filter:brightness(1.25)}
+.btn.rec{background:var(--red);color:#fff}
+.btn.ghost{background:var(--surface-hi);border:1px solid var(--border-hi);color:var(--tx);font-weight:600;text-transform:none;letter-spacing:0;font-size:13px;padding:11px}
+.btn.danger{background:none;border:1px solid var(--red);color:var(--red);font-weight:600;text-transform:none;letter-spacing:0}
+.pulse{width:11px;height:11px;border-radius:50%;background:#fff;animation:pulse 1.1s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
-.live{display:none;text-align:center;margin-top:18px}
-.live.on{display:block}
-.timer{font-family:'Geist Mono',monospace;font-size:42px;font-weight:600;letter-spacing:.02em}
-.meter{height:8px;background:var(--bg);border:1px solid var(--border);border-radius:99px;overflow:hidden;margin:14px 0 6px}
+.meter{height:8px;background:var(--bg);border:1px solid var(--border);border-radius:99px;overflow:hidden;margin:10px 0 4px}
 .meter>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--orange) 75%,var(--red));transition:width .07s linear}
-.metalbl{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3)}
-.clip{color:var(--red)!important}
-.status{font-size:13px;color:var(--tx2);text-align:center;min-height:20px;margin-top:14px;font-family:'Geist Mono',monospace}
+.lbl{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
+.lbl.clip{color:var(--red)}
+.slider{width:100%;margin:8px 0}
+.hint{background:rgba(30,51,134,.12);border:1px solid rgba(30,51,134,.4);border-radius:var(--rs);padding:11px 13px;font-size:12.5px;color:var(--tx2);margin-bottom:14px}
+.hint b{color:var(--tx)}
+.section-ttl{font-family:'Geist Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--tx3);margin:0 0 10px}
+.presence{display:flex;flex-direction:column;gap:7px;margin:6px 0 14px}
+.pchip{display:flex;align-items:center;gap:9px;font-size:13px;padding:8px 11px;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs)}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.pchip.rec .pdot{background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 1s infinite}
+.pchip .me{margin-left:auto;color:var(--tx4);font-size:10px;font-family:'Geist Mono',monospace;text-transform:uppercase}
+.timer{font-family:'Geist Mono',monospace;font-size:40px;font-weight:600;text-align:center}
+.status{font-size:13px;color:var(--tx2);text-align:center;min-height:18px;margin-top:12px;font-family:'Geist Mono',monospace}
 .status.ok{color:var(--green)}.status.err{color:var(--orange)}
-.prog{height:4px;background:var(--bg);border-radius:99px;overflow:hidden;margin-top:10px;display:none}
-.prog.on{display:block}.prog>i{display:block;height:100%;width:0;background:var(--green);transition:width .2s}
-.recover{background:rgba(228,89,51,.1);border:1px solid var(--orange);border-radius:var(--r);padding:16px;margin-bottom:16px;display:none}
-.recover.on{display:block}
-.recover button{margin-top:10px;background:var(--orange);color:#fff;border:none;border-radius:var(--rs);padding:9px 16px;font-weight:600;cursor:pointer;font-size:13px}
-.foot{font-family:'Geist Mono',monospace;font-size:10px;color:var(--tx4);letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-top:30px}
-.dotline{display:flex;gap:6px;justify-content:center;margin:14px 0;color:var(--tx4);font-size:11px;font-family:'Geist Mono',monospace}
-.cfg{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
-.cfgttl{font-family:'Geist Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--tx3);margin-bottom:10px}
-.cfgttl span{color:var(--orange)}
-.cfgrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;border-top:1px solid var(--border)}
-.cfgrow:first-of-type{border-top:none}
-.cfgrow>span{color:var(--tx3);font-family:'Geist Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
-.cfgrow>b{font-family:'Geist Mono',monospace;font-size:12px;color:var(--tx)}
-.cfgrow>b.warn{color:var(--orange)}
-.done{display:none;background:rgba(40,200,64,.07);border:1px solid rgba(40,200,64,.4);border-radius:var(--r);padding:20px;margin-bottom:16px;text-align:center}
-.done.on{display:block}
-.donehdr{font-family:'Instrument Serif',serif;font-size:24px;color:var(--green)}
-.donefile{font-family:'Geist Mono',monospace;font-size:12px;color:var(--tx2);margin:6px 0 14px;word-break:break-all}
-.donemsg{font-size:14px;color:var(--tx2);margin-bottom:14px}
-.drivebtn{display:inline-block;background:var(--blue);color:#fff;text-decoration:none;border-radius:var(--rs);padding:12px 20px;font-weight:600;font-size:14px;transition:.2s}
-.drivebtn:hover{filter:brightness(1.2)}
+.hidden{display:none}
+.cfg{font-family:'Geist Mono',monospace;font-size:10px;color:var(--tx4);text-align:center;margin-top:12px;letter-spacing:.06em}
+.cfg b{color:var(--tx3)}
+.done{background:rgba(40,200,64,.07);border:1px solid rgba(40,200,64,.4);border-radius:var(--r);padding:18px;text-align:center}
+.donehdr{font-family:'Instrument Serif',serif;font-size:22px;color:var(--green)}
+.drivebtn{display:inline-block;background:var(--blue);color:#fff;text-decoration:none;border-radius:var(--rs);padding:11px 18px;font-weight:600;font-size:13px;margin-top:10px}
 .drivebtn.off{background:var(--surface-hi);color:var(--tx3);pointer-events:none}
-.donecfg{font-family:'Geist Mono',monospace;font-size:10px;color:var(--tx4);margin-top:14px;letter-spacing:.06em}
-.again{margin-top:16px;background:none;border:1px solid var(--border-hi);color:var(--tx2);border-radius:var(--rs);padding:9px 18px;font-size:13px;cursor:pointer}
+.foot{font-family:'Geist Mono',monospace;font-size:10px;color:var(--tx4);letter-spacing:.08em;text-transform:uppercase;text-align:center;margin-top:22px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <span class="logo">UNFLAT<span class="dot">.</span></span>
-    <span class="tag" id="netbadge">voz · flywheel</span>
-  </header>
-
   <h1 class="hero">Gravar <em>conversa</em></h1>
-  <p class="sub">Cada um grava a própria faixa, em alta qualidade, na sua máquina. O áudio fica salvo local e sobe pro nosso acervo. <b style="color:var(--tx)">Use fone de ouvido</b> — é o que mantém sua faixa limpa.</p>
+  <p class="sub">Sala compartilhada · 1 faixa limpa por pessoa · <b style="color:var(--tx)">use fone de ouvido</b>.</p>
 
-  <div class="recover" id="recover">
-    <b>⚠️ Achei uma gravação anterior não finalizada.</b><br>
-    <span class="metalbl" id="recinfo"></span>
-    <button onclick="recoverPrev()">Recuperar e salvar</button>
-    <button onclick="discardPrev()" style="background:var(--surface-hi);border:1px solid var(--border-hi)">Descartar</button>
-  </div>
-
+  <!-- SETUP -->
   <div class="card" id="setup">
-    <div class="hint"><span class="ic">◎</span><div><b>Antes de começar:</b> fone de ouvido, sala silenciosa, mic ~um palmo da boca. Combine o <b>código da reunião</b> igual entre os 3 e comecem juntos.</div></div>
-    <div class="row" style="margin-bottom:14px">
-      <div><label>Código da reunião</label><input id="meeting" placeholder="ex: 2026-06-23-papo" autocomplete="off"></div>
+    <div class="hint"><b>Como funciona:</b> os 3 entram na MESMA sala (mesmo código). Quem iniciar/encerrar a sessão faz isso pra todos — cada um grava a própria faixa com os mesmos metadados.</div>
+    <div class="row" style="margin-bottom:12px">
+      <div><label>Código da reunião (compartilhado)</label><input id="meeting" placeholder="ex: papo-23jun" autocomplete="off"></div>
     </div>
-    <div class="row" style="margin-bottom:18px">
-      <div><label>Quem é você</label><select id="who"><option value="">—</option><option>pedro</option><option>joao</option><option>guilherme</option><option value="convidado">convidado</option></select></div>
+    <div class="row" style="margin-bottom:12px">
+      <div><label>Você</label><select id="who"><option value="">—</option><option>pedro</option><option>joao</option><option>guilherme</option><option value="convidado">convidado</option></select></div>
       <div><label>Microfone</label><select id="mic"></select></div>
     </div>
-    <button class="recbtn" id="rec" onclick="toggle()" disabled><span class="pulse"></span><span id="reclbl">Iniciar gravação</span></button>
-    <div class="live" id="live">
+    <!-- TESTE DE MIC -->
+    <button class="btn ghost" id="testbtn" onclick="toggleTest()">🎧 Testar microfone (ouvir e ajustar)</button>
+    <div id="testbox" class="hidden" style="margin-top:12px">
+      <div class="lbl" id="testlbl">fale — você se ouve no fone</div>
+      <div class="meter"><i id="tmeter"></i></div>
+      <label style="margin-top:10px">Ganho / volume de monitoração</label>
+      <input class="slider" id="gain" type="range" min="0" max="200" value="100">
+      <div id="mictip" class="hint" style="margin-top:8px"></div>
+    </div>
+    <button class="btn primary" id="enterbtn" style="margin-top:12px" onclick="enterRoom()" disabled>Entrar na sala</button>
+  </div>
+
+  <!-- SALA -->
+  <div class="card hidden" id="room">
+    <div class="section-ttl">Sala <b id="roomcode" style="color:var(--orange)"></b> · quem está on</div>
+    <div class="presence" id="presence"></div>
+    <button class="btn rec" id="startbtn" onclick="startSession()"><span style="width:11px;height:11px;border-radius:50%;background:#fff;display:inline-block"></span> Iniciar sessão (pra todos)</button>
+    <div id="live" class="hidden" style="margin-top:16px;text-align:center">
       <div class="timer" id="timer">00:00</div>
       <div class="meter"><i id="meterbar"></i></div>
-      <div class="metalbl" id="meterlbl">nível do mic</div>
+      <div class="lbl" id="meterlbl">nível do mic</div>
+      <button class="btn danger" id="endbtn" style="margin-top:14px" onclick="endSession()">Encerrar sessão (pra todos)</button>
     </div>
     <div class="status" id="status"></div>
-    <div class="prog" id="prog"><i id="progbar"></i></div>
+    <button class="btn ghost" style="margin-top:10px" onclick="leaveRoom()">Sair da sala</button>
   </div>
 
-  <div class="cfg" id="cfg">
-    <div class="cfgttl">Configuração da gravação <span>(confira)</span></div>
-    <div class="cfgrow"><span>taxa</span><b id="cfg_sr">24 kHz</b></div>
-    <div class="cfgrow"><span>canais / formato</span><b>mono · WAV 16-bit (sem perdas)</b></div>
-    <div class="cfgrow"><span>microfone (cru)</span><b>sem AGC · sem supressão · sem eco</b></div>
-    <div class="cfgrow"><span>device</span><b id="cfg_dev">— (escolha acima)</b></div>
-  </div>
-
-  <div class="done" id="done">
+  <!-- DONE -->
+  <div class="card hidden" id="done">
     <div class="donehdr">✓ Faixa salva no seu computador</div>
-    <div class="donefile" id="donefile"></div>
-    <p class="donemsg">O arquivo baixou na sua pasta <b>Downloads</b>. Agora <b>arraste ele</b> pra pasta do Drive da Unflat:</p>
-    <a class="drivebtn" id="drivebtn" href="#" target="_blank" rel="noopener">📁 Abrir pasta do Drive da Unflat</a>
-    <div class="donecfg" id="donecfg"></div>
-    <button class="again" onclick="reset(true)">Gravar outra faixa</button>
+    <div class="lbl" id="donefile" style="margin:6px 0 12px;text-transform:none;letter-spacing:0;font-size:12px"></div>
+    <p style="font-size:14px;color:var(--tx2)">Arraste o arquivo (pasta <b>Downloads</b>) pra pasta do Drive da Unflat:</p>
+    <a class="drivebtn off" id="drivebtn" href="#" target="_blank" rel="noopener">📁 pasta do Drive não configurada</a>
+    <div class="cfg" id="donecfg"></div>
+    <button class="btn ghost" style="margin-top:14px" onclick="backToRoom()">Voltar pra sala</button>
   </div>
 
-  <div class="foot">salva LOCAL sempre · 1 faixa por pessoa · use FONE de ouvido</div>
+  <div class="cfg" id="bottomcfg">24 kHz · mono · WAV 16-bit · mic CRU (sem AGC/supressão/eco) · chunked anti-crash</div>
+  <div class="foot">salva LOCAL sempre · sala sincronizada · use fone</div>
 </div>
 
 <script>
-const DRIVE_URL="";                       // ← COLE aqui o link da pasta do Drive da Unflat (Pedro passa)
-const BACKUP_SUPABASE=true;               // backup silencioso opcional no acervo (não bloqueia o fluxo local)
-const FN_URL="https://yyxmtjqpmkonxlinflxu.functions.supabase.co/voz-upload-url"; // signed upload URL
-const SR=24000;                           // taxa NATIVA do CSM (24k); WAV 16-bit mono, mic CRU
-const FLUSH_SEC=10;                       // grava em pedaços de 10s na IndexedDB (anti-crash)
+/* ===================== CONFIG ===================== */
+const SUPABASE_URL="https://yyxmtjqpmkonxlinflxu.supabase.co";
+const SUPABASE_KEY="sb_publishable_iyI5855XjkDE-7yep4f69w_A9OXFZq2";
+const FN_URL=SUPABASE_URL.replace(".supabase.co",".functions.supabase.co")+"/voz-upload-url";
+const DRIVE_URL="";                       // ← link da pasta do Drive da Unflat (Pedro)
+const BACKUP_SUPABASE=true;
+const SR=24000;
+const FLUSH_SEC=10;
+const MIC_TIPS={
+  pedro:"JBL Quantum Stream: modo cardióide, ganho ~50-60% (sem estourar o medidor), e DESLIGUE efeitos/eco no JBL QuantumENGINE.",
+  guilherme:"JBL Quantum Stream: modo cardióide, ganho ~50-60% (sem estourar), efeitos OFF no QuantumENGINE.",
+  joao:"Elgato Wave 3: selecione o 'Wave 3' direto (NÃO o 'Wave Link'/microfone virtual com efeitos). Clipguard pode ficar ON; ganho ~ -? até o medidor pico não bater no vermelho.",
+};
 const $=id=>document.getElementById(id);
-let recording=false, ctx, stream, node, startMs, timerInt, sampleRate=48000;
-let buf=[], bufLen=0, totalSamples=0, chunkIdx=0, peak=0;
 
-/* ---------- IndexedDB (pedaços crus, sobrevive a crash/reload) ---------- */
+/* ===================== ESTADO ===================== */
+let sb=null, channel=null, myName="", meetingCode="";
+let recording=false, ctx, stream, node, startMs, timerInt, sampleRate=SR;
+let buf=[],bufLen=0,totalSamples=0,chunkIdx=0,lastFlush=0,sharedStarted="";
+let testCtx=null,testStream=null,testGain=null;
+
+/* ===================== IndexedDB (anti-crash) ===================== */
 function idb(){return new Promise((res,rej)=>{const r=indexedDB.open("maya_rec",1);
   r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains("chunks"))d.createObjectStore("chunks",{keyPath:"k"});if(!d.objectStoreNames.contains("meta"))d.createObjectStore("meta",{keyPath:"k"});};
   r.onsuccess=e=>res(e.target.result);r.onerror=()=>rej(r.error);});}
-async function idbPut(store,obj){const d=await idb();return new Promise((res,rej)=>{const t=d.transaction(store,"readwrite");t.objectStore(store).put(obj);t.oncomplete=res;t.onerror=()=>rej(t.error);});}
-async function idbAll(store){const d=await idb();return new Promise((res,rej)=>{const t=d.transaction(store,"readonly");const rq=t.objectStore(store).getAll();rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});}
+async function idbPut(s,o){const d=await idb();return new Promise((res,rej)=>{const t=d.transaction(s,"readwrite");t.objectStore(s).put(o);t.oncomplete=res;t.onerror=()=>rej(t.error);});}
+async function idbAll(s){const d=await idb();return new Promise((res,rej)=>{const t=d.transaction(s,"readonly");const q=t.objectStore(s).getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
 async function idbClear(){const d=await idb();return new Promise(res=>{const t=d.transaction(["chunks","meta"],"readwrite");t.objectStore("chunks").clear();t.objectStore("meta").clear();t.oncomplete=res;});}
 
-/* ---------- mics ---------- */
-async function listMics(){
-  try{
-    const tmp=await navigator.mediaDevices.getUserMedia({audio:true});tmp.getTracks().forEach(t=>t.stop());
-    const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput");
-    $("mic").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${d.label||("Mic "+(i+1))}</option>`).join("");
-  }catch(e){$("status").textContent="permita o microfone pra continuar ("+e.name+")";$("status").className="status err";}
+/* ===================== Sons de início/fim ===================== */
+function chime(kind){
+  try{const c=new (window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);g.gain.value=.0001;
+    const t=c.currentTime;const notes=kind==="start"?[523,784]:[784,392];
+    o.frequency.setValueAtTime(notes[0],t);o.frequency.exponentialRampToValueAtTime(notes[1],t+.18);
+    g.gain.exponentialRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.45);
+    o.start(t);o.stop(t+.5);o.onended=()=>c.close();
+  }catch(e){}
 }
 
-/* ---------- AudioWorklet (captura PCM cru fora da thread principal) ---------- */
-const WORKLET=`class P extends AudioWorkletProcessor{process(inp){const ch=inp[0];if(ch&&ch[0])this.port.postMessage(ch[0].slice(0));return true}}registerProcessor('cap',P)`;
-
-function fmt(s){const m=Math.floor(s/60),x=Math.floor(s%60);return String(m).padStart(2,"0")+":"+String(x).padStart(2,"0");}
-
-function validate(){$("rec").disabled=!($("meeting").value.trim()&&$("who").value);}
-["meeting","who"].forEach(id=>$(id).addEventListener("input",validate));
-
-async function flush(){
-  if(!bufLen)return;
-  const merged=new Float32Array(bufLen);let o=0;for(const b of buf){merged.set(b,o);o+=b.length;}
-  buf=[];bufLen=0;
-  await idbPut("chunks",{k:chunkIdx++,d:merged});
-}
-
-async function toggle(){ recording?await stop():await start(); }
-
-async function start(){
+/* ===================== Mic test (monitoração + ganho) ===================== */
+async function toggleTest(){ testCtx?stopTest():startTest(); }
+async function startTest(){
   try{
-    await idbClear(); chunkIdx=0; totalSamples=0; peak=0;
     const dev=$("mic").value;
-    stream=await navigator.mediaDevices.getUserMedia({audio:{
-      deviceId:dev?{exact:dev}:undefined,
-      echoCancellation:false, noiseSuppression:false, autoGainControl:false,
-      channelCount:1, sampleRate:SR}});
-    ctx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:SR});
-    sampleRate=ctx.sampleRate;
-    // double-check da config: taxa real capturada + device escolhido
-    const devName=($("mic").options[$("mic").selectedIndex]||{}).text||"padrão do sistema";
-    $("cfg_dev").textContent=devName;
-    $("cfg_sr").textContent=(sampleRate/1000)+" kHz"+(sampleRate===SR?" ✓":" ⚠ (pedimos 24)");
-    $("cfg_sr").className=(sampleRate===SR)?"":"warn";
+    testStream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:dev?{exact:dev}:undefined,echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1,sampleRate:SR}});
+    testCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const src=testCtx.createMediaStreamSource(testStream);
+    testGain=testCtx.createGain();testGain.gain.value=($("gain").value/100);
+    const an=testCtx.createAnalyser();an.fftSize=512;const dat=new Float32Array(an.fftSize);
+    src.connect(an);src.connect(testGain);testGain.connect(testCtx.destination); // você se ouve
+    $("testbox").classList.remove("hidden");$("testbtn").textContent="⏹ Parar teste";
+    $("mictip").textContent=MIC_TIPS[$("who").value]||"Fale num volume normal; o pico não pode bater no vermelho. Use FONE pra não dar microfonia.";
+    (function loop(){ if(!testCtx)return; an.getFloatTimeDomainData(dat); let p=0;for(let i=0;i<dat.length;i++){const v=Math.abs(dat[i]);if(v>p)p=v;}
+      $("tmeter").style.width=Math.min(100,p*140)+"%";
+      $("testlbl").textContent=p>0.97?"⚠ alto demais — abaixe o ganho do mic":"fale — você se ouve no fone";
+      $("testlbl").className=p>0.97?"lbl clip":"lbl"; requestAnimationFrame(loop); })();
+  }catch(e){ $("mictip").textContent="erro no mic: "+e.message; }
+}
+function stopTest(){ try{testStream&&testStream.getTracks().forEach(t=>t.stop());testCtx&&testCtx.close();}catch(e){} testCtx=testStream=testGain=null; $("testbox").classList.add("hidden");$("testbtn").textContent="🎧 Testar microfone (ouvir e ajustar)"; }
+$("gain")&&$("gain").addEventListener("input",()=>{ if(testGain)testGain.gain.value=($("gain").value/100); });
+
+/* ===================== mics + validação ===================== */
+async function listMics(){
+  try{ const t=await navigator.mediaDevices.getUserMedia({audio:true});t.getTracks().forEach(x=>x.stop());
+    const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput");
+    $("mic").innerHTML=ds.map((d,i)=>`<option value="${d.deviceId}">${d.label||("Mic "+(i+1))}</option>`).join("");
+  }catch(e){ $("status").textContent="permita o microfone ("+e.name+")";$("status").className="status err"; }
+}
+function validate(){ $("enterbtn").disabled=!($("meeting").value.trim()&&$("who").value); }
+["meeting","who"].forEach(id=>$(id)&&$(id).addEventListener("input",validate));
+
+/* ===================== SALA (Supabase Realtime) ===================== */
+function enterRoom(){
+  stopTest();
+  myName=$("who").value; meetingCode=$("meeting").value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"-");
+  if(!window.supabase){ $("status").textContent="carregando…"; setTimeout(enterRoom,400); return; }
+  sb=sb||window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  channel=sb.channel("sala:"+meetingCode,{config:{broadcast:{self:true},presence:{key:myName}}});
+  channel.on("presence",{event:"sync"},renderPresence);
+  channel.on("broadcast",{event:"sessao"},({payload})=>onSession(payload));
+  channel.subscribe(async st=>{ if(st==="SUBSCRIBED"){ await channel.track({name:myName,rec:false,t:Date.now()}); } });
+  $("setup").classList.add("hidden"); $("room").classList.remove("hidden"); $("done").classList.add("hidden");
+  $("roomcode").textContent=meetingCode;
+}
+function renderPresence(){
+  const st=channel.presenceState(); const people=Object.values(st).map(a=>a[0]).filter(Boolean);
+  $("presence").innerHTML=people.map(p=>`<div class="pchip ${p.rec?'rec':''}"><span class="pdot"></span>${p.name}${p.rec?' · gravando':''}${p.name===myName?'<span class="me">você</span>':''}</div>`).join("")||'<div class="lbl">só você por enquanto…</div>';
+}
+function leaveRoom(){ if(recording){ if(!confirm("Está gravando. Sair encerra SÓ a sua faixa. Continuar?"))return; doStop(); } try{channel&&channel.unsubscribe();}catch(e){} channel=null; $("room").classList.add("hidden");$("done").classList.add("hidden");$("setup").classList.remove("hidden"); }
+function backToRoom(){ $("done").classList.add("hidden"); $("room").classList.remove("hidden"); }
+
+/* ===================== Sessão sincronizada ===================== */
+function startSession(){ sharedStarted=new Date().toISOString(); channel.send({type:"broadcast",event:"sessao",payload:{acao:"start",meeting:meetingCode,started:sharedStarted}}); }
+function endSession(){ channel.send({type:"broadcast",event:"sessao",payload:{acao:"end"}}); }
+function onSession(p){
+  if(p.acao==="start" && !recording){ sharedStarted=p.started||new Date().toISOString(); chime("start"); doStart(p.meeting,sharedStarted); }
+  else if(p.acao==="end" && recording){ chime("end"); doStop(); }
+}
+
+/* ===================== Gravação (núcleo) ===================== */
+const WORKLET=`class P extends AudioWorkletProcessor{process(i){const c=i[0];if(c&&c[0])this.port.postMessage(c[0].slice(0));return true}}registerProcessor('cap',P)`;
+function fmt(s){const m=Math.floor(s/60),x=Math.floor(s%60);return String(m).padStart(2,"0")+":"+String(x).padStart(2,"0");}
+async function flush(){ if(!bufLen)return; const m=new Float32Array(bufLen);let o=0;for(const b of buf){m.set(b,o);o+=b.length;} buf=[];bufLen=0; await idbPut("chunks",{k:chunkIdx++,d:m}); }
+
+async function doStart(meeting,started){
+  try{
+    await idbClear();chunkIdx=0;totalSamples=0;lastFlush=0;
+    const dev=$("mic").value;
+    stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:dev?{exact:dev}:undefined,echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1,sampleRate:SR}});
+    ctx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:SR});sampleRate=ctx.sampleRate;
     await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET],{type:"application/javascript"})));
-    const src=ctx.createMediaStreamSource(stream);
-    node=new AudioWorkletNode(ctx,"cap");
-    node.port.onmessage=e=>{const d=e.target?e.data:e.data;onAudio(d);};
-    src.connect(node); node.connect(ctx.destination); // destination mudo (worklet não emite)
-    await idbPut("meta",{k:"info",meeting:$("meeting").value.trim(),who:$("who").value,sr:sampleRate,started:new Date().toISOString()});
-    recording=true; startMs=Date.now();
-    $("rec").classList.add("stop"); $("reclbl").textContent="Parar e salvar";
-    $("live").classList.add("on"); $("meeting").disabled=$("who").disabled=$("mic").disabled=true;
-    $("status").textContent="🔴 gravando — sua faixa fica salva mesmo se cair"; $("status").className="status";
+    const src=ctx.createMediaStreamSource(stream);node=new AudioWorkletNode(ctx,"cap");
+    node.port.onmessage=e=>onAudio(e.data);src.connect(node);node.connect(ctx.destination);
+    await idbPut("meta",{k:"info",meeting,who:myName,sr:sampleRate,started});
+    recording=true;startMs=Date.now();
+    if(channel)channel.track({name:myName,rec:true,t:Date.now()});
+    $("startbtn").classList.add("hidden");$("live").classList.remove("hidden");
+    $("status").textContent="🔴 gravando (sessão da sala)";$("status").className="status";
     timerInt=setInterval(()=>$("timer").textContent=fmt((Date.now()-startMs)/1000),250);
-  }catch(e){ $("status").textContent="erro ao iniciar: "+e.message; $("status").className="status err"; }
+  }catch(e){ $("status").textContent="erro ao iniciar: "+e.message;$("status").className="status err"; }
 }
-
-let lastFlush=0;
-function onAudio(arr){
-  buf.push(arr); bufLen+=arr.length; totalSamples+=arr.length;
-  let p=0; for(let i=0;i<arr.length;i+=64){const v=Math.abs(arr[i]);if(v>p)p=v;}
-  peak=Math.max(peak,p);
-  const pct=Math.min(100,p*140);
-  $("meterbar").style.width=pct+"%";
-  $("meterlbl").textContent = p>0.97 ? "⚠ alto demais — afaste o mic" : "nível do mic";
-  $("meterlbl").className = p>0.97 ? "metalbl clip" : "metalbl";
-  if(totalSamples-lastFlush > sampleRate*FLUSH_SEC){ lastFlush=totalSamples; flush(); }
+function onAudio(a){ buf.push(a);bufLen+=a.length;totalSamples+=a.length;
+  let p=0;for(let i=0;i<a.length;i+=64){const v=Math.abs(a[i]);if(v>p)p=v;}
+  $("meterbar").style.width=Math.min(100,p*140)+"%";
+  $("meterlbl").textContent=p>0.97?"⚠ alto demais":"nível do mic";$("meterlbl").className=p>0.97?"lbl clip":"lbl";
+  if(totalSamples-lastFlush>sampleRate*FLUSH_SEC){lastFlush=totalSamples;flush();}
 }
+function wavBlob(s,sr){const n=s.length,b=new ArrayBuffer(44+n*2),v=new DataView(b);
+  const w=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i));};
+  w(0,"RIFF");v.setUint32(4,36+n*2,true);w(8,"WAVE");w(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*2,true);
+  let o=44;for(let i=0;i<n;i++){let x=Math.max(-1,Math.min(1,s[i]));v.setInt16(o,x<0?x*0x8000:x*0x7FFF,true);o+=2;}return new Blob([b],{type:"audio/wav"});}
+async function assemble(){const cs=(await idbAll("chunks")).sort((a,b)=>a.k-b.k);let tot=0;for(const c of cs)tot+=c.d.length;const all=new Float32Array(tot);let o=0;for(const c of cs){all.set(c.d,o);o+=c.d.length;}return all;}
 
-function wavBlob(samples,sr){
-  const n=samples.length, buf=new ArrayBuffer(44+n*2), v=new DataView(buf);
-  const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
-  w(0,"RIFF");v.setUint32(4,36+n*2,true);w(8,"WAVE");w(12,"fmt ");
-  v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
-  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);
-  w(36,"data");v.setUint32(40,n*2,true);
-  let o=44;for(let i=0;i<n;i++){let s=Math.max(-1,Math.min(1,samples[i]));v.setInt16(o,s<0?s*0x8000:s*0x7FFF,true);o+=2;}
-  return new Blob([buf],{type:"audio/wav"});
-}
-
-async function assemble(){
-  const chunks=(await idbAll("chunks")).sort((a,b)=>a.k-b.k);
-  let total=0;for(const c of chunks)total+=c.d.length;
-  const all=new Float32Array(total);let o=0;for(const c of chunks){all.set(c.d,o);o+=c.d.length;}
-  return all;
-}
-
-async function stop(){
-  recording=false; clearInterval(timerInt);
-  $("rec").disabled=true; $("reclbl").textContent="Salvando…"; $("status").textContent="finalizando…"; $("status").className="status";
-  try{ node&&node.disconnect(); stream&&stream.getTracks().forEach(t=>t.stop()); ctx&&await ctx.close(); }catch(e){}
+async function doStop(){
+  if(!recording)return; recording=false;clearInterval(timerInt);
+  try{node&&node.disconnect();stream&&stream.getTracks().forEach(t=>t.stop());ctx&&await ctx.close();}catch(e){}
+  if(channel)channel.track({name:myName,rec:false,t:Date.now()});
   await flush();
-  const meta=(await idbAll("meta"))[0]||{meeting:$("meeting").value.trim(),who:$("who").value,sr:sampleRate};
+  const meta=(await idbAll("meta"))[0]||{meeting:meetingCode,who:myName,sr:sampleRate,started:sharedStarted};
   const samples=await assemble();
-  if(!samples.length){ $("status").textContent="nada gravado."; $("status").className="status err"; reset(); return; }
+  $("live").classList.add("hidden");$("startbtn").classList.remove("hidden");
+  if(!samples.length){$("status").textContent="nada gravado.";$("status").className="status err";return;}
   const blob=wavBlob(samples,meta.sr||sampleRate);
   const ts=(meta.started||new Date().toISOString()).replace(/[:.]/g,"-");
-  const fname=`${meta.who}__${ts}.wav`;
-  const dur=fmt(samples.length/(meta.sr||sampleRate)), mb=(blob.size/1048576).toFixed(1);
-  // 1) SEMPRE salva LOCAL primeiro (é o caminho principal; à prova de rede)
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
-  await idbClear();
-  // 2) tela de sucesso: LOCAL salvo + arrasta pro Drive
-  $("status").textContent=""; $("prog").classList.remove("on");
+  const fname=`${meta.who}__${ts}.wav`,dur=fmt(samples.length/(meta.sr||sampleRate)),mb=(blob.size/1048576).toFixed(1);
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname;a.click();await idbClear();
+  $("room").classList.add("hidden");$("done").classList.remove("hidden");
   $("donefile").textContent=`${fname} · ${dur} · ${mb} MB`;
   $("donecfg").textContent=`24 kHz · mono · WAV 16-bit · mic cru · ${meta.sr||sampleRate} Hz reais`;
-  if(DRIVE_URL){ $("drivebtn").href=DRIVE_URL; $("drivebtn").classList.remove("off"); $("drivebtn").textContent="📁 Abrir pasta do Drive da Unflat"; }
-  else { $("drivebtn").classList.add("off"); $("drivebtn").textContent="⚠️ pasta do Drive ainda não configurada"; }
-  $("done").classList.add("on");
-  // 3) backup silencioso opcional no acervo (não bloqueia o fluxo local→Drive)
-  if(BACKUP_SUPABASE){ uploadBlob(meta,blob).then(()=>{ $("donecfg").textContent+=" · backup ✓"; }).catch(()=>{ $("donecfg").textContent+=" · (sem backup)"; }); }
+  if(DRIVE_URL){$("drivebtn").href=DRIVE_URL;$("drivebtn").classList.remove("off");$("drivebtn").textContent="📁 Abrir pasta do Drive da Unflat";}
+  if(BACKUP_SUPABASE)uploadBlob(meta,blob).then(()=>{$("donecfg").textContent+=" · backup ✓";}).catch(()=>{$("donecfg").textContent+=" · (sem backup)";});
 }
-
 async function uploadBlob(meta,blob){
-  // 1) pede uma signed upload URL à edge function (service-role gera; bucket fica PRIVADO)
-  const r=await fetch(FN_URL,{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({meeting:meta.meeting,who:meta.who,ts:meta.started})});
-  const d=await r.json();
-  if(!d.signedUrl) throw new Error(d.error||"sem URL assinada");
-  // 2) PUT do arquivo DIRETO pro storage (o arquivo grande não passa pela function)
-  return new Promise((res,rej)=>{
-    const xhr=new XMLHttpRequest();
-    xhr.open("PUT",d.signedUrl);
-    xhr.setRequestHeader("Content-Type","audio/wav");
-    $("prog").classList.add("on");
-    xhr.upload.onprogress=e=>{if(e.lengthComputable)$("progbar").style.width=(e.loaded/e.total*100)+"%";};
-    xhr.onload=()=> (xhr.status>=200&&xhr.status<300) ? res(d.path) : rej(new Error("HTTP "+xhr.status));
-    xhr.onerror=()=>rej(new Error("rede"));
-    xhr.send(blob);
-  });
+  const r=await fetch(FN_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({meeting:meta.meeting,who:meta.who,ts:meta.started})});
+  const d=await r.json(); if(!d.signedUrl)throw new Error(d.error||"sem URL");
+  const x=new XMLHttpRequest();x.open("PUT",d.signedUrl);x.setRequestHeader("Content-Type","audio/wav");
+  return new Promise((res,rej)=>{x.onload=()=>(x.status>=200&&x.status<300)?res():rej(new Error("HTTP "+x.status));x.onerror=()=>rej(new Error("rede"));x.send(blob);});
 }
-
-function reset(){
-  $("done").classList.remove("on");
-  $("rec").classList.remove("stop"); $("rec").disabled=false; $("reclbl").textContent="Iniciar gravação";
-  $("live").classList.remove("on"); $("timer").textContent="00:00"; $("meterbar").style.width="0";
-  $("meeting").disabled=$("who").disabled=$("mic").disabled=false; validate();
-}
-
-/* ---------- recuperação pós-crash ---------- */
-async function checkRecover(){
-  const chunks=await idbAll("chunks");
-  if(chunks.length){ const meta=(await idbAll("meta"))[0]||{};
-    let tot=0;chunks.forEach(c=>tot+=c.d.length);
-    $("recinfo").textContent=`${meta.who||"?"} · ${meta.meeting||"?"} · ~${fmt(tot/(meta.sr||48000))}`;
-    $("recover").classList.add("on"); }
-}
-async function recoverPrev(){
-  const meta=(await idbAll("meta"))[0]||{who:"recuperado",meeting:"recuperado",sr:48000};
-  const samples=await assemble(); const blob=wavBlob(samples,meta.sr||48000);
-  const ts=(meta.started||new Date().toISOString()).replace(/[:.]/g,"-");
-  const fname=`${meta.who}__${ts}__RECUPERADO.wav`;
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname;a.click();
-  try{ await uploadBlob(meta,blob); }catch(e){}
-  await idbClear(); $("recover").classList.remove("on");
-  $("status").textContent="✓ gravação anterior recuperada e salva."; $("status").className="status ok";
-}
-async function discardPrev(){ await idbClear(); $("recover").classList.remove("on"); }
-
-window.addEventListener("beforeunload",e=>{ if(recording){e.preventDefault();e.returnValue="Gravando! Pare e salve antes de fechar.";} });
-listMics(); checkRecover(); validate();
+window.addEventListener("beforeunload",e=>{if(recording){e.preventDefault();e.returnValue="Gravando! Encerre antes de fechar.";}});
+listMics();validate();
 </script>
 </body>
 </html>

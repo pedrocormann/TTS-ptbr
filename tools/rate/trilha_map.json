@@ -1,13 +1,13 @@
 {
  "state": {
-  "now": "TREINO 1 provou a VOZ do Pedro (não mexer). TREINO 2 (grid overnight, voz CURADA à mão, H100 ~12h/$38) RODANDO — primeiros resultados redirecionam o sotaque: (a) c_nobase (sem base CML) = WER 79% vs 18-25% com base → a base é LOAD-BEARING, REFUTADA a suspeita 'base abafa o carioca'; o gap NÃO é a base. (b) G2P-substituição (grafema→IPA num LM de grafema) saiu fluente mas com PALAVRAS ERRADAS (54-79%) → caminho é fonema-NATIVO, não substituição. (c) curado-vs-auto empatado no WER em 35min (ouvir decide). Próximo gargalo do sotaque: mais DADO carioca espontâneo sobre a base + método de PROSÓDIA, não trocar a base nem substituir grafema por IPA.",
+  "now": "REALIDADE calibrada (sem otimismo, crítica adversarial 20/jun): ~3.2/10 contra a Maya. Só a VOZ/timbre do Pedro clona reconhecível (6.5); sotaque 'gringo' travado em 2.8 (ZERO avanço em 2 treinos), prosódia robótica 3.0 (nenhum método rodado), latência da cascata 1.5 (NUNCA medida e2e), robustez 2.0. O gargalo NÃO é GPU (~$73 total, cada arm $3-18) nem arquitetura — é DADO: ~24min de 1 voz/1 emoção vs o flywheel de ANOS da Maya; o flywheel das 3 vozes tem ZERO gravações; carioca conversa commercial-safe ≈0h; NURC travado sem plano B. A Trilha vinha otimizando WER (já resolvido, ±8% ruído, cego pro sotaque) — por isso o Treino 2 não avançou. Distância honesta: 3-6 MESES limitados por gravação+curadoria+eval, não horas de H100. Ver maya_gap, data_demand, phases.",
   "next": [
-   "MANHÃ: ouvir os 14 wavs/arm do Treino 2 no rate_app (WER não mede sotaque) → eleger vencedor por voz+naturalidade, fechar o bloco.",
-   "SOTAQUE redirecionado (pós c_nobase): a base fica; atacar com (a) MAIS dado carioca espontâneo sobre a base e (b) método de PROSÓDIA (pitch/duração ~3min) — não ditch-base nem G2P-substituição.",
-   "G2P só vale fonema-NATIVO (tokenizer de fonemas + treino do zero da camada de texto), não trocar grafema por IPA no LM pré-treinado. Avaliar custo/benefício vs prosódia.",
-   "Próximo round de GPU: subir num_train_epochs pra o cap de --minutes morder → medir CONVERGÊNCIA de verdade (c_long/c_deep ficaram = aos curtos).",
-   "Eval camada perceptual antes do gate: BRSpeechMOS pt-BR + BIPA (pronúncia dialetal) — decidir sotaque por percepção, não WER.",
-   "Cascata Maya-BR v0 (src/duplex) + latência (TTFA, p50/p95, barge-in) depois do sotaque. G2 emoções por último. Moshi parkeado."
+   "FASE 0 — DES-RISCAR DE GRAÇA (CPU, $0): curar dataset (nunca rodou), GOP/MDD offline (vira gringo em fonema-errado-no-tempo), classificador carioca-vs-não. GATE: nada de GPU antes disto.",
+   "FASE 1 — EVAL PERCEPTUAL (o instrumento): treinar BRSpeechMOS pt-BR + MUSHRA/CMOS cego com cariocas. CORTAR WER como gate de qualidade. GATE: existe métrica de sotaque+naturalidade antes de gastar GPU.",
+   "FASE 2 — DADOS (caminho crítico, semanas-meses): gravar o flywheel das 3 vozes JÁ + MEDIR a taxa real em 2 semanas; e-mail NILC HOJE. Marco 1 = 3-6h limpas/locutor. GATE: sem isto nenhum treino move o sotaque de 2.8.",
+   "FASE 3 — PROSÓDIA + emoção (defeito #2): implementar o mecanismo da Maya (áudio-contexto/reference-encoder), arm de verdade; gravar G2 (+5-7h/locutor); testar HONESTO o teto do CSM-1B. GATE F2: emoção reconhecível 70%+ cega.",
+   "FASE 4 — CASCATA LOW-LATENCY medida e2e (o produto): rodar a cascata 1× e instrumentar TTFA/p50/p95; trocar Gemini-hop por LLM LOCAL; streaming por sentença. GATE F4: p50 <800ms REAL + preferência ≥ Moshi cega.",
+   "FASE 5 — CORTAR/PARKEAR: G2P-substituição, WER-como-gate, Estágio-A-NURC do orçamento; parkear Moshi/RL. GATE: cada $ e cada semana apontados ao gargalo real (dados+prosódia+eval+latência)."
   ]
  },
  "hypotheses": [
@@ -47,8 +47,8 @@
    "node": "m-maya0"
   },
   {
-   "claim": "O CSM-1B (1h de gravação) basta pra paridade com a Maya em pt-BR (Medium 8B é overkill); áudio-contexto sustenta personalidade/emoção sem tags explícitas — validado em ~80% no Treino 1 (Stage B final WER 17%, 14/14 paradas), falta só escala em G1",
-   "status": "validada",
+   "claim": "O CSM-1B (1h de gravação) basta pra paridade com a Maya em pt-BR (Medium 8B é overkill); áudio-contexto sustenta personalidade/emoção sem tags explícitas — validado em ~80% no Treino 1 (Stage B final WER 17%, 14/14 paradas), falta só escala em G1  [REBAIXADA 20/jun: 'validada' era fé no CTO da Sesame + WER 12%, NÃO resultado nosso. Voz 3.4 + nativo 2.8 + prosódia robótica = OPOSTO de paridade. Risco de meses: se o teto do 1B com pouco dado for ~3.5/5 de naturalidade, nenhum tuning fecha o gap — só +dados em ordem de magnitude OU outro backbone. Testar o teto honestamente na Fase 3.]",
+   "status": "parcial",
    "node": "m-tts"
   },
   {
@@ -953,73 +953,150 @@
    ]
   }
  ],
- "cost_basis": "Base de custo (o que já gastamos): o Treino 1 custou ~$40 — ≈12h de H100 80GB @ $3,29/h (Estágio A 3h + grid de ~8 runs + 4× Estágio B 1,5h). A100 80GB (~$1,39/h, mais lenta) é a opção barata pra treino; debug em RTX 4090/L4 ($0,39–0,69/h). Valor exato no billing do RunPod. Estimativas abaixo no rate H100.",
+ "cost_basis": "GPU NÃO é o gargalo. Treino 1 ~$40 + Treino 2 ~$33 = ~$73 total; cada arm $3-18. Inferência ≠ treino: servir a cascata = 4090/L4 ~$0.44-0.50/h (não H100). O custo REAL do produto é serving sempre-ligado (~$320-870/mês com LLM local), omitido no plano antigo. Dinheiro nunca foi o problema — dado-mês é.",
  "gpu_plan": [
   {
-   "label": "B2 · baseline limpo",
-   "trilha": "A",
-   "node": "a-stageB2",
-   "roadmap": 2,
-   "dataset": "voz do Pedro CURADA (transcribed_clean)",
-   "fraction": "100% do curado (~50-70% dos 362 clipes)",
-   "gpu": "A100/H100",
-   "hours": "~1,8h (1,5h treino + 0,3h prep)",
-   "cost": "~$6 (H100) / ~$3 (A100)",
-   "depends": "curate_app rodar (sem GPU)",
-   "note": "linha de base honesta; limpeza deve baixar WER 12→8-10%"
+   "fase": 0,
+   "etapa": "Curar dataset (curate_app) — bloqueador local, nunca rodou",
+   "gpu": "CPU $0",
+   "hours": "horas-humanas",
+   "cost": "$0",
+   "quando": "AGORA (gate de tudo)",
+   "status": "ativo"
   },
   {
-   "label": "B2 · G2P (ablação)",
-   "trilha": "A",
-   "node": "a-g2p",
-   "roadmap": 3,
-   "dataset": "mesmo curado, texto fonemizado",
-   "fraction": "100%",
-   "gpu": "A100/H100",
-   "hours": "~1,8h",
-   "cost": "~$6 (H100) / ~$3 (A100)",
-   "depends": "B2-limpo (baseline) + g2p endurecido",
-   "note": "fonemizar a entrada com CharsiuG2P/LatPhon (MIT) — ataca o fator FONÉTICO do gringo; não bloquear no BIPA"
+   "fase": 0,
+   "etapa": "enrich_markers GOP/MDD offline + classificador carioca-vs-não (proxy de sotaque, rótulo grátis: Pedro+João carioca / Guilherme paulista)",
+   "gpu": "CPU $0",
+   "hours": "1-2 dias",
+   "cost": "$0",
+   "quando": "AGORA, antes de GPU",
+   "status": "ativo"
   },
   {
-   "label": "Ablação de proporção (3 runs)",
-   "trilha": "A",
-   "node": "a-accent",
-   "roadmap": 4,
-   "dataset": "base pt + voz do Pedro em 30/70, 50/50, 100%",
-   "fraction": "varia por run",
+   "fase": 1,
+   "etapa": "EVAL: treinar BRSpeechMOS pt-BR (sem checkpoint público) + MUSHRA/CMOS cego",
    "gpu": "A100/H100",
-   "hours": "~5,4h (3×1,8h)",
-   "cost": "~$18 (H100) / ~$8 (A100)",
-   "depends": "B2-limpo",
-   "note": "testa se mais voz do Pedro cedo derruba o gringo + recupera o carioca"
+   "hours": "~2-4h",
+   "cost": "~$3-5",
+   "quando": "Fase 1, ANTES do próximo sprint (senão repete o nulo do Treino 2)",
+   "status": "ativo"
   },
   {
-   "label": "Estágio A · base carioca",
-   "trilha": "A",
-   "node": "a-stageA",
-   "roadmap": 4,
-   "dataset": "NURC/espontâneo (~20-30h) — TAGARELA fica eval-only (NC)",
-   "fraction": "~20-30h slice (SNR>32dB, 2-12s)",
+   "fase": 2,
+   "etapa": "GRAVAR flywheel 3 vozes + medir taxa real (2 semanas) — caminho crítico",
+   "gpu": "CPU $0",
+   "hours": "semanas-meses (humano)",
+   "cost": "$0",
+   "quando": "AGORA e contínuo — o gargalo real",
+   "status": "ativo"
+  },
+  {
+   "fase": 2,
+   "etapa": "TREINO B2 baseline limpo (diagnóstico, reduz artefato — não salto)",
+   "gpu": "A100/H100",
+   "hours": "~1.8h",
+   "cost": "~$6 H100 / $3 A100",
+   "quando": "Fase 2, após curar",
+   "status": "ativo"
+  },
+  {
+   "fase": 3,
+   "etapa": "TREINO método de PROSÓDIA (reference-encoder/prosody-tokens) — arm NOVO, ataca o defeito #2",
+   "gpu": "A100/H100 + eng",
+   "hours": "~2-4 sem eng + 1-2 runs",
+   "cost": "~$15-30",
+   "quando": "Fase 3, após dado G2 + eval perceptual",
+   "status": "ativo"
+  },
+  {
+   "fase": 3,
+   "etapa": "TREINO Estágio B + G2 emoções",
+   "gpu": "A100/H100",
+   "hours": "~2-2.5h",
+   "cost": "~$8 H100 / $4 A100",
+   "quando": "Fase 3, SÓ após gravar 5-7h novas/locutor",
+   "status": "ativo"
+  },
+  {
+   "fase": 4,
+   "etapa": "INFERÊNCIA: cascata e2e + medir TTFA/p50/p95 (o produto, nunca orçado)",
+   "gpu": "4090/L4 serving",
+   "hours": "4-8h/sessão",
+   "cost": "~$2-4/sessão @ $0.50/h",
+   "quando": "Fase 4, número real antes do gate F4",
+   "status": "ativo"
+  },
+  {
+   "fase": 4,
+   "etapa": "INFERÊNCIA: demo/produção sempre-ligada + LLM LOCAL (mata o Gemini-hop)",
+   "gpu": "4090/L4 (ou A100-40 c/ LLM 7-8B)",
+   "hours": "24x7",
+   "cost": "~$320-365/mês (s/ LLM) / ~$870/mês (c/ LLM local)",
+   "quando": "Quando virar produto — AQUI mora o custo real",
+   "status": "ativo"
+  },
+  {
+   "fase": 5,
+   "etapa": "G2P-substituição (b2_g2p)",
+   "gpu": "—",
+   "hours": "0h",
+   "cost": "$0",
+   "quando": "CORTAR — refutado no Treino 2 (54-79%)",
+   "status": "cortado"
+  },
+  {
+   "fase": 5,
+   "etapa": "Estágio A base carioca (NURC)",
    "gpu": "A100/H100",
    "hours": "~3-4h",
-   "cost": "~$11-13 (H100) / ~$5-6 (A100)",
-   "depends": "⚠ BLOQUEADO até NILC responder (NURC é CC-BY-NC-ND)",
-   "note": "nesta rodada: ablação de PROPORÇÃO (base↔Pedro), NÃO NURC — testa se a base formal domina o carioca"
-  },
-  {
-   "label": "Estágio B + G2 · emoções",
-   "trilha": "A (F2)",
-   "node": "a-emo",
-   "roadmap": 6,
-   "dataset": "voz curada + G2 (8 emoções)",
-   "fraction": "100% (após gravar 5-7h novas)",
-   "gpu": "A100/H100",
-   "hours": "~2-2,5h",
-   "cost": "~$8 (H100) / ~$4 (A100)",
-   "depends": "gravar G2 (semanas, sem GPU)",
-   "note": "caminho ÚNICO pra emoção (task-vector não funciona em TTS-LM)"
+   "cost": "$0 agora",
+   "quando": "BLOQUEADO por licença CC-BY-NC-ND até NILC responder",
+   "status": "bloqueado"
   }
  ],
- "gpu_total": "Próximo sprint do SOTAQUE (sem esperar licença nem gravar G2): B2-limpo + B2-G2P + ablação de proporção ≈ 9h de GPU ≈ $30 no H100 (ou ~$14 no A100). #1 normalizador (FEITO, sem GPU) e #5 enrich_markers/GOP (forced-align offline, CPU) não contam."
+ "gpu_total": "Distância honesta pra Maya: ~3-6 MESES limitados por gravação+curadoria+eval (humano), não horas de H100. GPU total estimada até um Maya-BR v0 decente: < $200. Ver data_demand pro gargalo real (horas de voz limpa).",
+ "maya_gap": {
+  "media": 3.2,
+  "scores": [
+   {
+    "dim": "Voz / timbre",
+    "agora": 6.5,
+    "alvo": 10,
+    "nota": "Único pilar real — clona reconhecível, mas 3.4/5 é 'dá pra reconhecer', não 'natural'. Mono-emoção."
+   },
+   {
+    "dim": "Sotaque / nativo (carioca)",
+    "agora": 2.8,
+    "alvo": 10,
+    "nota": "O buraco. 28× gringo, transferiu 2/14. Zero avanço em 2 treinos. Problema de DADO+método, não hparam."
+   },
+   {
+    "dim": "Prosódia / naturalidade",
+    "agora": 3.0,
+    "alvo": 10,
+    "nota": "Robótica (18×). NENHUM arm de método rodado. Caro (gravar 5-7h) e não-começado."
+   },
+   {
+    "dim": "Latência (cascata e2e)",
+    "agora": 1.5,
+    "alvo": 10,
+    "nota": "NUNCA medida ponta-a-ponta. Gemini-hop do Rio 0.7-0.94s já estoura o budget de 800ms sozinho."
+   },
+   {
+    "dim": "Robustez do pipeline",
+    "agora": 2.0,
+    "alvo": 10,
+    "nota": "Scaffold não testado e2e; barge-in só com fones; número quebra. Protótipo, não produto."
+   }
+  ]
+ },
+ "data_demand": "HORAS DE VOZ LIMPA POR LOCUTOR (pós-curadoria): inteligível 0.5-1h (JÁ TEMOS); NATURAL/expressivo 3-10h; nível-Maya (prosódia+emoção+sotaque) 10-30h. Pedro hoje ~0.4h (24min). Por voz: G1 núcleo 4-6h + G2 emoções +5-7h = ~10-13h limpas. 3 vozes = ~30-40h limpas. ORÇAR EM BRUTO: curadoria descarta 40-60% → grave ~20h brutas/locutor p/ 10h limpas. FLYWHEEL (gargalo real): 1h reunião-3 = ~7-15min LIMPOS/pessoa pós-curadoria; 3-4 reuniões/sem = 0.5-1h limpa/locutor/semana → 10h = 2.5-5 MESES, 20-30h = 6-12 meses. AÇÃO #1: gravar 2 semanas e MEDIR a taxa real (qualquer ETA é fantasia até medir). DATASETS commercial-safe (só LÍNGUA/base, ZERO carioca-conversa): CML 68h CC-BY (formal/paulista, JÁ é a base), MLS-pt 161h CC-BY (LibriVox pt-PT-ish — OUVIR antes, pode PIORAR o gringo), Common Voice ~150h CC0 (ruidoso). TAGARELA/CORAA/NURC = bons mas NC/NC-ND = SÓ EVAL. Carioca usável não existe aberto → só do flywheel próprio (LGPD) ou licenciar NILC (e-mail não enviado).",
+ "cortar": [
+  "Arm G2P-substituição (b2_g2p) — refutado (WER 54-79%). Fonema-nativo de verdade = projeto de semanas, não arm de 1.8h.",
+  "WER como GATE DE QUALIDADE — ruído ±8%, já resolvido (12%), cego pro gringo. Rebaixar a sanity-check de balbúcio.",
+  "Linha-fantasma Estágio-A-carioca-NURC do orçamento ativo — bloqueada por licença; infla o plano com etapa travada por terceiro.",
+  "Repetir sprint de $30 por WER+ouvido (n=14) — foi o que o Treino 2 fez por $33 sem avanço. Sem eval perceptual antes, reproduz o nulo.",
+  "PARKEAR (não cortar): Moshi/RL e spine full-duplex — nada rodou em pt-BR; só reabrir se o gate F4 da cascata FALHAR."
+ ]
 }

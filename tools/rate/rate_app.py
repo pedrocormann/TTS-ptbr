@@ -300,6 +300,11 @@ h2{font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-0.01e
 .node-meta .dot{width:5px;height:5px;border-radius:50%;background:var(--tf)}
 .node.done .dot{background:var(--green)}.node.wip .dot{background:var(--orange)}.node.next .dot{background:var(--blue)}
 svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visible}.edge{fill:none;stroke:rgba(245,245,247,0.13);stroke-width:1.5}
+.usergrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:12px}
+.usercard{background:var(--surface);border:1px solid var(--b);border-radius:var(--rsm);padding:16px;cursor:pointer;transition:all .18s var(--ease)}
+.usercard:hover{background:var(--surface-h);border-color:var(--bh);transform:translateY(-1px)}
+.usern{font-size:15px;font-weight:600;color:var(--t);margin-bottom:6px}
+.usermeta{font-size:12px;color:var(--t2)}.usermeta b{color:var(--orange);font-size:14px}
 .avbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .btn.mini{font-size:11px;padding:5px 11px}
 .dots{display:flex;flex-wrap:wrap;gap:5px;margin:14px 2px 0}
@@ -639,16 +644,26 @@ function flash(m){const t=document.getElementById('toast');if(!t)return;t.textCo
 function togProb(p){const c=cur();const r=rOf(c);const a=r.problemas||[];const j=a.indexOf(p);if(j<0){a.push(p);}else{a.splice(j,1);}r.problemas=a;r.run=c.run;r.id=c.id;r.ts=Date.now();ratings[K(c.run,c.id)]=r;renderCtrls();flash('salvo ✓');queueSave(c,r);}
 function go(d){saveDraft();let ni=i+d;if(onlyTodo){let k=0;while(ni>=0&&ni<clips.length&&isComplete(clips[ni])&&++k<=clips.length)ni+=d;}i=Math.max(0,Math.min(clips.length-1,ni));render();setTimeout(playFresh,140);}
 function playFresh(){const a=document.getElementById('au');if(a){const p=a.play();if(p)p.catch(function(){});}}
+let ALLCUR=[],curUser=null;
 async function showCurate(){
- try{CUR=await(await fetch('/api/curate')).json();}catch(e){CUR=[];}
- if(!CUR.length){document.getElementById('cu').innerHTML='<div class=card>Sem dataset pra curar — rode <code>tools/curate/auto_curate.py</code> primeiro.</div>';return;}
+ try{ALLCUR=await(await fetch('/api/curate')).json();}catch(e){ALLCUR=[];}
+ if(!ALLCUR.length){document.getElementById('cu').innerHTML='<div class=card><div class=ihead>Curar</div><p class=muted>Nada pra curar ainda. O Whisper roda nas gravações da sala, quebra em frases e popula aqui — por pessoa. (O exemplo já curado aparece assim que houver dado.)</p></div>';return;}
+ if(!curUser){renderCurPicker();return;}
+ CUR=ALLCUR.filter(function(x){return (x.usuario||'?')===curUser;});
  ci=Math.max(0,Math.min(ci,CUR.length-1));renderCur();
 }
+function renderCurPicker(){
+ const u={};ALLCUR.forEach(function(x){const k=x.usuario||'?';(u[k]=u[k]||{t:0,r:0});u[k].t++;if(x.edited)u[k].r++;});
+ const cards=Object.keys(u).sort().map(function(k){const d=u[k];return `<div class=usercard onclick="pickUser('${k.replace(/'/g,"\\\\'")}')"><div class=usern>${esc(k)}</div><div class=usermeta><b>${d.t-d.r}</b> pra curar <span class=exp>· ${d.t} no total · ${d.r} revisados</span></div></div>`;}).join('');
+ document.getElementById('cu').innerHTML=`<div class=card><div class=ihead>Curar por pessoa <span class=exp>escolha quem você vai curar — todos veem todos, mas na prática cure o seu</span></div><div class=usergrid>${cards}</div></div>`;
+}
+function pickUser(u){curUser=u;ci=0;showCurate();}
 const CFLAGS=['2 vozes','ruído','corte ruim','sobreposição','eco/metálico','outro'];
 function renderCur(){
  const c=CUR[ci];if(!c)return;
  const done=CUR.filter(x=>x.edited).length;
  let h=`<div class=card>
+ <button class="btn mini" onclick="curUser=null;showCurate()" style="margin-bottom:12px">← trocar pessoa (${esc(curUser||'')})</button>
  <div class=tags><span>${ci+1}/${CUR.length}</span><span>${esc(c.id)}</span><span>${esc(c.style||'')}</span><span>dur ${c.dur_s!=null?c.dur_s.toFixed(1)+'s':'?'}</span>${c.edited?'<span style="border-color:var(--green);color:var(--green)">✓ revisado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}${c.keep===false?'<span style="border-color:var(--red);color:var(--red)">descartado</span>':''}</div>
  <audio controls src="/curate/audio?id=${encodeURIComponent(c.id)}" style="width:100%;margin:12px 0"></audio>
  <div class=ihead><b>Transcrição</b> <span class=exp>corrija pra bater EXATO com o áudio</span></div>

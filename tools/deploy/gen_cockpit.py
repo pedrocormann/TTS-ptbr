@@ -52,8 +52,8 @@ const jr=o=>new Response(JSON.stringify(o),{status:200,headers:{"Content-Type":"
 const mean=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10:null;
 async function loadRatings(){const r=await SB.from("avaliacoes").select("run,clip,payload");const o={};(r.data||[]).forEach(x=>o[x.run+"|"+x.clip]=x.payload);return o;}
 async function saveRate(x){await SB.from("avaliacoes").upsert({run:x.run,clip:x.id,payload:x,atualizado:new Date().toISOString()});return jr({ok:true});}
-async function loadCurate(){const r=await SB.from("curadoria").select("id,payload");const e={};(r.data||[]).forEach(x=>e[x.id]=x.payload);return BUNDLE.curate.map(c=>e[c.id]?Object.assign({},c,e[c.id],{edited:true}):c);}
-async function saveCurate(b){await SB.from("curadoria").upsert({id:b.id,payload:b,atualizado:new Date().toISOString()});return jr({ok:true});}
+async function loadCurate(){const r=await SB.from("curar_itens").select("*").order("usuario");return (r.data||[]).map(x=>({id:x.id,usuario:x.usuario,audio:x.audio,style:"",dur_s:x.dur_s,text_orig:x.text_orig,text_v2:x.text_v2,text:x.texto,keep:x.manter,flags:x.flags||[],edited:x.editado}));}
+async function saveCurate(b){await SB.from("curar_itens").update({texto:b.text,manter:b.keep,flags:b.flags||[],editado:true}).eq("id",b.id);return jr({ok:true});}
 async function insights(){
  const R=await loadRatings();
  const rated=BUNDLE.clips.map(c=>Object.assign({},c,R[c.run+"|"+c.id]||{})).filter(r=>r.geral!=null);

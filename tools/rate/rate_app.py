@@ -395,11 +395,20 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .emorow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:7px 0}
 .emohint{font-size:11px;color:var(--tm);margin:1px 0 9px}
 #cu .ind{margin:16px 0}#cu .curcmp{margin:9px 0}
+.cblock{border-radius:12px;padding:15px 17px;margin:14px 0;border:1px solid var(--b)}
+.cb-txt{background:rgba(255,255,255,0.018)}
+.cb-emo{background:rgba(125,160,255,0.05);border-color:rgba(125,160,255,0.22)}
+.cbh{font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--t2);margin-bottom:12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.cb-emo .cbh{color:var(--blue)}
+.cbsub{font-family:var(--body);font-size:11px;letter-spacing:0;text-transform:none;color:var(--tm)}
+.aibanner{background:rgba(40,200,64,0.08);border:1px solid rgba(40,200,64,0.3);border-radius:var(--rsm);padding:9px 12px;margin-bottom:11px;font-size:12.5px;color:var(--t2);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.aibanner b{color:var(--green)}
 .emogl{font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--tm);width:74px;flex-shrink:0;text-align:right;margin-right:4px}
 .btn.fl.pri{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
 .curcmp{margin:10px 0;font-size:13px;color:var(--t2);line-height:1.7}.curcmp .curlbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--tm);margin-right:4px}
 .btn.mini{font-size:11px;padding:3px 8px}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(18,18,22,0.92);border:1px solid var(--bh);color:var(--t);padding:8px 16px;border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;opacity:0;transition:all 0.25s var(--ease);pointer-events:none;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.tip{position:fixed;display:none;max-width:280px;background:rgba(18,18,22,0.97);border:1px solid var(--bh);color:var(--t2);padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.45;z-index:90;pointer-events:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 30px rgba(0,0,0,0.5)}
 /* ---- Onde estamos vs Maya (scorecard brutal) ---- */
 .gapcard{border-color:rgba(199,48,45,0.28);background:linear-gradient(180deg,rgba(199,48,45,0.04),var(--surface))}
 .gapmedia{display:flex;align-items:baseline;gap:8px;margin:10px 0 18px;flex-wrap:wrap}
@@ -478,6 +487,7 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 <div id=gr></div>
 </div>
 <div id=toast class=toast></div>
+<div id=tip class=tip></div>
 <button class="sidenav left hide" id=navL onclick=goPrev() title="áudio anterior">‹</button>
 <button class="sidenav right hide" id=navR onclick=goNext() title="próximo áudio">›</button>
 <div id=panelbg class=panelbg onclick=closePanel()></div>
@@ -702,14 +712,20 @@ function renderCur(){
  <button class="btn mini" onclick="curUser=null;showCurate()" style="margin-bottom:12px">← trocar pessoa (${esc(curUser||'')})</button>
  <div class=tags><span>${ci+1}/${CUR.length}</span><span>${esc(c.id)}</span><span>${esc(c.style||'')}</span><span>dur ${c.dur_s!=null?c.dur_s.toFixed(1)+'s':'?'}</span>${(c.emocoes&&c.emocoes.length)?`<span style="border-color:var(--blue);color:var(--blue)">${esc(c.emocoes.join(', '))}</span>`:'<span style="border-color:var(--orange);color:var(--orange)">sem emoção</span>'}${c.edited?'<span style="border-color:var(--green);color:var(--green)">✓ revisado</span>':'<span style="border-color:var(--orange);color:var(--orange)">○ pendente</span>'}${c.keep===false?'<span style="border-color:var(--red);color:var(--red)">descartado</span>':''}</div>
  ${cPlayer(au)}
- <div class=ihead><b>Transcrição</b> <span class=exp>corrija pra bater EXATO com o áudio</span></div>
- <textarea id=curtext class=curtext rows=1 oninput="curEdit('text',this.value);grow(this)" placeholder="transcrição...">${esc(c.text||'')}</textarea>
- <div class=curcmp>
-  <div><span class=curlbl>original (Whisper):</span> ${esc(c.text_orig||'—')}</div>
-  ${c.text_v2!=null?`<div><span class=curlbl>ASR-v2 (medium):</span> ${esc(c.text_v2||'(vazio)')} ${(c.text_v2&&c.text_v2!==c.text)?'<button class="btn mini" onclick=useV2()>usar v2</button>':''}</div>`:'<div class=curlbl>ASR-v2: re-transcrevendo no CPU… (recarregue pra atualizar)</div>'}
+ <div class="cblock cb-txt">
+  <div class=cbh>📝 transcrição<span class=cbsub>as palavras ditas — corrija pra bater exato com o áudio</span></div>
+  <textarea id=curtext class=curtext rows=1 oninput="curEdit('text',this.value);grow(this)" placeholder="transcrição...">${esc(c.text||'')}</textarea>
+  <div class=curcmp>
+   <div><span class=curlbl>original (Whisper):</span> ${esc(c.text_orig||'—')}</div>
+   ${c.text_v2!=null?`<div><span class=curlbl>ASR-v2 (medium):</span> ${esc(c.text_v2||'(vazio)')} ${(c.text_v2&&c.text_v2!==c.text)?'<button class="btn mini" onclick=useV2()>usar v2</button>':''}</div>`:'<div class=curlbl>ASR-v2: re-transcrevendo no CPU… (recarregue pra atualizar)</div>'}
+  </div>
  </div>
- <div class=ind><div class=ihead><b>Estilo &amp; emoção</b> <span class=exp>descreva o tom em palavras — é o principal · clique nas tags abaixo pra compor</span></div><input type=text id=curnl class=curnl list=nlhist autocomplete=off value="${esc(c.estilo_nl||'')}" oninput="setNL(this.value)" placeholder="ex: irônico cansado, meio debochado, fala arrastada..."><datalist id=nlhist>${nlHist().map(function(v){return '<option value="'+esc(v)+'">';}).join('')}</datalist></div>
- <div class=ind id=emobox></div>
+ <div class="cblock cb-emo">
+  <div class=cbh>🎭 estilo &amp; emoção<span class=cbsub>como é dito — a descrição é o principal; clique nas tags pra compor</span></div>
+  <input type=text id=curnl class=curnl list=nlhist autocomplete=off value="${esc(c.estilo_nl||'')}" oninput="setNL(this.value)" placeholder="ex: irônico cansado, meio debochado, fala arrastada...">
+  <datalist id=nlhist>${nlHist().map(function(v){return '<option value="'+esc(v)+'">';}).join('')}</datalist>
+  <div id=emobox style="margin-top:12px"></div>
+ </div>
  <div class=ind><div class=ihead><b>Problemas</b> <span class=exp>mantido é o padrão — só descarte se o clipe não presta</span></div>${CFLAGS.map(fl=>`<button class="btn fl ${(c.flags||[]).includes(fl)?'on':''}" onclick="curFlag('${fl}')">${fl}</button>`).join('')}<button class="btn no ${c.keep===false?'on':''}" style="margin-left:10px" onclick="curEdit('keep',c.keep===false)">${c.keep===false?'descartado ✓':'descartar clipe'}</button></div>
  <div class=nav><button class=btn onclick="curGo(-1)">‹ anterior</button><button class=btn onclick="curGo(1)">próximo ›</button><span class=muted style="margin-left:12px">${done}/${CUR.length} revisados · mantidos ${CUR.filter(x=>x.keep!==false).length}</span></div>
  </div>`;
@@ -730,10 +746,12 @@ async function cDraw(url){var cv=document.getElementById('cwc');if(!cv)return;va
 function cInit(url){var a=document.getElementById('cau');if(a){a.loop=true;a.ontimeupdate=cUpd;a.onplay=cUpd;a.onpause=cUpd;a.onloadedmetadata=cUpd;}var w=document.getElementById('cwave');if(w){w.onclick=function(e){var a=document.getElementById('cau');if(!a||!a.duration)return;var rc=w.getBoundingClientRect();a.currentTime=Math.max(0,Math.min(a.duration,(e.clientX-rc.left)/rc.width*a.duration));cUpd();var p=a.play();if(p)p.catch(function(){});};}cDraw(url);}
 function cPlayer(url){return '<audio id=cau src="'+url+'" preload=auto style="display:none"></audio><div class=transport><button id=cplay class=playbtn onclick=cTog()>▶</button><span id=cptime class=ptime>0:00 / 0:00</span><span class=loophint>↻ loop · clique na onda pra ir ao ponto</span></div><div class=wave id=cwave style="cursor:pointer"><canvas id=cwc></canvas><div id=cph class=playhead></div></div>';}
 /* ---- Emoção em eixos (affect cap2 + delivery + events + intensidade) ---- */
-function emoBtns(grp,sel,fn,pri){return grp.e.map(function(x){var on=sel.indexOf(x[0])>=0;var isp=pri&&pri===x[0];return '<button class="btn fl'+(on?' on':'')+(isp?' pri':'')+'" title="'+esc(x[2])+'" onclick="'+fn+'(\''+x[0]+'\')">'+x[0]+'</button>';}).join('');}
+function emoBtns(grp,sel,fn,pri){return grp.e.map(function(x){var on=sel.indexOf(x[0])>=0;var isp=pri&&pri===x[0];return '<button class="btn fl'+(on?' on':'')+(isp?' pri':'')+'" data-tip="'+esc(x[1])+' — '+esc(x[2])+'" onclick="'+fn+'(\''+x[0]+'\')">'+x[0]+'</button>';}).join('');}
 var showMore=false;
-function renderEmo(){var c=CUR[ci];if(!c)return;var b=document.getElementById('emobox');if(!b)return;var dl=c.delivery||[],ev=c.eventos||[];var nm=dl.length+ev.length;
- var h='<div class=ihead style="margin-top:0"><b>Tags</b> <span class=exp>atalhos pra compor a descrição — clicar insere a palavra no texto acima</span></div><div class=emohint>afeto: até 3 (a 1ª = dominante) · ordenadas da menos → mais intensa · neutral é exclusivo · hover = definição</div>';
+function renderEmo(){var c=CUR[ci];if(!c)return;var b=document.getElementById('emobox');if(!b)return;var dl=c.delivery||[],ev=c.eventos||[];var nm=dl.length+ev.length;var aa=c.emocoes_auto||[];
+ var h='';
+ if(aa.length&&!(c.emocoes||[]).length){h+='<div class=aibanner>🤖 a IA (emotion2vec+) ouviu: <b>'+aa.join(', ')+'</b> — confere? <button class="btn mini" onclick="acceptAI()">✓ aceitar e compor</button><button class="btn mini" onclick="ignoreAI()">ignorar</button></div>';}
+ h+='<div class=ihead style="margin-top:0"><b>Tags</b> <span class=exp>atalhos pra compor a descrição — clicar insere a palavra no texto acima</span></div><div class=emohint>afeto: até 3 (a 1ª = dominante) · ordenadas da menos → mais intensa · neutral é exclusivo · hover = definição</div>';
  EMO_GROUPS.filter(function(g){return g.axis==='affect';}).forEach(function(g){h+='<div class=emorow><span class=emogl>'+g.g+'</span>'+emoBtns(g,c.emocoes||[],'setEmo',(c.emocoes||[])[0])+'</div>';});
  h+='<button class="btn mini" style="margin-top:6px" onclick="showMore=!showMore;renderEmo()">'+(showMore?'– esconder entrega/eventos':'+ entrega · eventos'+(nm?' ('+nm+')':''))+'</button>';
  if(showMore){var dg=EMO_GROUPS.find(function(g){return g.axis==='delivery';});h+='<div class=emorow style="margin-top:6px"><span class=emogl>entrega</span>'+emoBtns(dg,dl,'setDeliv')+'</div>';var eg=EMO_GROUPS.find(function(g){return g.axis==='events';});h+='<div class=emorow><span class=emogl>eventos</span>'+emoBtns(eg,ev,'setEvent')+'</div>';}
@@ -750,6 +768,8 @@ function setEvent(en){var c=CUR[ci];if(!c)return;var had=(c.eventos||[]).indexOf
 function setNL(v){var c=CUR[ci];if(!c)return;c.estilo_nl=v;c.edited=true;clearTimeout(window._nlt);window._nlt=setTimeout(function(){saveCurNow();nlPush(c.estilo_nl);},500);}
 function nlHist(){try{return JSON.parse(localStorage.getItem('nlhist')||'[]');}catch(e){return [];}}
 function nlPush(v){v=(v||'').trim();if(!v)return;try{var hh=nlHist().filter(function(x){return x!==v;});hh.unshift(v);localStorage.setItem('nlhist',JSON.stringify(hh.slice(0,40)));}catch(e){}}
+function acceptAI(){var c=CUR[ci];if(!c)return;var aa=(c.emocoes_auto||[]).slice(0,3);c.emocoes=aa;aa.forEach(function(en){addNL(en);});c.edited=true;renderEmo();saveCurNow();flash('sugestão aceita — ajuste se precisar');}
+function ignoreAI(){var c=CUR[ci];if(!c)return;c.emocoes_auto=[];renderEmo();}
 function curGo(d){saveCurNow();ci=Math.max(0,Math.min(CUR.length-1,ci+d));renderCur();}
 function view(v){
  for(const x of ['av','tr','cu','gr']){document.getElementById(x).classList.toggle('hide',x!=v);}
@@ -945,6 +965,8 @@ document.addEventListener('keydown',e=>{
   if(e.key==' '){e.preventDefault();cTog();}
  }
 });
+document.addEventListener('mouseover',function(e){var t=e.target.closest?e.target.closest('[data-tip]'):null;var tip=document.getElementById('tip');if(!tip)return;if(t){tip.textContent=t.getAttribute('data-tip');tip.style.display='block';}else{tip.style.display='none';}});
+document.addEventListener('mousemove',function(e){var tip=document.getElementById('tip');if(tip&&tip.style.display==='block'){var x=Math.min(e.clientX+14,window.innerWidth-296);tip.style.left=Math.max(8,x)+'px';tip.style.top=Math.min(e.clientY+18,window.innerHeight-90)+'px';}});
 document.addEventListener('mouseup',function(){endDrag();});
 document.addEventListener('click',function(e){if(e.target&&e.target.tagName=='BUTTON')e.target.blur();});
 window.addEventListener('resize',function(){if(!document.getElementById('tr').classList.contains('hide'))drawEdges();});

@@ -135,14 +135,14 @@ input:focus,select:focus{border-color:var(--orange)}
 const SUPABASE_URL="https://yyxmtjqpmkonxlinflxu.supabase.co";
 const SUPABASE_KEY="sb_publishable_iyI5855XjkDE-7yep4f69w_A9OXFZq2";
 const FN_URL=SUPABASE_URL.replace(".supabase.co",".functions.supabase.co")+"/voz-upload-url";
-const DRIVE_URL="";                       // ← link da pasta do Drive da Unflat (Pedro)
+const DRIVE_URL="https://drive.google.com/drive/folders/1WATNvGYX4k8pB6eH1ekt6e6ZRQWcByNP?usp=sharing";  // pasta do Drive da Unflat
 const BACKUP_SUPABASE=true;
 const SR=24000;
 const FLUSH_SEC=10;
 const MIC_TIPS={
-  pedro:"JBL Quantum Stream: modo cardióide, ganho ~50-60% (sem estourar o medidor), e DESLIGUE efeitos/eco no JBL QuantumENGINE.",
-  guilherme:"JBL Quantum Stream: modo cardióide, ganho ~50-60% (sem estourar), efeitos OFF no QuantumENGINE.",
-  joao:"Elgato Wave 3: selecione o 'Wave 3' direto (NÃO o 'Wave Link'/microfone virtual com efeitos). Clipguard pode ficar ON; ganho ~ -? até o medidor pico não bater no vermelho.",
+  pedro:"JBL Quantum Stream: chave em CARDIÓIDE (não omni), mic a ~15cm da boca, ganho ~50-60% sem estourar. ⚠️ pra NÃO vazar a voz dos outros: FONE bem baixo (ou in-ear) — o JBL é condensador sensível e pega o som que sai do fone. Efeitos OFF no QuantumENGINE.",
+  guilherme:"JBL Quantum Stream: chave em CARDIÓIDE (não omni), mic a ~15cm da boca, ganho ~50-60%. ⚠️ FONE bem baixo — a voz dos outros vaza pro mic se o fone estiver alto. Efeitos OFF no QuantumENGINE.",
+  joao:"Elgato Wave 3: selecione o 'Wave 3' FÍSICO (NÃO 'Wave Link'/virtual — ele mistura a chamada inteira). Mic perto da boca, fone baixo, ganho até o pico não bater no vermelho.",
 };
 const $=id=>document.getElementById(id);
 

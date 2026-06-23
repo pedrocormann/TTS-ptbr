@@ -74,7 +74,7 @@ input:focus,select:focus{border-color:var(--orange)}
     <div class="hint"><b>Como funciona:</b> alguém <b>cria a sala</b>, os outros 2 <b>entram</b> nela (aparece na lista). Quem iniciar/encerrar a sessão faz pra todos — cada um grava a própria faixa com os mesmos metadados.</div>
     <div class="row" style="margin-bottom:12px">
       <div><label>Você</label><select id="who"><option value="">—</option><option>pedro</option><option>joao</option><option>guilherme</option><option value="convidado">convidado</option></select><div id="whoFixed" style="display:none;font-family:'Geist Mono',monospace;font-size:13px;color:var(--tx2);padding:11px 13px;border:1px solid var(--border);border-radius:var(--rs)"></div></div>
-      <div><label>Microfone</label><select id="mic"></select></div>
+      <div><label>Microfone</label><select id="mic"></select><div id="micwarn" style="display:none;margin-top:7px;font-size:12px;line-height:1.45;color:var(--red);background:rgba(199,48,45,.1);border:1px solid rgba(199,48,45,.4);border-radius:var(--rs);padding:9px 11px"></div></div>
     </div>
     <!-- TESTE DE MIC -->
     <button class="btn ghost" id="testbtn" onclick="toggleTest()">🎧 Testar microfone (ouvir e ajustar)</button>
@@ -219,13 +219,26 @@ async function startTest(){
 function stopTest(){ try{testStream&&testStream.getTracks().forEach(t=>t.stop());testCtx&&testCtx.close();}catch(e){} testCtx=testStream=testGain=null; $("testbox").classList.add("hidden");$("testbtn").textContent="🎧 Testar microfone (ouvir e ajustar)"; }
 $("gain")&&$("gain").addEventListener("input",()=>{ if(testGain)testGain.gain.value=($("gain").value/100); });
 // trocar o mic na lista DURANTE o teste → troca o device do teste na hora
-$("mic")&&$("mic").addEventListener("change",()=>{ if(testCtx){ stopTest(); startTest(); } });
+$("mic")&&$("mic").addEventListener("change",()=>{ checkMic(); if(testCtx){ stopTest(); startTest(); } });
 
 /* ===================== mics + validação ===================== */
+// dispositivos VIRTUAIS que mixam o áudio do sistema/chamada → vazam a voz dos outros
+const VIRT=/wave\s*link|aggregate|agregado|blackhole|vb-?audio|voicemeeter|stereo\s*mix|mixagem|loopback|virtual|multi-output|soundflower|\bmix\b|broadcast/i;
+function checkMic(){
+  const sel=$("mic"),w=$("micwarn");if(!sel||!w)return;
+  const lab=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:"";
+  if(VIRT.test(lab)){
+    w.innerHTML='⚠️ <b>"'+lab+'"</b> parece um dispositivo <b>VIRTUAL</b> que mistura o áudio do sistema/da chamada — é por isso que vaza a voz dos outros. Selecione o microfone <b>FÍSICO</b> (ex.: <b>"Wave 3"/"Wave XLR"</b>, não "Wave Link"; <b>"JBL Quantum Stream"</b> direto). Faixa limpa = só a sua voz.';
+    w.style.display="block";
+  } else { w.style.display="none"; }
+}
 async function listMics(){
   try{ const t=await navigator.mediaDevices.getUserMedia({audio:true});t.getTracks().forEach(x=>x.stop());
     const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput");
-    $("mic").innerHTML=ds.map((d,i)=>`<option value="${d.deviceId}">${d.label||("Mic "+(i+1))}</option>`).join("");
+    // prefere um dispositivo NÃO-virtual por padrão
+    const real=ds.findIndex(d=>!VIRT.test(d.label||""));
+    $("mic").innerHTML=ds.map((d,i)=>`<option value="${d.deviceId}"${i===(real>=0?real:0)?" selected":""}>${d.label||("Mic "+(i+1))}</option>`).join("");
+    checkMic();
   }catch(e){ $("status").textContent="permita o microfone ("+e.name+")";$("status").className="status err"; }
 }
 function validate(){ if($("who")&&whoVal()) loadSalas(); }

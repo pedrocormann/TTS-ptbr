@@ -72,6 +72,7 @@ input:focus,select:focus{border-color:var(--orange)}
   <!-- SETUP -->
   <div class="card" id="setup">
     <div class="hint"><b>Como funciona:</b> alguém <b>cria a sala</b>, os outros 2 <b>entram</b> nela (aparece na lista). Quem iniciar/encerrar a sessão faz pra todos — cada um grava a própria faixa com os mesmos metadados.</div>
+    <div class="hint" style="background:rgba(199,48,45,.1);border-color:rgba(199,48,45,.4)">⚠️ <b>Cada um numa sala separada</b> (remoto), se ouvindo por uma chamada à parte com <b>fone</b>. Se vocês ficarem <b>juntos na mesma sala</b>, todo microfone pega a voz de todo mundo e a faixa não presta pra treino — fone não resolve.</div>
     <div class="row" style="margin-bottom:12px">
       <div><label>Você</label><select id="who"><option value="">—</option><option>pedro</option><option>joao</option><option>guilherme</option><option value="convidado">convidado</option></select><div id="whoFixed" style="display:none;font-family:'Geist Mono',monospace;font-size:13px;color:var(--tx2);padding:11px 13px;border:1px solid var(--border);border-radius:var(--rs)"></div></div>
       <div><label>Microfone</label><select id="mic"></select><div id="micwarn" style="display:none;margin-top:7px;font-size:12px;line-height:1.45;color:var(--red);background:rgba(199,48,45,.1);border:1px solid rgba(199,48,45,.4);border-radius:var(--rs);padding:9px 11px"></div></div>

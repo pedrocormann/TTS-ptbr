@@ -251,13 +251,18 @@ $("who")&&$("who").addEventListener("change",validate);
 
 /* ===================== SALAS: listar / criar (tabela Supabase) ===================== */
 const SB_HDR={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY};
+function bootRealtime(){   // lista de salas ao vivo (criar/encerrar/gravando) via postgres_changes
+  if(!window.supabase){ setTimeout(bootRealtime,400); return; }
+  sb=sb||window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  try{ sb.channel("salas-watch").on("postgres_changes",{event:"*",schema:"public",table:"salas"},()=>{ if(whoVal()&&$("setup")&&!$("setup").classList.contains("hidden"))loadSalas(); }).subscribe(); }catch(e){}
+}
 async function loadSalas(){
   if(!whoVal()){ $("salaslist").innerHTML='<div class="lbl">escolha seu nome acima pra ver as salas…</div>'; return; }
   try{
-    const r=await fetch(SUPABASE_URL+"/rest/v1/salas?select=code,nome,criada_por&ativa=eq.true&order=criada_em.desc",{headers:SB_HDR});
+    const r=await fetch(SUPABASE_URL+"/rest/v1/salas?select=code,nome,criada_por,gravando&ativa=eq.true&order=criada_em.desc",{headers:SB_HDR});
     const ss=await r.json();
     $("salaslist").innerHTML = (Array.isArray(ss)&&ss.length)
-      ? ss.map(s=>`<div class="pchip salarow"><span class="pdot"></span><span class="salaenter" onclick="enterRoom('${s.code}')">${s.nome}<span class="me">por ${s.criada_por||"?"} · entrar →</span></span><span class="salax" title="apagar sala" onclick="deleteSala('${s.code}')">✕</span></div>`).join("")
+      ? ss.map(s=>`<div class="pchip salarow${s.gravando?' rec':''}"><span class="pdot"></span><span class="salaenter" onclick="enterRoom('${s.code}')">${s.nome}<span class="me">${s.gravando?'🔴 gravando · ':'por '+(s.criada_por||"?")+' · '}entrar →</span></span><span class="salax" title="apagar sala" onclick="deleteSala('${s.code}')">✕</span></div>`).join("")
       : '<div class="lbl">nenhuma sala ativa — crie uma abaixo</div>';
   }catch(e){ $("salaslist").innerHTML='<div class="lbl clip">erro ao listar salas</div>'; }
 }
@@ -311,15 +316,13 @@ function startOrJoin(){
   if(pendingStart){ const ps=pendingStart; pendingStart=null; chime("start"); doStart(ps.meeting,ps.started); }   // entrar na sessão de alguém (gesto garante o áudio)
   else { startSession(); }
 }
-function startSession(){ sharedStarted=new Date().toISOString(); chime("start"); doStart(meetingCode,sharedStarted); channel.send({type:"broadcast",event:"sessao",payload:{acao:"start",meeting:meetingCode,started:sharedStarted,by:myName}}); }
-function endSession(){ channel.send({type:"broadcast",event:"sessao",payload:{acao:"end",by:myName}}); }
+function startSession(){ sharedStarted=new Date().toISOString(); chime("start"); setSalaGrav(true); doStart(meetingCode,sharedStarted); channel.send({type:"broadcast",event:"sessao",payload:{acao:"start",meeting:meetingCode,started:sharedStarted,by:myName}}); }
+function endSession(){ setSalaGrav(false); channel.send({type:"broadcast",event:"sessao",payload:{acao:"end",by:myName}}); }
 function onSession(p){
-  if(p.acao==="start"){
-    if(p.by===myName||recording)return;                 // fui eu / já estou gravando
-    pendingStart={meeting:p.meeting,started:p.started};  // browsers exigem 1 gesto pra capturar áudio → CTA pra tocar
-    const b=$("startbtn"); if(b){ b.classList.add("rec"); b.innerHTML='<span class="pulse"></span> 🔴 '+(p.by||"alguém")+' iniciou — TOQUE pra gravar junto'; }
-  } else if(p.acao==="end" && recording){ chime("end"); doStop(); }
+  if(p.acao==="start"){ if(p.by===myName||recording)return; sharedStarted=p.started; chime("start"); doStart(p.meeting,p.started); }   // AUTO-grava nos outros (permissão já concedida); se o navegador bloquear, doStart mostra o CTA
+  else if(p.acao==="end" && recording){ chime("end"); doStop(); }
 }
+function setSalaGrav(g){ try{ fetch(SUPABASE_URL+"/rest/v1/salas?code=eq."+encodeURIComponent(meetingCode),{method:"PATCH",headers:{...SB_HDR,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({gravando:g})}); }catch(e){} }
 
 /* ===================== Gravação (núcleo) ===================== */
 const WORKLET=`class P extends AudioWorkletProcessor{process(i){const c=i[0];if(c&&c[0])this.port.postMessage(c[0].slice(0));return true}}registerProcessor('cap',P)`;
@@ -332,6 +335,7 @@ async function doStart(meeting,started){
     const dev=$("mic").value;
     stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:dev?{exact:dev}:undefined,echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1,sampleRate:SR}});
     ctx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:SR});sampleRate=ctx.sampleRate;
+    try{ if(ctx.state==="suspended") await ctx.resume(); }catch(e){}
     await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET],{type:"application/javascript"})));
     const src=ctx.createMediaStreamSource(stream);node=new AudioWorkletNode(ctx,"cap");
     node.port.onmessage=e=>onAudio(e.data);src.connect(node);node.connect(ctx.destination);
@@ -341,7 +345,11 @@ async function doStart(meeting,started){
     $("startbtn").classList.add("hidden");$("live").classList.remove("hidden");
     $("status").textContent="🔴 gravando (sessão da sala)";$("status").className="status";
     timerInt=setInterval(()=>{const tt=fmt((Date.now()-startMs)/1000);$("timer").textContent=tt;if(pipTimer)pipTimer.textContent=tt;},250);
-  }catch(e){ $("status").textContent="erro ao iniciar: "+e.message;$("status").className="status err"; }
+  }catch(e){ // auto-start bloqueado pelo navegador → CTA pra tocar (1 gesto)
+    pendingStart={meeting,started};
+    const b=$("startbtn"); if(b){ b.classList.remove("hidden"); b.classList.add("rec"); b.innerHTML='<span class="pulse"></span> 🔴 toque pra gravar junto'; }
+    $("status").textContent="toque em gravar pra entrar na sessão";$("status").className="status";
+  }
 }
 function onAudio(a){ buf.push(a);bufLen+=a.length;totalSamples+=a.length;
   let p=0;for(let i=0;i<a.length;i+=64){const v=Math.abs(a[i]);if(v>p)p=v;}
@@ -405,7 +413,7 @@ async function doDriveUpload(token){
 }
 window.addEventListener("beforeunload",e=>{if(recording){e.preventDefault();e.returnValue="Gravando! Encerre antes de fechar.";}});
 if(HAS_EMAIL){ const w=$("who");if(w)w.style.display="none"; const wf=$("whoFixed");if(wf){wf.style.display="block";wf.textContent="você: "+INJ_EMAIL;} loadSalas(); }
-listMics();validate();initGoogle();
+listMics();validate();initGoogle();bootRealtime();
 </script>
 </body>
 </html>

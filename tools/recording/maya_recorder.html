@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;900&family=Geist+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="window._gisReady=1;initGoogle&&initGoogle()"></script>
 <style>
 :root{
   --bg:#08080a;--surface:rgba(255,255,255,.025);--surface-hi:rgba(255,255,255,.05);
@@ -102,7 +103,7 @@ input:focus,select:focus{border-color:var(--orange)}
   <div class="card hidden" id="room">
     <div class="section-ttl">Sala <b id="roomcode" style="color:var(--orange)"></b> · quem está on</div>
     <div class="presence" id="presence"></div>
-    <button class="btn rec" id="startbtn" onclick="startSession()"><span style="width:11px;height:11px;border-radius:50%;background:#fff;display:inline-block"></span> Iniciar sessão (pra todos)</button>
+    <button class="btn rec" id="startbtn" onclick="startOrJoin()"><span style="width:11px;height:11px;border-radius:50%;background:#fff;display:inline-block"></span> Iniciar sessão (pra todos)</button>
     <div id="live" class="hidden" style="margin-top:16px;text-align:center">
       <div class="timer" id="timer">00:00</div>
       <div class="meter"><i id="meterbar"></i></div>
@@ -137,8 +138,11 @@ const SUPABASE_URL="https://yyxmtjqpmkonxlinflxu.supabase.co";
 const SUPABASE_KEY="sb_publishable_iyI5855XjkDE-7yep4f69w_A9OXFZq2";
 const FN_URL=SUPABASE_URL.replace(".supabase.co",".functions.supabase.co")+"/voz-upload-url";
 const DRIVE_URL="https://drive.google.com/drive/folders/1WATNvGYX4k8pB6eH1ekt6e6ZRQWcByNP?usp=sharing";  // pasta do Drive da Unflat
+const GDRIVE_FOLDER="1WATNvGYX4k8pB6eH1ekt6e6ZRQWcByNP";   // id da pasta
+const GDRIVE_CLIENT_ID="";   // ← Pedro: OAuth Client ID (Web) do Google Cloud. Vazio = cai no modo manual (abrir pasta).
 const BACKUP_SUPABASE=true;
 const SR=24000;
+let lastBlob=null, lastFname=null, gTokenClient=null;
 const FLUSH_SEC=10;
 const MIC_TIPS={
   pedro:"JBL Quantum Stream: chave em CARDIÓIDE (não omni), mic a ~15cm da boca, ganho ~50-60% sem estourar. ⚠️ pra NÃO vazar a voz dos outros: FONE bem baixo (ou in-ear) — o JBL é condensador sensível e pega o som que sai do fone. Efeitos OFF no QuantumENGINE.",
@@ -301,11 +305,20 @@ function leaveRoom(){ if(recording){ if(!confirm("Está gravando. Sair encerra S
 function backToRoom(){ $("done").classList.add("hidden"); $("room").classList.remove("hidden"); }
 
 /* ===================== Sessão sincronizada ===================== */
-function startSession(){ sharedStarted=new Date().toISOString(); channel.send({type:"broadcast",event:"sessao",payload:{acao:"start",meeting:meetingCode,started:sharedStarted}}); }
-function endSession(){ channel.send({type:"broadcast",event:"sessao",payload:{acao:"end"}}); }
+let pendingStart=null;
+function startOrJoin(){
+  if(recording)return;
+  if(pendingStart){ const ps=pendingStart; pendingStart=null; chime("start"); doStart(ps.meeting,ps.started); }   // entrar na sessão de alguém (gesto garante o áudio)
+  else { startSession(); }
+}
+function startSession(){ sharedStarted=new Date().toISOString(); chime("start"); doStart(meetingCode,sharedStarted); channel.send({type:"broadcast",event:"sessao",payload:{acao:"start",meeting:meetingCode,started:sharedStarted,by:myName}}); }
+function endSession(){ channel.send({type:"broadcast",event:"sessao",payload:{acao:"end",by:myName}}); }
 function onSession(p){
-  if(p.acao==="start" && !recording){ sharedStarted=p.started||new Date().toISOString(); chime("start"); doStart(p.meeting,sharedStarted); }
-  else if(p.acao==="end" && recording){ chime("end"); doStop(); }
+  if(p.acao==="start"){
+    if(p.by===myName||recording)return;                 // fui eu / já estou gravando
+    pendingStart={meeting:p.meeting,started:p.started};  // browsers exigem 1 gesto pra capturar áudio → CTA pra tocar
+    const b=$("startbtn"); if(b){ b.classList.add("rec"); b.innerHTML='<span class="pulse"></span> 🔴 '+(p.by||"alguém")+' iniciou — TOQUE pra gravar junto'; }
+  } else if(p.acao==="end" && recording){ chime("end"); doStop(); }
 }
 
 /* ===================== Gravação (núcleo) ===================== */
@@ -360,7 +373,10 @@ async function doStop(){
   $("room").classList.add("hidden");$("done").classList.remove("hidden");
   $("donefile").textContent=`${fname} · ${dur} · ${mb} MB`;
   $("donecfg").textContent=`24 kHz · mono · WAV 16-bit · mic cru · ${meta.sr||sampleRate} Hz reais`;
-  if(DRIVE_URL){$("drivebtn").href=DRIVE_URL;$("drivebtn").classList.remove("off");$("drivebtn").textContent="📁 Abrir pasta do Drive da Unflat";}
+  lastBlob=blob; lastFname=fname;
+  const dbtn=$("drivebtn");
+  if(GDRIVE_CLIENT_ID && dbtn){ dbtn.classList.remove("off");dbtn.removeAttribute("href");dbtn.style.cursor="pointer";dbtn.textContent="⬆ Enviar direto pro Drive";dbtn.onclick=(e)=>{e.preventDefault();uploadDrive();}; }
+  else if(DRIVE_URL && dbtn){ dbtn.href=DRIVE_URL;dbtn.classList.remove("off");dbtn.textContent="📁 Abrir pasta do Drive (arraste o arquivo)"; }
   if(BACKUP_SUPABASE)uploadBlob(meta,blob).then(()=>{$("donecfg").textContent+=" · backup ✓";}).catch(()=>{$("donecfg").textContent+=" · (sem backup)";});
 }
 async function uploadBlob(meta,blob){
@@ -369,9 +385,27 @@ async function uploadBlob(meta,blob){
   const x=new XMLHttpRequest();x.open("PUT",d.signedUrl);x.setRequestHeader("Content-Type","audio/wav");
   return new Promise((res,rej)=>{x.onload=()=>(x.status>=200&&x.status<300)?res():rej(new Error("HTTP "+x.status));x.onerror=()=>rej(new Error("rede"));x.send(blob);});
 }
+
+/* ===================== Upload direto pro Google Drive (GIS + Drive API) ===================== */
+function initGoogle(){ if(!GDRIVE_CLIENT_ID||!window.google||!google.accounts||gTokenClient)return;
+  try{ gTokenClient=google.accounts.oauth2.initTokenClient({client_id:GDRIVE_CLIENT_ID,scope:"https://www.googleapis.com/auth/drive.file",callback:onGToken}); }catch(e){} }
+function uploadDrive(){ if(!gTokenClient){ initGoogle(); if(!gTokenClient){ alert("Upload direto não configurado (falta o Client ID do Google). Use o botão de abrir a pasta e arraste o arquivo."); return; } }
+  $("drivebtn").textContent="conectando ao Google…"; gTokenClient.requestAccessToken(); }
+function onGToken(resp){ if(resp.error){ $("drivebtn").textContent="⬆ tentar de novo"; alert("Google: "+resp.error); return; } doDriveUpload(resp.access_token); }
+async function doDriveUpload(token){
+  if(!lastBlob)return; $("drivebtn").textContent="enviando pro Drive…";
+  const meta={name:lastFname,parents:[GDRIVE_FOLDER]};
+  const form=new FormData();
+  form.append("metadata",new Blob([JSON.stringify(meta)],{type:"application/json"}));
+  form.append("file",lastBlob);
+  try{ const r=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",{method:"POST",headers:{Authorization:"Bearer "+token},body:form});
+    if(r.ok){ $("drivebtn").textContent="✓ enviado pro Drive da Unflat"; }
+    else { console.error(await r.text()); $("drivebtn").textContent="⬆ falhou — tentar de novo"; } }
+  catch(e){ $("drivebtn").textContent="⬆ falhou — tentar de novo"; }
+}
 window.addEventListener("beforeunload",e=>{if(recording){e.preventDefault();e.returnValue="Gravando! Encerre antes de fechar.";}});
 if(HAS_EMAIL){ const w=$("who");if(w)w.style.display="none"; const wf=$("whoFixed");if(wf){wf.style.display="block";wf.textContent="você: "+INJ_EMAIL;} loadSalas(); }
-listMics();validate();
+listMics();validate();initGoogle();
 </script>
 </body>
 </html>

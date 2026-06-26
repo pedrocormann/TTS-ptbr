@@ -8,8 +8,10 @@
       "🏃 PRÓXIMA SPRINT — FreeSVC (voice conversion zero-shot, AKCIT/UFG): augmentar dado convertendo fala pt-BR genérica (CML/NURC) pra voz do Pedro, sem ele gravar mais. Scaffold pronto em tools/voice_conversion/freesvc_augment.py; GATE: só entra no treino se a eval HUMANA de similaridade melhorar (risco: sintético degrada). Roda no pod, não bloqueia a coleta.",
       "Abrir contato de colaboração com o hub AKCIT/UFG (freds0/Casanova/Soares) — parceiro institucional óbvio: GPU, datasets CC-BY, foco declarado em TTS/VC pt-BR",
       "Auditar licença real de cada dataset candidato (MuPe no repositório USP; ELRA-S0445 como caminho pago pra volume comercial) antes de qualquer uso em produto",
-      "EVAL PERCEPTUAL (instrumento que falta): treinar BRSpeechMOS pt-BR + MUSHRA/CMOS cego com cariocas — antes de gastar GPU no próximo treino.",
-      "Quando voltar o treino: MEDIR a cascata e2e (latency_run REAL TTFA/p50/p95) — nunca foi medida; o medidor atual é stub."
+      "EVAL DE PROSÓDIA (receita Aluísio/USP, instrumento que faltava): objetivo = F0-RMSE SEGMENTADO por tônica/fronteira (o global é cego) + MCD + a SCORECARD do 'robótico' (taxa de fala, duração da sílaba NUCLEAR ~280ms natural vs ~150 sintético, SD, pausas) via Praat+R; subjetivo = MOS-naturalidade + PS-MOS + AB cego vs a voz do Pedro + EyetrackingMOS (pt-BR pronto). Fontes: JBCS 2025 / ENIAC 2024.",
+      "Quando voltar o treino: MEDIR a cascata e2e (latency_run REAL TTFA/p50/p95) — nunca foi medida; o medidor atual é stub.",
+      "SEGMENTAR por UNIDADE ENTOACIONAL (IU), não por pausa: nossa quebra corta no meio do contorno → fine-tunar Whisper pra emitir fronteiras de IU (PSST, F1 87%, recomendado pela própria Aluísio). Melhora a prosódia do dado de treino.",
+      "COLABORAÇÃO USP/NILC (grupo Aluísio): propor co-autoria no buraco que ELES declaram — eval perceptual de prosódia na variedade CARIOCA. Eles têm método+linguista+baseline; a gente tem a voz-semente carioca. Contato: Julio Galdino / Sandra Aluísio. (Eles NÃO têm dado carioca → resolvem método, não sotaque.)"
     ],
     "blockers": [
       "DADO carioca limpo ≈ 0h. ~0.4h (24min) do Pedro, mono-emoção, com erros de transcrição vs 10-30h/locutor nível-Maya e ~30-40h pras 3 vozes. Flywheel a ZERO gravações (começa segunda). Gargalo dominante, mede-se em MESES, não em horas de H100.",
@@ -182,6 +184,20 @@
       "evidence": "Maya (líder de mercado) 'ri na hora errada' em conversa séria, descrito como 'tone-deafness inaceitável'; reviews ainda assim positivos (PCWorld).",
       "detail": "Adicionar 'adequação emocional ao contexto' como dimensão do nosso eval humano e reforçar condicionamento em turno/contexto. Estando em 2.8/10, não basta soar expressivo — tem que soar adequado.",
       "node": ""
+    },
+    {
+      "status": "aberta",
+      "claim": "Cortar por unidade entoacional (IU) > cortar por pausa, pra prosódia",
+      "evidence": "A quebra por pausa corta em silêncio, não em fronteira entoacional → parte contornos no meio; Aluísio recomenda Whisper-IU (PSST, F1 87%).",
+      "detail": "Hoje quebramos em 3-12s por pausa/Whisper. Os papers do grupo Aluísio mostram que a unidade prosódica certa é a IU (unidade entoacional), e que cortar fora dela parte o contorno melódico — o que pode ensinar prosódia picotada. Caminho recomendado por ela: fine-tunar Whisper pra cuspir fronteiras de IU (método PSST, F1 87%), melhor que o segmentador heurístico (F1 0.31) e que a nossa quebra ingênua. A testar quando houver dado. Ver reference-aluisio-prosodia-eval.",
+      "node": "a-emo"
+    },
+    {
+      "status": "validada",
+      "claim": "NURC-SP_ENTOA_TTS (MIT) é dataset pt-BR comercial-safe utilizável",
+      "evidence": "Licença MIT verificada no card HF (nilc-nlp) — único do grupo Aluísio comercial-safe; tem versões com segmentação prosódica.",
+      "detail": "Diálogo espontâneo SP (267 falantes), MIT = pode treinar/soltar derivado. CORAA/NURC-Mínimo são CC-BY-NC-ND (ND bloqueia derivado). Útil pra estudar IU + como dado de pré-treino conversacional comercial-safe. Não tem carioca (SP).",
+      "node": "a-stageA"
     }
   ],
   "lanes": [

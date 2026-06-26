@@ -20,11 +20,15 @@ import argparse, json, pathlib, sys
 REPO = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "data"))
 
+# MODO PESQUISA: usamos NC/ND livremente (TAGARELA/CORAA inclusos). Licença marcada só pra
+# rastreio de proveniência (se um dia virar produto). Ver tools/data/ingest.py::research_ok.
 SOURCES = {
-    "cml":     ("ylacombe/cml-tts", "portuguese", "CC-BY-4.0", "transcript"),
-    "mls":     ("facebook/multilingual_librispeech", "portuguese", "CC-BY-4.0", "transcript"),
-    "cv":      ("mozilla-foundation/common_voice_17_0", "pt", "CC0-1.0", "sentence"),
-    "granary": ("nvidia/Granary", "pt", "CC-BY-4.0", "text"),
+    "cml":      ("ylacombe/cml-tts", "portuguese", "CC-BY-4.0", "transcript"),
+    "mls":      ("facebook/multilingual_librispeech", "portuguese", "CC-BY-4.0", "transcript"),
+    "cv":       ("mozilla-foundation/common_voice_17_0", "pt", "CC0-1.0", "sentence"),
+    "granary":  ("nvidia/Granary", "pt", "CC-BY-4.0", "text"),
+    "tagarela": ("freds0/TAGARELA", "pt", "CC-BY-NC-SA-4.0", "text"),       # 2.800h clean — research-only (verificar id/config)
+    "coraa":    ("gpucce/CORAA", "pt", "CC-BY-NC-ND-4.0", "text"),          # espontâneo — research-only (verificar id)
 }
 
 
@@ -37,7 +41,7 @@ def main():
     ap.add_argument("--audio-dir", default=str(REPO / "data/base_pt_audio"))
     a = ap.parse_args()
 
-    from ingest import gate_license   # reusa o gate do pipe
+    from ingest import research_ok, gate_license   # modo pesquisa: usa NC/ND, só marca proveniência
     from datasets import load_dataset, Audio
     import soundfile as sf
 
@@ -50,8 +54,9 @@ def main():
         if key not in SOURCES:
             print(f"  fonte desconhecida: {key}"); continue
         repo, cfg, lic, txtcol = SOURCES[key]
-        assert gate_license(lic), f"{key} não é shippável ({lic}) — não entra no base-PT de produto"
-        print(f"[{key}] {repo}:{cfg} ({lic}) — streaming…", flush=True)
+        assert research_ok(lic), f"{key} sem acesso/pago ({lic}) — nem pesquisa usa"
+        tag = "" if gate_license(lic) else "  ⚠ research-only (NC/ND, marca proveniência)"
+        print(f"[{key}] {repo}:{cfg} ({lic}){tag} — streaming…", flush=True)
         try:
             ds = load_dataset(repo, cfg, split="train", streaming=True)
             ds = ds.cast_column("audio", Audio(sampling_rate=24000))

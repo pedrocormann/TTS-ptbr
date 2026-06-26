@@ -28,11 +28,22 @@ DNSMOS_TTS = 3.0   # >= vira candidato TTS-grade; abaixo fica língua/eval
 
 
 def gate_license(lic: str) -> bool:
-    """True = shippable (produto)."""
+    """True = COMERCIAL-shippable (produto). NÃO é o gate de PESQUISA (ver research_ok)."""
     l = (lic or "").lower()
     if any(b in l for b in SHIP_BLOCK):
         return False
     return any(g in l for g in SHIP_OK) and "nc" not in l and "nd" not in l
+
+
+def research_ok(lic: str) -> bool:
+    """True = usável pra PESQUISA (modo atual). NC/ND/SA são OK pra pesquisa não-comercial.
+    Só barra o que NÃO DÁ pra usar de fato: sem dado/acesso, ou pago não-comprado."""
+    l = (lic or "").lower()
+    if any(b in l for b in ("sem acesso", "sem dado", "bloqueado")):
+        return False
+    if "pago" in l or "elra" in l:           # comprável, mas só com budget
+        return False
+    return True                              # CC-BY/CC0/MIT/NC/ND/SA/sem-licença-declarada → pesquisa usa
 
 
 def classify(license: str, hours=None, accent="", typ="", dnsmos=None, consent=False):
@@ -72,12 +83,25 @@ def load_registry():
     return items
 
 
-def assert_license_gate(manifest_rows, split="prod"):
-    """FALHA (raise) se um dado não-shippável aparecer num split de produto."""
-    bad = [r for r in manifest_rows if split.startswith("prod") and not gate_license(r.get("license", ""))]
-    if bad:
-        raise SystemExit(f"❌ assert_license_gate: {len(bad)} item(s) NÃO-shippável em split de produto "
-                         f"(ex: {bad[0].get('nome', bad[0].get('source', '?'))}). Build bloqueado.")
+def assert_license_gate(manifest_rows, mode="research"):
+    """Gate de dado. mode='research' (PADRÃO, nosso caso): usa NC/ND/SA livremente, só barra
+    o que não dá pra usar (sem acesso/pago). mode='commercial': gate estrito (barra NC/ND) — pro futuro,
+    se virar produto. Em research, NÃO bloqueia treino — só AVISA o que é research-only (rastreio de proveniência)."""
+    if mode == "commercial":
+        bad = [r for r in manifest_rows if not gate_license(r.get("license", ""))]
+        if bad:
+            raise SystemExit(f"❌ gate COMERCIAL: {len(bad)} item(s) NC/ND num build de produto "
+                             f"(ex: {bad[0].get('source', '?')}). Bloqueado.")
+        return True
+    # research
+    inusavel = [r for r in manifest_rows if not research_ok(r.get("license", ""))]
+    if inusavel:
+        raise SystemExit(f"❌ {len(inusavel)} item(s) sem acesso/pago (ex: {inusavel[0].get('source','?')}). "
+                         f"Não dá pra usar nem em pesquisa — remova do manifest.")
+    research_only = [r for r in manifest_rows if not gate_license(r.get("license", ""))]
+    if research_only:
+        print(f"ℹ️  {len(research_only)} fonte(s) RESEARCH-ONLY (NC/ND) no mix — OK pra pesquisa, "
+              f"NÃO comercializável. Proveniência marcada (ex: {research_only[0].get('source','?')}).")
     return True
 
 
@@ -112,7 +136,7 @@ def main():
         rows = [{"nome": d["nome"], "license": d.get("licenca", ""), "tier": d.get("tier", ""),
                  "source": d["nome"], "shippable": d.get("shippable") == "true"}
                 for d in reg if d.get("tier", "").startswith(tier)]
-        assert_license_gate(rows, split="prod")
+        assert_license_gate(rows, mode="research")
         MANIFESTS.mkdir(parents=True, exist_ok=True)
         out = MANIFESTS / f"{tier}.jsonl"
         out.write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in rows), encoding="utf-8")

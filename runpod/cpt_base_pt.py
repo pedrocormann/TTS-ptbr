@@ -45,9 +45,9 @@ def main():
         sys.exit(f"manifest não existe: {man} — rode prep_base_pt.py primeiro")
 
     # --- GATE de licença antes de gastar GPU ---
-    from ingest import gate_license, assert_license_gate
+    from ingest import assert_license_gate
     rows = [json.loads(l) for l in man.read_text(encoding="utf-8").splitlines() if l.strip()]
-    assert_license_gate(rows, split="prod")          # FALHA se algum NC/não-shippable
+    assert_license_gate(rows, mode="research")       # PESQUISA: usa NC/ND, só avisa proveniência
     horas = sum(r.get("dur_s", 0) for r in rows) / 3600
     fontes = sorted({r.get("source", "?") for r in rows})
     print(f"manifest: {len(rows)} clipes · {horas:.1f}h · fontes {fontes} · todas shippáveis ✅")

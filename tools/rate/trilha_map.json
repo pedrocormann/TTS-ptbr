@@ -1,6 +1,6 @@
 {
   "state": {
-    "now": "Contradição TAGARELA RESOLVIDA em fonte primária (card HF freds0 + site oficial = CC-BY-NC-SA-4.0; o CC-BY do arXiv 2603.15326 é só do ARTIGO). Veredito travado: NC-SA + upstream Cem Mil Podcasts não-clareado → bloqueado pro produto (nem o clean-subset 2.800h), vale só eval/judge/receita. Registry classificado por tiers (T0-T4) com licença verificada e currículo em 3 camadas de pesos separados desenhados. Fase = COLETA, treino pausado até volume. Estágio A já tem ~417h T0 licenciadas (CML+MLS+CV).",
+    "now": "MODO PESQUISA (não produto): usar o MÁXIMO de dado — NC/ND (TAGARELA 2.800h clean, CORAA, NURC, MuPe) entram livremente; o gate de licença virou RASTREIO de proveniência (pro dia que virar produto), não trava. ~2.8/10 vs Maya, gargalo = DADO. Pipe de classificação (registry+ingest) + currículo em 3 camadas (público ensina a língua → NUNCA dilui a voz carioca limpa, razão de QUALIDADE/sotaque, não de licença) + 5 linhas de pesquisa. Fase de coleta segue; o base-PT agora pode incluir milhares de horas espontâneas.",
     "next": [
       "✅ FEITO: PIPE de classificação de datasets (data/dataset_registry.yaml + tools/data/ingest.py com assert_license_gate que FALHA o build em NC/não-shippable). 'Catalogar' virou executável — fecha o buraco saber→executar.",
       "F5 · Rodar `ingest --build-manifest T0` → manifest de produto dos ~417h já licenciados (CML+MLS+CV) + agendar CPT base-pt-v1 no pod ocioso (dado JÁ legal, não espera ninguém).",
@@ -19,7 +19,7 @@
       "Consentimento LGPD João/Guilherme não assinado — bloqueia adapter de voz deles",
       "Frente 30-benchmarks ainda registra TAGARELA como CC-BY-4.0 (ERRADO) — corrigir pra CC-BY-NC-SA"
     ],
-    "tweet": "Fase de COLETA; treino pausado até volume. ~2.8/10 vs Maya — fosso é DADO. Re-desenho: PIPE de classificação de datasets (TAGARELA resolvido = NC-SA, só research/eval) + 3 CAMADAS de pesos separados (público ensina a língua, NUNCA toca a voz carioca) + 5 linhas de pesquisa. Build-first: usar só o aberto, acadêmicos DEPOIS."
+    "tweet": "Fase de COLETA + PESQUISA (não produto → usamos NC/ND livremente: TAGARELA 2.800h, CORAA, tudo). ~2.8/10 vs Maya, fosso é DADO. O pipe classifica/RASTREIA licença (pro futuro), não bloqueia. 3 camadas: público ensina a LÍNGUA, NUNCA dilui a voz limpa carioca (razão = qualidade, não licença) + 5 linhas de pesquisa."
   },
   "hypotheses": [
     {
@@ -149,10 +149,10 @@
       "node": ""
     },
     {
-      "status": "refutada",
-      "claim": "TAGARELA (2.800h) serve de base-PT de pré-treino do produto",
-      "evidence": "REFUTADO: licença verificada = CC-BY-NC-SA-4.0 (o CC-BY do arXiv é só do artigo) + upstream 'Cem Mil Podcasts' com copyright de 3os não-clareado.",
-      "detail": "NUNCA em peso shippável (nem o clean-subset). Vale só como: eval-set conversacional (uso legal do NC), treino do judge interno (T3), espelho de pesquisa diagnóstico (C0-R, pesos morrem), e a RECEITA de pipeline (componentes MIT/Apache: pyannote→XLS-R→Whisper-FT→Vocos→HDBSCAN). O base-PT de PRODUTO vem de CML/MLS/CV/Granary (CC-BY/CC0).",
+      "status": "parcial",
+      "claim": "TAGARELA (2.800h clean) como base-PT de pré-treino — em PESQUISA",
+      "evidence": "Em pesquisa (não produto), NC-SA é uso permitido → as 2.800h espontâneas são a MAIOR fonte pt-BR disponível pra base/adapt. Licença marcada só pra rastreio.",
+      "detail": "Antes marcamos 'bloqueado pro produto' (CC-BY-NC-SA + upstream Cem Mil Podcasts). MAS estamos em PESQUISA → usável livremente. Entra em C0/C1 (base/adapt da LÍNGUA), NUNCA em C2 (voz carioca limpa) — e isso por QUALIDADE/sotaque, não por licença. Proveniência fica marcada no manifest pro dia que (e se) virar produto, aí reavalia. A testar quando rodar o CPT: as 2.800h espontâneas destravam prosódia vs o ramo só-CC-BY?",
       "node": ""
     },
     {
@@ -193,7 +193,7 @@
     {
       "status": "validada",
       "claim": "Público e voz em CAMADAS separadas (gradiente nunca compartilhado) ensina pt-BR sem poluir a voz carioca",
-      "evidence": "Transfer learning canônico (CPT→domain-adapt→speaker-finetune), já validado em pequena escala (Estágio A língua / Estágio B voz, spk-sim 0.97). Não é pool misturado com filtro — é arquitetura de estágios.",
+      "evidence": "Transfer learning canônico (CPT→adapt→speaker-finetune), validado em pequena escala (Estágio A/B, spk-sim 0.97). Razão da separação = QUALIDADE (não diluir a voz/sotaque limpo com dado genérico/ruidoso/PT-europeu), NÃO licença.",
       "detail": "C0 base-PT (CML/MLS/CV/Granary, multi-locutor, ensina a LÍNGUA) → C1 adapt conversacional (ENTOA+flywheel) → C2 voz carioca (SÓ gravação dirigida limpa, ZERO público). 5 mecanismos anti-poluição: passos de gradiente separados; manifest+assert_license_gate; condicionamento de locutor (sotaque do público num embedding que a inferência não seleciona); assimetria de LR/LoRA (adapter r16 não tem capacidade pra reaprender a língua do público); versionamento de proveniência (peso 'tainted' se viu NC). Ver docs/ESTRATEGIA-DADOS.md.",
       "node": "a-stageA"
     }

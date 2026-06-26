@@ -1226,5 +1226,47 @@
     "Repetir sprint de $30 por WER+ouvido (n=14) — foi o que o Treino 2 fez por $33 sem avanço. Sem eval perceptual antes, reproduz o nulo.",
     "PARKEAR (não cortar): Moshi/RL e spine full-duplex — nada rodou em pt-BR; só reabrir se o gate F4 da cascata FALHAR."
   ],
-  "realismo": "Pedro está certo e o disco confirma: está ruim e está longe — ~3/10 contra a Maya, e isso é generoso. O único pilar real é o TIMBRE do Pedro (clona reconhecível, ~6.5/10), e mesmo ele é 'dá pra identificar', não 'natural', tirado de UMA sessão mono-emoção. Todo o resto é protótipo de papel: sotaque travado em 2.8 com ZERO avanço em 2 treinos e 26 arms (28× 'gringo', transferiu 2/14); prosódia robótica 3.0 sem NENHUM método de prosódia sequer rodado; cascata 1.5/10 que NUNCA rodou ponta-a-ponta (confirmei: não existe um único latency_run no disco, chat_loop se autodeclara scaffold, o Gemini-hop do Rio sozinho 0.7-0.94s já estoura o budget de 800ms). A manchete 'WER 12%' que sustentava o otimismo é meia-verdade: o per_sentence.jsonl real do Treino 2 dá o MELHOR arm em median 0.185 (auto, não-curado), e o curado ficou PIOR (0.25) — a curadoria não baixou WER, e o 'descarte 40-60%' que orça as horas é fantasia (curate_edits descartou 5 de 923 = 0.5%). O gargalo é existencial e é DADO, não GPU ($73 no total) nem arquitetura: temos ~0.4h de voz limpa de 1 locutor/1 emoção contra as 10-30h/voz de nível-Maya e ~30-40h pras 3 vozes — e o flywheel das 3 vozes tem ZERO gravações (começa segunda). Toda ETA de meses é número inventado a partir de outro número inventado: a taxa real do flywheel NUNCA foi medida. Maya/Sesame e ElevenLabs estão anos e ordens de magnitude de dado+eng à frente; um time pequeno não fecha isso escalando H100. Distância honesta: 3-6 meses só pra um v0 decente, limitados por gravação+curadoria+eval — e isso assume que o teto do CSM-1B com pouco dado chegue lá, aposta não testada. O Treino 2 também não tem NENHUMA avaliação humana (ratings.jsonl = 42 linhas, todas do Treino 1): qualquer julgamento de sotaque/naturalidade do Treino 2 está literalmente n=0."
+  "realismo": "Pedro está certo e o disco confirma: está ruim e está longe — ~3/10 contra a Maya, e isso é generoso. O único pilar real é o TIMBRE do Pedro (clona reconhecível, ~6.5/10), e mesmo ele é 'dá pra identificar', não 'natural', tirado de UMA sessão mono-emoção. Todo o resto é protótipo de papel: sotaque travado em 2.8 com ZERO avanço em 2 treinos e 26 arms (28× 'gringo', transferiu 2/14); prosódia robótica 3.0 sem NENHUM método de prosódia sequer rodado; cascata 1.5/10 que NUNCA rodou ponta-a-ponta (confirmei: não existe um único latency_run no disco, chat_loop se autodeclara scaffold, o Gemini-hop do Rio sozinho 0.7-0.94s já estoura o budget de 800ms). A manchete 'WER 12%' que sustentava o otimismo é meia-verdade: o per_sentence.jsonl real do Treino 2 dá o MELHOR arm em median 0.185 (auto, não-curado), e o curado ficou PIOR (0.25) — a curadoria não baixou WER, e o 'descarte 40-60%' que orça as horas é fantasia (curate_edits descartou 5 de 923 = 0.5%). O gargalo é existencial e é DADO, não GPU ($73 no total) nem arquitetura: temos ~0.4h de voz limpa de 1 locutor/1 emoção contra as 10-30h/voz de nível-Maya e ~30-40h pras 3 vozes — e o flywheel das 3 vozes tem ZERO gravações (começa segunda). Toda ETA de meses é número inventado a partir de outro número inventado: a taxa real do flywheel NUNCA foi medida. Maya/Sesame e ElevenLabs estão anos e ordens de magnitude de dado+eng à frente; um time pequeno não fecha isso escalando H100. Distância honesta: 3-6 meses só pra um v0 decente, limitados por gravação+curadoria+eval — e isso assume que o teto do CSM-1B com pouco dado chegue lá, aposta não testada. O Treino 2 também não tem NENHUMA avaliação humana (ratings.jsonl = 42 linhas, todas do Treino 1): qualquer julgamento de sotaque/naturalidade do Treino 2 está literalmente n=0.",
+  "research_lines": [
+    {
+      "id": "F1",
+      "nome": "F1 — Base-PT / Língua (CPT como ATIVO reusável, não evento)",
+      "objetivo": "Resolver o viés-inglês do CSM-1B com um checkpoint base-pt-vN que TODO finetune de voz herda — hoje cada treino re-aprende pt do zero.",
+      "acumula": "checkpoint base-pt-vN (peso) + dataset_card.jsonl versionado do mix CPT (só licença limpa: CML/MLS/CV-CC0/Granary-CC-BY3). Cada versão registra horas REAIS contadas do disco, WER pós-CPT, hash do mix.",
+      "metrica": "WER de leitura (Whisper-large-v3) em held-out fixo de 50 frases pt-BR + perda de val no codebook-0. Baseline provado: CML levou WER 116→21. Meta próxima iteração: WER<15% mantendo paridade de timbre.",
+      "primeiro_passo": "Resolver a divergência 16x das horas do CML-TTS (~1.100h dossiê vs ~68h contagem) em OpenSLR-146/arXiv 2306.10097 ANTES de orçar o próximo CPT — o dataset_card carrega a hora REAL do disco, não a do paper."
+    },
+    {
+      "id": "F2",
+      "nome": "F2 — Voz & Sotaque Carioca (o moat; flywheel MEDIDO, não estimado)",
+      "objetivo": "Fechar o gap #1 (sotaque gringo, 'soa nativo' ~2.8/5 em TODOS). Única fonte carioca commercial-safe = gravação dirigida própria (Pedro→João→Guilherme).",
+      "acumula": "corpus-semente próprio (~0.4h hoje) crescendo via flywheel diário + LoRAs de voz empilhados sobre base-pt-vN, cada gravação com consentimento LGPD assinado (compliance-by-design PL 1460/2026).",
+      "metrica": "Taxa REAL do flywheel em h/semana (NUNCA medida — toda ETA de 2.5-12 meses é fantasia até medir 2 semanas reais) + score perceptual 'soa nativo' cego no rate_app. Realismo: ~0.4h vs 10-30h/voz nível-Maya.",
+      "primeiro_passo": "Medir 2 semanas reais do flywheel (h/semana líquidas) usando o gravador sincronizado multi-sala já feito — mata as ETAs-fantasia e ancora todo o planejamento. Em paralelo: formatar dado+inferência como TURNOS (ROI #1, muda formato não modelo)."
+    },
+    {
+      "id": "F3",
+      "nome": "F3 — Prosódia & Expressividade (de robótica a contextual)",
+      "objetivo": "Atacar prosódia robótica (3.0/10, 18x marcada, NENHUM método rodado ainda). O gap residual vs Maya é prosódia conversacional dependente de CONTEXTO, não timbre frase-a-frase (timbre já em 6.5).",
+      "acumula": "receita de rotulagem de estilo-por-contexto (padrão LibriQuote CC-BY: verbo de fala + advérbio → pseudo-label) aplicada ao corpus próprio + trilha de DPO usando o rate_app como gerador de pares A/B.",
+      "metrica": "instrumento de prosódia da Aluísio/USP (F0-RMSE segmentado + scorecard objetiva do 'robótico') + CMOS cego no rate_app. Hoje n=0 — o PRIMEIRO número já é progresso.",
+      "primeiro_passo": "Rodar o instrumento Aluísio/USP (F0-RMSE segmentado) no output do Treino 1/Treino 2 pra ter o 1º número objetivo de 'robótico' — baseline antes de qualquer método de prosódia."
+    },
+    {
+      "id": "F4",
+      "nome": "F4 — Eval & Instrumentação (o compasso; sem ele todo sprint repete o nulo)",
+      "objetivo": "Sem eval perceptual COM contexto otimizamos WER e ficamos cegos ao gringo. Treino 2 tem n=0 avaliação humana (ratings.jsonl = 42 linhas, todas do Treino 1) — não dá pra eleger vencedor por sotaque.",
+      "acumula": "rate_app/trilha_map.json como cockpit versionado (FEEDBACK.md schema v1): erro objetivo (wer_ops) + perceptual (markers {t,tag,sev,note} com taxonomia carioca: R /ʁ/, vogal nasal, ti/di palatal, S coda, L coda /w/). Cada modelo vira bloco Treino N — substrato pros futuros agentes de correção.",
+      "metrica": "cobertura de feedback (frases × raters anotados) + painel maya_gap (6 eixos) no trilha_map. Próximo salto: MUSHRA/CMOS cego + BRSpeechMOS pt-BR.",
+      "primeiro_passo": "Carregar o clean-subset do TAGARELA como eval-set conversacional FIXO no rate_app (uso legal do NC) + coletar a 1ª rodada de eval humana do Treino 2 pra sair do n=0."
+    },
+    {
+      "id": "F5",
+      "nome": "F5 — Augmentação & Dados-Baratos (esticar o pouco com licença limpa)",
+      "objetivo": "Enquanto o flywheel não acumula volume (gargalo existencial), extrair o máximo de cada hora gravada e de cada fonte CC-limpa, sem NUNCA tocar fonte suja (filme/novela/dublagem = veto total).",
+      "acumula": "pipeline de coleta-própria reusável (receita TAGARELA replicada com pyannote+Vocos+Whisper-FT, componentes MIT/Apache) apontado pra fontes LEGAIS: Câmara ao-vivo (CC-BY, método ParlaSpeech) + augmentação de timbre via FreeSVC/Chatterbox (MIT).",
+      "metrica": "horas-líquidas-limpas adicionadas/mês ao mix, com WER pós-filtro (dual-ASR agreement) por fonte. Distingue ASR-grade de TTS-grade (curadoria manual foi REFUTADA como alavanca: descartou 0.5%, não os 40-60% orçados).",
+      "primeiro_passo": "Apontar o pipeline replicado pra Câmara dos Deputados (CC-BY, 2-party espontâneo em escala): download→VAD→ParlaSpeech-align→DNSMOS→tier T0 — 1ª fonte espontânea licenciada operacionalizada."
+    }
+  ]
 }

@@ -422,6 +422,14 @@ svg.edges{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visib
 .gapscore{font-family:var(--mono);font-size:11px;color:var(--t);width:40px;flex-shrink:0}
 .gapnota{font-size:11px;color:var(--tm);line-height:1.4}
 .gapreal{font-size:12.5px;color:var(--t2);line-height:1.65;margin-top:16px;padding-top:14px;border-top:1px solid var(--b)}
+.linhas{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.linha{background:var(--surface);border:1px solid var(--b);border-left:2px solid var(--blue);border-radius:var(--rsm);padding:11px 13px;cursor:pointer;transition:all .18s var(--ease)}
+.linha:hover{background:var(--surface-h)}
+.linhah{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:500;color:var(--t)}
+.linhaid{font-family:var(--mono);font-size:11px;color:var(--blue);background:rgba(125,160,255,.1);border-radius:5px;padding:1px 7px}
+.linhachev{margin-left:auto;color:var(--tm);font-size:10px;transition:transform .2s var(--ease)}.linha.open .linhachev{transform:rotate(90deg)}
+.linhad{max-height:0;overflow:hidden;transition:max-height .3s var(--ease)}.linha.open .linhad{max-height:600px;margin-top:9px}
+.linhar{font-size:11.5px;color:var(--t2);line-height:1.5;margin:5px 0}.linhar b{color:var(--blue);font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-right:6px}
 .gapreal::before{content:'realismo — ';font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--red)}
 .blockers{list-style:none;margin-top:6px}.blockers li{font-size:12px;color:var(--t2);line-height:1.5;padding-left:18px;position:relative;margin:5px 0}
 .blockers li::before{content:'⛔';position:absolute;left:0;font-size:10px}
@@ -820,6 +828,12 @@ function mayaGapHTML(m){
   <div class=gaprows>${eixos}</div>
   ${real?`<button class="btn mini gapbtn" onclick="tog('gapreal')">realismo — o texto duro ▾</button><div id=gapreal class=collapse><p class=gapreal>${esc(real)}</p></div>`:''}</div>`;
 }
+function linhasHTML(m){
+ const ls=m.research_lines||[];if(!ls.length)return '';
+ return `<div class=card><div class=ihead>Linhas de pesquisa <span class=exp>workstreams que acumulam conhecimento+modelos · clique pra abrir</span></div><div class=linhas>`+
+  ls.map(function(L){return `<div class=linha onclick="this.classList.toggle('open')"><div class=linhah><span class=linhaid>${esc(L.id||'')}</span><span>${esc(L.nome)}</span><span class=linhachev>▶</span></div><div class=linhad><div class=linhar><b>objetivo</b> ${esc(L.objetivo)}</div><div class=linhar><b>acumula</b> ${esc(L.acumula)}</div><div class=linhar><b>métrica</b> ${esc(L.metrica)}</div><div class=linhar><b>1º passo</b> ${esc(L.primeiro_passo)}</div></div></div>`;}).join('')+
+  `</div></div>`;
+}
 function hypsKanban(m){
  const cols=[{k:'aberta',label:'em aberto',cls:'ka'},{k:'parcial',label:'parciais',cls:'kp'},{k:'refutada',label:'refutadas',cls:'kr'},{k:'validada',label:'validadas',cls:'kv'}];
  const hs=m.hypotheses||[];
@@ -883,6 +897,7 @@ function renderTrail(){
   <p class=tweet>${esc(tweet)}</p>
   ${(m.state&&m.state.now&&m.state.now!==tweet)?`<button class="btn mini" onclick="tog('stnow')">status completo ▾</button><div id=stnow class=collapse><p class=trail>${esc(m.state.now)}</p></div>`:''}</div>`;
  h+=mayaGapHTML(m);
+ h+=linhasHTML(m);
  h+=`<div class=card><div class=ihead>Mapa · o que depende do quê <span class=exp>a parte boa — clique num bloco pro aprofundamento · ↔ arraste</span></div><div id=mapwrap><div id=map></div></div></div>`;
  h+=`<div class=card><div class=ihead>Hipóteses <span class=exp>por status · clique num card pra abrir o real-talk</span></div>${hypsKanban(m)}</div>`;
  h+=nextsCards(m);

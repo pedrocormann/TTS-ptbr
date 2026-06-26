@@ -1,14 +1,15 @@
 {
   "state": {
-    "now": "REALIDADE recalibrada PRA BAIXO (20/jun): ~2.8/10 contra a Maya. Só o TIMBRE do Pedro clona reconhecível (6.5); sotaque travado 2.8 e prosódia robótica 3.0 com ZERO avanço em 2 treinos + 26 arms; latência 1.5 e robustez 2.0 NUNCA medidas/testadas e2e; DADOS 1.0 — o gargalo existencial. O 'WER 12%' era meia-verdade: o real do Treino 2 é median 0.185 no MELHOR arm (auto), e o curado ficou PIOR (0.25). Curadoria não baixou WER e descartou 0.5% (5/923), não os 40-60% que orçam as horas. Gargalo NÃO é GPU ($73 total) nem arquitetura — é DADO: ~0.4h de 1 voz/1 emoção vs ~30-40h pras 3 vozes, flywheel a ZERO gravações. Treino 2 sem NENHUMA avaliação humana (ratings = só Treino 1, n=0 pro 2). Distância honesta: 3-6 meses limitados por gravação+curadoria+eval — e toda ETA é fantasia até medir a taxa real do flywheel.",
+    "now": "FASE DE COLETA: conversas diárias dos 3 (Pedro/João/Guilherme) pra construir volume de áudio conversacional carioca; treino PAUSADO até volume. Estamos em ~2.8/10, LONGE da Maya — o gargalo confirmado é DADO/operacional, não arquitetura. Esta busca não muda a fase, mas abre dois atalhos paralelos que não exigem parar a coleta: (1) bater Qwen3-TTS-1.7B-Base (Apache, clona 3s) e Chatterbox-ML-v3 (MIT, pt estável) contra o CSM-1B na nossa eval com a voz do Pedro — pode encurtar o caminho sem trocar a tese; (2) usar TAGARELA-clean-2.800h como base-PT de pré-treino antes do fine-tune carioca. Ambos rodáveis no pod ocioso enquanto a coleta segue.",
     "next": [
-      "FASE 0 ($0, CPU): ouvir os 14 wavs/arm do Treino 2 no rate_app e ELEGER vencedor por voz+sotaque (WER não pega) — hoje n=0, decisão pendente. + GOP/MDD offline + classificador carioca-vs-não. GATE: nada de GPU antes disto.",
-      "FASE 1 — EVAL PERCEPTUAL (o instrumento que falta): treinar BRSpeechMOS pt-BR + MUSHRA/CMOS cego com cariocas. CORTAR WER como gate de qualidade. GATE: existe métrica de sotaque+naturalidade antes de gastar GPU.",
-      "APRENDIZADO SOTA (barato, alto ROI, paralelo ao flywheel): (1) re-formatar dado+inferência como TURNOS/contexto — provável causa direta da prosódia chapada, NÃO custa dado novo; (2) DPO via rate_app (preferência já coletada); (3) curadoria padrão DNSMOS. GATE: testar turnos/contexto antes de assumir que o teto do 1B é o problema.",
-      "FASE 2 — DADOS (caminho crítico): gravar o flywheel das 3 vozes JÁ (segunda) + MEDIR a taxa real em 2 semanas (minutos limpos/pessoa pós-curadoria); e-mail NILC HOJE. Marco 1 = 3-6h limpas/locutor. GATE: sem isto nada move o sotaque de 2.8.",
-      "FASE 3 — PROSÓDIA + emoção (defeito #2, 100% no papel): implementar mecanismo de áudio-contexto/reference-encoder; gravar G2 (+5-7h/locutor); TESTAR HONESTO o teto do CSM-1B com pouco dado. GATE F2: emoção reconhecível 70%+ cega.",
-      "FASE 4 — CASCATA medida e2e (o produto): rodar chat_loop 1× com mic+Gemini e gravar latency_run.jsonl REAL (TTFA/p50/p95) — o medidor atual é stub; trocar Gemini por LLM local; streaming por sentença. GATE F4: p50 <800ms REAL + preferência ≥ Moshi cega.",
-      "FERRAMENTAS DE EMOÇÃO (do workflow de datasets): usar EmoUERJ (CC-BY, SER) como JUIZ pra auto-conferir nossos rótulos de emoção + métrica; avaliar Chatterbox (MIT) pra augmentar com emoção sintética (cuidado: watermark/similaridade); NÃO usar output ElevenLabs/Voxtral (licença). O treino de emoção em si = flywheel próprio."
+      "Benchmark head-to-head: Qwen3-TTS-1.7B-Base vs Chatterbox-ML-v3 vs CSM-1B fine-tunado, na nossa eval (TTSDS2/WER/perceptual) com a voz do Pedro em poucos-shots — rodar no pod ocioso, não bloquear a coleta",
+      "Instrumentar o eval harness com TTFB de áudio em streaming (mirar ~300ms first-audio da Sesame) e adicionar 'adequação emocional ao contexto' como dimensão do eval HUMANO (gap exposto pela Maya rindo na hora errada)",
+      "Avaliar TAGARELA subset-clean 2.800h como corpus de pré-treino base-PT: filtrar dialeto BR vs PT-europeu e confirmar licença CC-BY no card HF antes de usar em produto",
+      "Testar voice conversion zero-shot (FreeSVC, AKCIT/UFG) como alavanca BARATA de aumento de dado durante a coleta — valida hipótese da MEMORY de condicionar/aumentar sem mais gravação",
+      "Abrir contato de colaboração com o hub AKCIT/UFG (freds0/Casanova/Soares) — parceiro institucional óbvio: GPU, datasets CC-BY, foco declarado em TTS/VC pt-BR",
+      "Auditar licença real de cada dataset candidato (MuPe no repositório USP; ELRA-S0445 como caminho pago pra volume comercial) antes de qualquer uso em produto",
+      "EVAL PERCEPTUAL (instrumento que falta): treinar BRSpeechMOS pt-BR + MUSHRA/CMOS cego com cariocas — antes de gastar GPU no próximo treino.",
+      "Quando voltar o treino: MEDIR a cascata e2e (latency_run REAL TTFA/p50/p95) — nunca foi medida; o medidor atual é stub."
     ],
     "blockers": [
       "DADO carioca limpo ≈ 0h. ~0.4h (24min) do Pedro, mono-emoção, com erros de transcrição vs 10-30h/locutor nível-Maya e ~30-40h pras 3 vozes. Flywheel a ZERO gravações (começa segunda). Gargalo dominante, mede-se em MESES, não em horas de H100.",
@@ -20,9 +21,12 @@
       "PROSÓDIA: nenhum método (reference-encoder/prosody-tokens) implementado nem rodado; depende de gravar +5-7h/locutor que não existem. Defeito #2 (18× robótica) 100% no papel.",
       "Normalizador de número construído mas NÃO wirado no build_prep/inferência: hard-01 ainda quebra a 88% WER (a-normalize em 80%).",
       "Emoção anotada pt-BR ≈ 0 aberto: os datasets de emoção são SER atuado minúsculo (e NC); os grandes limpos (CML/Emilia) não têm rótulo. Emoção só sai do flywheel próprio (G2 multi-emoção) — que tem ZERO gravações.",
-      "Base CSM-1B enviesado pro inglês (o blog admite 'does not perform well yet' em multilíngue): parte do 'gringo' é o BASE, não só a falta de dado do Pedro — pode exigir continued-pretrain pt-BR antes da voz."
+      "Base CSM-1B enviesado pro inglês (o blog admite 'does not perform well yet' em multilíngue): parte do 'gringo' é o BASE, não só a falta de dado do Pedro — pode exigir continued-pretrain pt-BR antes da voz.",
+      "Nossa eval NÃO mede TTFB de áudio em streaming (~300ms da Sesame) nem 'adequação emocional ao contexto' — dimensões que a Maya expõe como críticas (riu na hora errada).",
+      "Licenças não confirmadas em fonte primária pra PRODUTO: MuPe (checar repositório USP), TAGARELA (CC-BY declarado, confirmar no card HF). F5-TTS-pt-br (NC) e Fish S2 (pago) já fora.",
+      "pt-BR de Qwen3/Chatterbox/Orpheus é 'suportado' mas medido só em test multilíngue genérico — nunca em carioca conversacional nem por humano; risco de adotar base que brilha no benchmark e falha no nicho."
     ],
-    "tweet": "~2.8/10 vs Maya. O único pilar real é o timbre do Pedro — sotaque e prosódia não andaram em 2 treinos. O gargalo é DADO (flywheel a ZERO), não GPU. 3-6 meses pra um v0, e toda ETA é fantasia até medir a taxa real de gravação."
+    "tweet": "Fase de COLETA (flywheel diário dos 3); treino pausado até volume. ~2.8/10 vs Maya — fosso é DADO/contexto, não arquitetura. A Sesame virou PRODUTO (app iOS) mas sem pt-BR → o nicho carioca segue ABERTO. Atalhos paralelos: baseline Qwen3/Chatterbox, TAGARELA-2800h como base, parceria AKCIT/UFG."
   },
   "hypotheses": [
     {
@@ -143,6 +147,41 @@
       "evidence": "Verificado: pt-BR × emoção × TTS-grade × licença-livre = vazio. EmoUERJ (377 frases, CC-BY) é SER, não treina TTS; os grandes limpos (CML/Emilia) não têm emoção.",
       "detail": "**Refutado com fonte (workflow 20/jun).** Tabela verificada:\n- **EmoUERJ** — 377 frases, **CC-BY**, mas é **SER (atuado, classificação)** → NÃO treina TTS. USO REAL: como **JUIZ** — um classificador de emoção pra auto-conferir nossos rótulos + virar métrica de emoção.\n- **CML-TTS** — grande, CC-BY, **sem emoção** → continua sendo só a base.\n- **Chatterbox** (MIT, com emotion-steering) → dá pra **augmentar** com emoção sintética (ressalva: watermark; sintético degrada similaridade).\n- **NÃO usar** output de ElevenLabs/Voxtral (licença proíbe treinar modelo concorrente).\nCONCLUSÃO: emoção pt-BR TTS-grade só sai do **flywheel próprio** (gravar as 3 vozes sobre a base CML, com emoção marcada na curadoria — que acabamos de ligar). EmoUERJ entra como juiz, não como treino.",
       "node": "a-emo"
+    },
+    {
+      "status": "aberta",
+      "claim": "Qwen3-TTS-1.7B-Base (Apache) ou Chatterbox-ML-v3 (MIT) pode bater o CSM-1B como base pt-BR e encurtar o caminho",
+      "evidence": "Ambos NOVO-2026, licença comercial livre, pt suportado, clonagem curta. Qwen3-TTS verificado (jan/2026, 3s cloning, pt entre 10 langs). MAS pt em ambos é medido em test multilíngue genérico, NÃO em fala conversacional carioca nem por humano.",
+      "detail": "Só um benchmark head-to-head na nossa eval com a voz do Pedro resolve. É barato e rodável no pod ocioso — alto valor de informação antes de gastar mais compute em fine-tune do CSM-1B.",
+      "node": ""
+    },
+    {
+      "status": "parcial",
+      "claim": "TAGARELA subset-clean (2.800h) serve de base-PT de pré-treino antes do fine-tune carioca",
+      "evidence": "Existe, é grande, conversacional/multi-speaker, declarado pra speech generation, CC-BY pelo grupo. MAS é BR+PT-europeu misturado (precisa filtragem de dialeto) e a licença precisa ser confirmada no card HF.",
+      "detail": "Maior fonte de volume pt acessível hoje. Risco: contaminação de sotaque PT-europeu pode atrapalhar o objetivo carioca — usar como pré-treino genérico, não como dado de sotaque.",
+      "node": ""
+    },
+    {
+      "status": "aberta",
+      "claim": "Voice conversion zero-shot (FreeSVC) é alavanca barata de aumento de dado sem mais gravação",
+      "evidence": "FreeSVC (AKCIT/UFG, jan/2025) é VC zero-shot multilíngue, alinhado à hipótese da MEMORY. NÃO testado por nós.",
+      "detail": "Pode multiplicar o pouco dado da fase de coleta convertendo outras vozes pra timbre-alvo — mas qualidade/naturalidade do output em pt-BR não medida; risco de injetar artefatos no treino.",
+      "node": ""
+    },
+    {
+      "status": "refutada",
+      "claim": "A Sesame vai abrir os pesos maiores (3B/8B) ou um CSM novo que a gente possa usar",
+      "evidence": "Treinaram 1B/3B/8B mas só o 1B é aberto; repo sem release desde mai/2025; README sem roadmap de 3B/8B; empresa virou produto+hardware (eyewear 2027). Os pesos que rodam a Maya não vão cair no nosso colo.",
+      "detail": "Seguimos presos ao CSM-1B como única base aberta da Sesame — mais um motivo pra avaliar Qwen3/Chatterbox/Orpheus como bases alternativas.",
+      "node": ""
+    },
+    {
+      "status": "validada",
+      "claim": "Expressividade SEM controle de contexto é fracasso de PRODUTO, não só de modelo",
+      "evidence": "Maya (líder de mercado) 'ri na hora errada' em conversa séria, descrito como 'tone-deafness inaceitável'; reviews ainda assim positivos (PCWorld).",
+      "detail": "Adicionar 'adequação emocional ao contexto' como dimensão do nosso eval humano e reforçar condicionamento em turno/contexto. Estando em 2.8/10, não basta soar expressivo — tem que soar adequado.",
+      "node": ""
     }
   ],
   "lanes": [

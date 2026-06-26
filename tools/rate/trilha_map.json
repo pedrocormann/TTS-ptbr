@@ -5,7 +5,7 @@
       "Benchmark head-to-head: Qwen3-TTS-1.7B-Base vs Chatterbox-ML-v3 vs CSM-1B fine-tunado, na nossa eval (TTSDS2/WER/perceptual) com a voz do Pedro em poucos-shots — rodar no pod ocioso, não bloquear a coleta",
       "Instrumentar o eval harness com TTFB de áudio em streaming (mirar ~300ms first-audio da Sesame) e adicionar 'adequação emocional ao contexto' como dimensão do eval HUMANO (gap exposto pela Maya rindo na hora errada)",
       "Avaliar TAGARELA subset-clean 2.800h como corpus de pré-treino base-PT: filtrar dialeto BR vs PT-europeu e confirmar licença CC-BY no card HF antes de usar em produto",
-      "Testar voice conversion zero-shot (FreeSVC, AKCIT/UFG) como alavanca BARATA de aumento de dado durante a coleta — valida hipótese da MEMORY de condicionar/aumentar sem mais gravação",
+      "🏃 PRÓXIMA SPRINT — FreeSVC (voice conversion zero-shot, AKCIT/UFG): augmentar dado convertendo fala pt-BR genérica (CML/NURC) pra voz do Pedro, sem ele gravar mais. Scaffold pronto em tools/voice_conversion/freesvc_augment.py; GATE: só entra no treino se a eval HUMANA de similaridade melhorar (risco: sintético degrada). Roda no pod, não bloqueia a coleta.",
       "Abrir contato de colaboração com o hub AKCIT/UFG (freds0/Casanova/Soares) — parceiro institucional óbvio: GPU, datasets CC-BY, foco declarado em TTS/VC pt-BR",
       "Auditar licença real de cada dataset candidato (MuPe no repositório USP; ELRA-S0445 como caminho pago pra volume comercial) antes de qualquer uso em produto",
       "EVAL PERCEPTUAL (instrumento que falta): treinar BRSpeechMOS pt-BR + MUSHRA/CMOS cego com cariocas — antes de gastar GPU no próximo treino.",
@@ -166,7 +166,7 @@
       "status": "aberta",
       "claim": "Voice conversion zero-shot (FreeSVC) é alavanca barata de aumento de dado sem mais gravação",
       "evidence": "FreeSVC (AKCIT/UFG, jan/2025) é VC zero-shot multilíngue, alinhado à hipótese da MEMORY. NÃO testado por nós.",
-      "detail": "Pode multiplicar o pouco dado da fase de coleta convertendo outras vozes pra timbre-alvo — mas qualidade/naturalidade do output em pt-BR não medida; risco de injetar artefatos no treino.",
+      "detail": "Pode multiplicar o pouco dado da fase de coleta convertendo outras vozes pra timbre-alvo — mas qualidade/naturalidade do output em pt-BR não medida; risco de injetar artefatos no treino. [PRÓXIMA SPRINT — scaffold em tools/voice_conversion/freesvc_augment.py.]",
       "node": ""
     },
     {

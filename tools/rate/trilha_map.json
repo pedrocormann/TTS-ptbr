@@ -1,34 +1,25 @@
 {
   "state": {
-    "now": "FASE DE COLETA: conversas diárias dos 3 (Pedro/João/Guilherme) pra construir volume de áudio conversacional carioca; treino PAUSADO até volume. Estamos em ~2.8/10, LONGE da Maya — o gargalo confirmado é DADO/operacional, não arquitetura. Esta busca não muda a fase, mas abre dois atalhos paralelos que não exigem parar a coleta: (1) bater Qwen3-TTS-1.7B-Base (Apache, clona 3s) e Chatterbox-ML-v3 (MIT, pt estável) contra o CSM-1B na nossa eval com a voz do Pedro — pode encurtar o caminho sem trocar a tese; (2) usar TAGARELA-clean-2.800h como base-PT de pré-treino antes do fine-tune carioca. Ambos rodáveis no pod ocioso enquanto a coleta segue.",
+    "now": "Contradição TAGARELA RESOLVIDA em fonte primária (card HF freds0 + site oficial = CC-BY-NC-SA-4.0; o CC-BY do arXiv 2603.15326 é só do ARTIGO). Veredito travado: NC-SA + upstream Cem Mil Podcasts não-clareado → bloqueado pro produto (nem o clean-subset 2.800h), vale só eval/judge/receita. Registry classificado por tiers (T0-T4) com licença verificada e currículo em 3 camadas de pesos separados desenhados. Fase = COLETA, treino pausado até volume. Estágio A já tem ~417h T0 licenciadas (CML+MLS+CV).",
     "next": [
-      "Benchmark head-to-head: Qwen3-TTS-1.7B-Base vs Chatterbox-ML-v3 vs CSM-1B fine-tunado, na nossa eval (TTSDS2/WER/perceptual) com a voz do Pedro em poucos-shots — rodar no pod ocioso, não bloquear a coleta",
-      "Instrumentar o eval harness com TTFB de áudio em streaming (mirar ~300ms first-audio da Sesame) e adicionar 'adequação emocional ao contexto' como dimensão do eval HUMANO (gap exposto pela Maya rindo na hora errada)",
-      "Avaliar TAGARELA subset-clean 2.800h como corpus de pré-treino base-PT: filtrar dialeto BR vs PT-europeu e confirmar licença CC-BY no card HF antes de usar em produto",
-      "🏃 PRÓXIMA SPRINT — FreeSVC (voice conversion zero-shot, AKCIT/UFG): augmentar dado convertendo fala pt-BR genérica (CML/NURC) pra voz do Pedro, sem ele gravar mais. Scaffold pronto em tools/voice_conversion/freesvc_augment.py; GATE: só entra no treino se a eval HUMANA de similaridade melhorar (risco: sintético degrada). Roda no pod, não bloqueia a coleta.",
-      "Abrir contato de colaboração com o hub AKCIT/UFG (freds0/Casanova/Soares) — parceiro institucional óbvio: GPU, datasets CC-BY, foco declarado em TTS/VC pt-BR",
-      "Auditar licença real de cada dataset candidato (MuPe no repositório USP; ELRA-S0445 como caminho pago pra volume comercial) antes de qualquer uso em produto",
-      "EVAL DE PROSÓDIA (receita Aluísio/USP, instrumento que faltava): objetivo = F0-RMSE SEGMENTADO por tônica/fronteira (o global é cego) + MCD + a SCORECARD do 'robótico' (taxa de fala, duração da sílaba NUCLEAR ~280ms natural vs ~150 sintético, SD, pausas) via Praat+R; subjetivo = MOS-naturalidade + PS-MOS + AB cego vs a voz do Pedro + EyetrackingMOS (pt-BR pronto). Fontes: JBCS 2025 / ENIAC 2024.",
-      "Quando voltar o treino: MEDIR a cascata e2e (latency_run REAL TTFA/p50/p95) — nunca foi medida; o medidor atual é stub.",
-      "SEGMENTAR por UNIDADE ENTOACIONAL (IU), não por pausa: nossa quebra corta no meio do contorno → fine-tunar Whisper pra emitir fronteiras de IU (PSST, F1 87%, recomendado pela própria Aluísio). Melhora a prosódia do dado de treino.",
-      "COLABORAÇÃO USP/NILC (grupo Aluísio): propor co-autoria no buraco que ELES declaram — eval perceptual de prosódia na variedade CARIOCA. Eles têm método+linguista+baseline; a gente tem a voz-semente carioca. Contato: Julio Galdino / Sandra Aluísio. (Eles NÃO têm dado carioca → resolvem método, não sotaque.)"
+      "✅ FEITO: PIPE de classificação de datasets (data/dataset_registry.yaml + tools/data/ingest.py com assert_license_gate que FALHA o build em NC/não-shippable). 'Catalogar' virou executável — fecha o buraco saber→executar.",
+      "F5 · Rodar `ingest --build-manifest T0` → manifest de produto dos ~417h já licenciados (CML+MLS+CV) + agendar CPT base-pt-v1 no pod ocioso (dado JÁ legal, não espera ninguém).",
+      "F1 · Resolver a divergência 16x das horas do CML-TTS (paper ~1100h vs disco ~68h) ANTES de orçar o CPT — o manifest carrega a hora REAL do disco.",
+      "F2 · Medir 2 SEMANAS REAIS do flywheel (h/semana líquidas) — mata as ETAs-fantasia. Em paralelo: formatar dado+inferência como TURNOS (ROI #1).",
+      "F3 · Rodar o instrumento Aluísio (F0-RMSE segmentado + scorecard do 'robótico') no output do Treino 1/2 → 1º número objetivo de prosódia (hoje n=0).",
+      "F4 · Coletar 1ª rodada de eval HUMANA do Treino 2 (sair do n=0) + carregar TAGARELA-clean como eval-set FIXO no rate_app (uso legal do NC).",
+      "F5 · Operacionalizar Câmara dos Deputados (CC-BY, espontâneo 2-party) via pipeline replicado + DNSMOS-filtrar Granary pt antes de promover a TTS-grade.",
+      "[DEPOIS, build-first] confirmar a cadeia MIT do ENTOA com o NILC fica pra quando formos mostrar resultado pros acadêmicos — agora a gente avança só com o que já é claramente aberto."
     ],
     "blockers": [
-      "DADO carioca limpo ≈ 0h. ~0.4h (24min) do Pedro, mono-emoção, com erros de transcrição vs 10-30h/locutor nível-Maya e ~30-40h pras 3 vozes. Flywheel a ZERO gravações (começa segunda). Gargalo dominante, mede-se em MESES, não em horas de H100.",
-      "Taxa real do flywheel NUNCA medida: toda ETA (2.5-12 meses) é projeção de um número (7-15min limpos/pessoa/reunião) que ninguém observou. Ação #1 = gravar 2 semanas e CONTAR antes de prometer prazo.",
-      "EVAL PERCEPTUAL não existe: sem BRSpeechMOS pt-BR (sem checkpoint público, precisa treinar) + MUSHRA/CMOS cego, todo sprint repete o nulo do Treino 2 (otimizou WER, cego ao gringo, $33 sem avanço). Gate que falta antes de qualquer GPU nova.",
-      "Treino 2 SEM avaliação humana: ratings.jsonl = 42 linhas, todas do Treino 1. Julgamento de sotaque/naturalidade do Treino 2 é literalmente n=0 — não dá pra eleger vencedor (WER não pega sotaque).",
-      "CASCATA nunca medida e2e: nenhum latency_run no disco; chat_loop é scaffold; o medidor cascade_latency.py é stub (time.sleep do budget). O Gemini-hop do Rio (0.7-0.94s) já estoura 800ms sozinho. Latência=1.5/10 e foi a 1ª reclamação do Pedro.",
-      "Carioca conversacional commercial-safe ≈ 0h aberto: TAGARELA/CORAA/NURC = NC/NC-ND (só eval), NURC travado em CC-BY-NC-ND e e-mail NILC não enviado. Sotaque só sai do flywheel próprio (LGPD) — que ainda não produziu nada.",
-      "PROSÓDIA: nenhum método (reference-encoder/prosody-tokens) implementado nem rodado; depende de gravar +5-7h/locutor que não existem. Defeito #2 (18× robótica) 100% no papel.",
-      "Normalizador de número construído mas NÃO wirado no build_prep/inferência: hard-01 ainda quebra a 88% WER (a-normalize em 80%).",
-      "Emoção anotada pt-BR ≈ 0 aberto: os datasets de emoção são SER atuado minúsculo (e NC); os grandes limpos (CML/Emilia) não têm rótulo. Emoção só sai do flywheel próprio (G2 multi-emoção) — que tem ZERO gravações.",
-      "Base CSM-1B enviesado pro inglês (o blog admite 'does not perform well yet' em multilíngue): parte do 'gringo' é o BASE, não só a falta de dado do Pedro — pode exigir continued-pretrain pt-BR antes da voz.",
-      "Nossa eval NÃO mede TTFB de áudio em streaming (~300ms da Sesame) nem 'adequação emocional ao contexto' — dimensões que a Maya expõe como críticas (riu na hora errada).",
-      "Licenças não confirmadas em fonte primária pra PRODUTO: MuPe (checar repositório USP), TAGARELA (CC-BY declarado, confirmar no card HF). F5-TTS-pt-br (NC) e Fish S2 (pago) já fora.",
-      "pt-BR de Qwen3/Chatterbox/Orpheus é 'suportado' mas medido só em test multilíngue genérico — nunca em carioca conversacional nem por humano; risco de adotar base que brilha no benchmark e falha no nicho."
+      "Taxa real do flywheel NUNCA medida (h/semana) — toda ETA é fantasia até medir 2 semanas reais; bloqueia todo planejamento de volume",
+      "Cadeia MIT do NURC-SP_ENTOA_TTS não confirmada (upstream NURC é NC-ND) — pending-license trava o único espontâneo legal",
+      "Divergência 16x nas horas do CML-TTS (~1.100h dossiê vs ~68h contagem) não resolvida — corrompe o orçamento de CPT",
+      "Volume de dado limpo carioca é o gargalo EXISTENCIAL: ~0.4h hoje vs 10-30h/voz nível-Maya, abaixo até do mínimo do PVC ElevenLabs",
+      "Consentimento LGPD João/Guilherme não assinado — bloqueia adapter de voz deles",
+      "Frente 30-benchmarks ainda registra TAGARELA como CC-BY-4.0 (ERRADO) — corrigir pra CC-BY-NC-SA"
     ],
-    "tweet": "Fase de COLETA (flywheel diário dos 3); treino pausado até volume. ~2.8/10 vs Maya — fosso é DADO/contexto, não arquitetura. A Sesame virou PRODUTO (app iOS) mas sem pt-BR → o nicho carioca segue ABERTO. Atalhos paralelos: baseline Qwen3/Chatterbox, TAGARELA-2800h como base, parceria AKCIT/UFG."
+    "tweet": "Fase de COLETA; treino pausado até volume. ~2.8/10 vs Maya — fosso é DADO. Re-desenho: PIPE de classificação de datasets (TAGARELA resolvido = NC-SA, só research/eval) + 3 CAMADAS de pesos separados (público ensina a língua, NUNCA toca a voz carioca) + 5 linhas de pesquisa. Build-first: usar só o aberto, acadêmicos DEPOIS."
   },
   "hypotheses": [
     {
@@ -158,10 +149,10 @@
       "node": ""
     },
     {
-      "status": "parcial",
-      "claim": "TAGARELA subset-clean (2.800h) serve de base-PT de pré-treino antes do fine-tune carioca",
-      "evidence": "Existe, é grande, conversacional/multi-speaker, declarado pra speech generation, CC-BY pelo grupo. MAS é BR+PT-europeu misturado (precisa filtragem de dialeto) e a licença precisa ser confirmada no card HF.",
-      "detail": "Maior fonte de volume pt acessível hoje. Risco: contaminação de sotaque PT-europeu pode atrapalhar o objetivo carioca — usar como pré-treino genérico, não como dado de sotaque.",
+      "status": "refutada",
+      "claim": "TAGARELA (2.800h) serve de base-PT de pré-treino do produto",
+      "evidence": "REFUTADO: licença verificada = CC-BY-NC-SA-4.0 (o CC-BY do arXiv é só do artigo) + upstream 'Cem Mil Podcasts' com copyright de 3os não-clareado.",
+      "detail": "NUNCA em peso shippável (nem o clean-subset). Vale só como: eval-set conversacional (uso legal do NC), treino do judge interno (T3), espelho de pesquisa diagnóstico (C0-R, pesos morrem), e a RECEITA de pipeline (componentes MIT/Apache: pyannote→XLS-R→Whisper-FT→Vocos→HDBSCAN). O base-PT de PRODUTO vem de CML/MLS/CV/Granary (CC-BY/CC0).",
       "node": ""
     },
     {
@@ -197,6 +188,13 @@
       "claim": "NURC-SP_ENTOA_TTS (MIT) é dataset pt-BR comercial-safe utilizável",
       "evidence": "Licença MIT verificada no card HF (nilc-nlp) — único do grupo Aluísio comercial-safe; tem versões com segmentação prosódica.",
       "detail": "Diálogo espontâneo SP (267 falantes), MIT = pode treinar/soltar derivado. CORAA/NURC-Mínimo são CC-BY-NC-ND (ND bloqueia derivado). Útil pra estudar IU + como dado de pré-treino conversacional comercial-safe. Não tem carioca (SP).",
+      "node": "a-stageA"
+    },
+    {
+      "status": "validada",
+      "claim": "Público e voz em CAMADAS separadas (gradiente nunca compartilhado) ensina pt-BR sem poluir a voz carioca",
+      "evidence": "Transfer learning canônico (CPT→domain-adapt→speaker-finetune), já validado em pequena escala (Estágio A língua / Estágio B voz, spk-sim 0.97). Não é pool misturado com filtro — é arquitetura de estágios.",
+      "detail": "C0 base-PT (CML/MLS/CV/Granary, multi-locutor, ensina a LÍNGUA) → C1 adapt conversacional (ENTOA+flywheel) → C2 voz carioca (SÓ gravação dirigida limpa, ZERO público). 5 mecanismos anti-poluição: passos de gradiente separados; manifest+assert_license_gate; condicionamento de locutor (sotaque do público num embedding que a inferência não seleciona); assimetria de LR/LoRA (adapter r16 não tem capacidade pra reaprender a língua do público); versionamento de proveniência (peso 'tainted' se viu NC). Ver docs/ESTRATEGIA-DADOS.md.",
       "node": "a-stageA"
     }
   ],

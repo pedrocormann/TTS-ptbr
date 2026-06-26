@@ -1,0 +1,194 @@
+# Registro de datasets — o PIPE de classificação (gerado pelo re-desenho 21/jun/2026).
+# Regra: público e voz NUNCA compartilham o mesmo passo de gradiente (camadas separadas).
+# tier: T0 base-pretrain · T1 fine-tune · T2 eval-only · T3 judge-only · T4 bloqueado · ferramenta
+# shippable=true só com licença cc-by/mit/cc0/própria (sem NC/ND). assert_license_gate() FALHA o build se shippable=false entrar em split de produto.
+
+- nome: "CML-TTS pt"
+  horas: "~69h reais (verificar: dossiê diz ~1.100h, contagem adversarial ~68h — divergência 16x a resolver em OpenSLR-146/arXiv 2306.10097)"
+  tipo: "lido (audiobook)"
+  sotaque: "PT-eu + BR misto"
+  licenca: "CC-BY-4.0 (verificada HF card)"
+  tier: "T0 base-pretrain"
+  camada: "Camada 0 (língua)"
+  shippable: true
+  obs: "Já é a base do BASE-PT atual (WER 116→21 no Treino 1). Limpo mas lido→prosódia de narração. Produto OK."
+
+- nome: "MLS pt"
+  horas: "~161h"
+  tipo: "lido (audiobook)"
+  sotaque: "PT-eu dominante"
+  licenca: "CC-BY-4.0 (verificada HF facebook/multilingual_librispeech)"
+  tier: "T0 base-pretrain"
+  camada: "Camada 0 (língua)"
+  shippable: true
+  obs: "Pilar de volume do Estágio A. PT-eu enviesa sotaque → off-accent vira língua, nunca voz. Comercial OK."
+
+- nome: "Common Voice pt"
+  horas: "~187h (cresce)"
+  tipo: "lido (frases curtas)"
+  sotaque: "BR variado"
+  licenca: "CC0-1.0 (reconfirmar pós-migração Mozilla Data Collective out/2025)"
+  tier: "T0 base-pretrain"
+  camada: "Camada 0 (língua)"
+  shippable: true
+  obs: "CC0 = zero fricção. Ruidoso (mic doméstico) → só volume de língua, nunca T1."
+
+- nome: "Granary pt (NVIDIA)"
+  horas: "pt_ytc 497k + pt_voxpopuli 4,31M rows (ASR-grade)"
+  tipo: "in-the-wild / parlamento"
+  sotaque: "BR variado"
+  licenca: "CC-BY-3.0 (verificada HF nvidia/Granary)"
+  tier: "T0 base-pretrain"
+  camada: "Camada 0 (língua)"
+  shippable: true
+  obs: "Maior fonte commercial-safe in-the-wild. ASR-grade → FILTRAR por DNSMOS antes de promover pra TTS. Candidato forte a operacionalizar."
+
+- nome: "NURC-SP_ENTOA_TTS"
+  horas: "~10-15h (8.440 clips)"
+  tipo: "espontâneo/diálogo"
+  sotaque: "SP (paulistano)"
+  licenca: "MIT (HF nilc-nlp — A CONFIRMAR cadeia sobre raiz NURC via e-mail NILC)"
+  tier: "T1 fine-tune (condicional pending-license)"
+  camada: "Camada 1 (conversa)"
+  shippable: true
+  obs: "Joia rara: único espontâneo+conversacional+licença-produto. Relicenciamento NILC sobre NURC(NC-ND) — confiar no card mas confirmar cadeia antes de prod. Munição #1 vs 'prosódia robótica'. Off-accent → entra como PROSÓDIA, não voz."
+
+- nome: "TAGARELA"
+  horas: "8.972h / 2.800h clean"
+  tipo: "espontâneo (podcast)"
+  sotaque: "BR amplo"
+  licenca: "CC-BY-NC-SA-4.0 (verificada card HF freds0 + site oficial; o CC-BY do arXiv 2603.15326 é só do ARTIGO)"
+  tier: "T2 eval-only / T3 judge-only"
+  camada: "Camada 0-R (research mirror, pesos descartáveis)"
+  shippable: false
+  obs: "CONTRADIÇÃO RESOLVIDA: é NC-SA, não CC-BY. + upstream Cem Mil Podcasts (copyright 3os não-clareado) = dupla contaminação. NUNCA em peso shippável (nem o clean). Vale como eval-set conversacional + treino do judge + RECEITA de pipeline (pyannote→XLS-R→Whisper-FT→Vocos→HDBSCAN, componentes MIT/Apache)."
+
+- nome: "CORAA"
+  horas: "~290h"
+  tipo: "espontâneo"
+  sotaque: "BR variado"
+  licenca: "CC-BY-NC-ND-4.0"
+  tier: "T2 eval-only"
+  camada: "fora de pesos"
+  shippable: false
+  obs: "ND proíbe derivado → nem judge treinável. Só métrica."
+
+- nome: "CORAA-NURC-SP-Audio (cru)"
+  horas: "~240h"
+  tipo: "espontâneo"
+  sotaque: "SP"
+  licenca: "NC (upstream NURC)"
+  tier: "T2 eval-only"
+  camada: "fora de pesos"
+  shippable: false
+  obs: "Versão crua, ≠ ENTOA_TTS. Fica NC. Não confundir com a MIT."
+
+- nome: "MuPe"
+  horas: "—"
+  tipo: "espontâneo (entrevista)"
+  sotaque: "BR"
+  licenca: "SEM licença declarada"
+  tier: "T4 bloqueado"
+  camada: "nenhuma"
+  shippable: false
+  obs: "Sem licença = sem direito. Bloqueado até alguém publicar termo."
+
+- nome: "ELRA-S0445"
+  horas: "—"
+  tipo: "—"
+  sotaque: "BR"
+  licenca: "Comercial pago (ELRA)"
+  tier: "T4 bloqueado (até comprar)"
+  camada: "nenhuma"
+  shippable: false
+  obs: "Custa dinheiro. Reavaliar só com budget e ROI claro."
+
+- nome: "BRSpeech-DF (AKCIT)"
+  horas: "a verificar (horas/conteúdo)"
+  tipo: "a verificar"
+  sotaque: "BR"
+  licenca: "CC-BY-4.0 (verificada card HF AKCIT-Deepfake)"
+  tier: "T0 base-pretrain (se útil)"
+  camada: "Camada 0 (língua)"
+  shippable: true
+  obs: "Mesmo grupo do TAGARELA mas CC-BY de verdade → produto OK. Verificar horas/conteúdo antes de priorizar."
+
+- nome: "Câmara dos Deputados (ao vivo)"
+  horas: "grande"
+  tipo: "espontâneo (sessão/2-party)"
+  sotaque: "BR (Brasília/nacional)"
+  licenca: "CC-BY-4.0 (verificada)"
+  tier: "T0 base-pretrain"
+  camada: "Camada 0→1 (língua/conversa)"
+  shippable: true
+  obs: "Fonte BARATA de fala espontânea licenciada — candidato forte a operacionalizar 1º. Ruído de plenário → T0. Método ParlaSpeech (alinha com notas taquigráficas) = pares áudio-texto de graça."
+
+- nome: "voz Pedro (ElevenLabs2024 + flywheel)"
+  horas: "~0,4-0,8h → cresce"
+  tipo: "espontâneo/lido + 2-party"
+  sotaque: "CARIOCA"
+  licenca: "Própria (consentida LGPD)"
+  tier: "T1 fine-tune-voz"
+  camada: "Camada 2 (voz carioca)"
+  shippable: true
+  obs: "O ouro do alvo, único carioca commercial-safe. LoRA r16/lr5e-5/run curto sobre base-pt-vN. Consentimento João/Guilherme assinado antes do adapter deles. Taxa h/semana NUNCA medida — medir 2 semanas reais."
+
+- nome: "EmoUERJ"
+  horas: "—"
+  tipo: "atuado (emoção)"
+  sotaque: "RJ"
+  licenca: "CC-BY (atuado)"
+  tier: "T3 judge-only"
+  camada: "fora do gerador"
+  shippable: false
+  obs: "Entra como JUIZ de emoção (auto-confere rótulos), NUNCA como treino do gerador."
+
+- nome: "C-ORAL-BRASIL"
+  horas: "—"
+  tipo: "espontâneo"
+  sotaque: "MG"
+  licenca: "NC-ND"
+  tier: "T2 eval-only"
+  camada: "fora de pesos"
+  shippable: false
+  obs: "ND → só métrica."
+
+- nome: "Senado / áudio judicial"
+  horas: "—"
+  tipo: "espontâneo"
+  sotaque: "BR"
+  licenca: "Senado NC; judicial domínio público"
+  tier: "T2 (Senado) / T4-cautela (judicial)"
+  camada: "fora de pesos"
+  shippable: false
+  obs: "Judicial é domínio público MAS risco LGPD de voz/biometria → não usar sem parecer jurídico."
+
+- nome: "CETUC"
+  horas: "—"
+  tipo: "lido"
+  sotaque: "RJ"
+  licenca: "Sem acesso ao dado"
+  tier: "T4 bloqueado"
+  camada: "nenhuma"
+  shippable: false
+  obs: "Texto nem liberado. Sem acesso."
+
+- nome: "Qwen3-TTS / Qwen3-Omni"
+  horas: "n/a (modelo)"
+  tipo: "modelo open"
+  sotaque: "—"
+  licenca: "Apache-2.0"
+  tier: "ferramenta (não-dataset)"
+  camada: "síntese/baseline"
+  shippable: true
+  obs: "Síntese de dado / baseline. Produto OK."
+
+- nome: "Chatterbox-ML-v3 / FreeSVC"
+  horas: "n/a (modelo)"
+  tipo: "modelo open / voice conversion"
+  sotaque: "—"
+  licenca: "MIT"
+  tier: "ferramenta (augmentação)"
+  camada: "augmentação de timbre"
+  shippable: true
+  obs: "Augmentar corpus próprio. VC herda licença do DADO de entrada. NUNCA augmentar com output ElevenLabs/Voxtral (licença proíbe treinar concorrente)."

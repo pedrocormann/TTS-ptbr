@@ -246,6 +246,7 @@ uniform float u_p1;      // param 1 da família (zoom/freq/escala)
 uniform float u_p2;      // param 2 da família (intensidade/modo)
 uniform float u_p3;      // param 3 da família (ex.: rigidez do círculo na BRUMA)
 uniform float u_flow;    // relógio de FLUIDO acumulado no JS: acelera com a voz, sem salto
+uniform vec2  u_kick;    // IMPULSO repentino (dardo direcional que decai): o "susto" do GPT
 out vec4 fragColor;
 #define PI 3.14159265358979
 #define TWO_PI 6.28318530718
@@ -306,8 +307,8 @@ void main(){
   // limbo + nuvens fbm pixeladas derivando devagar
   vec2 qq=p/max(rad,.001);
   float limb=sqrt(max(0.,1.-r*r));                       // volume suave
-  float n1=fbm(qq*1.9+vec2(t*.035,-t*.028));
-  float n2=fbm(qq*3.6-vec2(t*.022,t*.03)+vec2(2.7,5.1));
+  float n1=fbm(qq*1.9+vec2(t*.035,-t*.028)-u_kick*1.3);
+  float n2=fbm(qq*3.6-vec2(t*.022,t*.03)+vec2(2.7,5.1)-u_kick*.8);
   float field=smoothstep(.15,.85,.5+.5*(.7*n1+.45*n2));
   float rings=sin(9.*r-t*(.8+1.6*u_level*speak))*.5+.5;  // ondas LENTAS só na fala
   float breathe=.5+.5*sin(t*.45+3.*think*sin(t*.2));
@@ -341,7 +342,7 @@ void main(){
   mat2 R=mat2(cos(angle),-sin(angle),sin(angle),cos(angle));
   vec2 uv=R*p;
 
-  float bump=fbm(uv*2.2+vec2(t*.6,t*.4))*(.26+.45*u_level*(speak+.4*listen));
+  float bump=fbm(uv*2.2+vec2(t*.6,t*.4)-u_kick*2.2)*(.26+.45*u_level*(speak+.4*listen));
   float stripe=fract(uv.y*u_p1+t*.8*u_p2+bump+edge*1.6);
 
   float m=abs(stripe*2.-1.);
@@ -383,6 +384,7 @@ void main(){
   uv=vec2(cos(angle),sin(angle))*len*2.1*u_p1;
 
   float wAmp=.06+.16*u_level*(speak+.4*listen);
+  uv-=u_kick*1.6;   // susto: a malha dá um tranco e reassenta
   uv.x+=sin(uv.x*2.6+t*.34)*cos(uv.y*2.6+t*.30)*wAmp;
   uv.y+=sin((uv.x+10.)*3.8+t*.26)*cos((uv.y+10.)*3.8+t*.26)*wAmp*.5;
 
@@ -424,8 +426,8 @@ void main(){
             + speak*(.10*u_level+.035*u_level*talkMod)
             + .03*listen*u_level);
 
-  // p3: 0-1 = rigidez do círculo · >1 = rigidez 1 + GLITCH novatrix (p3-1)
-  float glitchAmt=max(0.,u_p3-1.);
+  // p3: 0-1 = rigidez do círculo · >1 = rigidez 1 + GRANULADO novatrix (p3-1)
+  float grainAmt=max(0.,u_p3-1.);
 
   // círculo SEMPRE: borda definida, zero deformação angular
   float d=len-rad;
@@ -458,13 +460,12 @@ void main(){
   float a2=th2*fall; mat2 R2=mat2(cos(a2),-sin(a2),sin(a2),cos(a2));
   qe=ec2+R2*dq;
 
-  // GLITCH novatrix: nos ataques, o fluido rasga no loop de distorção e reforma
-  float g=glitchAmt*clamp(u_pulse*1.1+.18*energy,0.,1.);
-  if(g>.003){
-    vec2 gu=q*2.2;
-    float dd=-F*.5, aa=0.;
-    for(float i=1.;i<4.;++i){ aa+=cos(i-dd-aa*gu.x); dd+=sin(gu.y*i+aa); }
-    qe=mix(qe, qe+vec2(cos(aa),sin(dd))*.30, g);
+  // SUSTO (frames v062→v068 do vídeo): o fluido DISPARA numa direção e reassenta —
+  // impulso do JS, mais forte no miolo e perto da interface, quase nulo na borda
+  float kmag=length(u_kick);
+  if(kmag>.002){
+    float kloc=(1.-smoothstep(.55,1.05,len/max(rad,.001)))*(.55+.45*fbm(q*2.3+F));
+    qe-=u_kick*kloc*1.6;
   }
 
   // mudanças de ROTA: a advecção da franja serpenteia (direção deriva devagar)
@@ -499,19 +500,21 @@ void main(){
   milk=mix(milk,mix(u_c1,u_c2,.28),.30*smoothstep(.0,.9,fringe2)*(1.-cream));
 
   vec3 orb=mix(milk,ink,blue);
-  // glitch: separação RGB na interface (canais R/B leem a fronteira deslocada)
-  if(g>.003){
-    float blueR=1.-smoothstep(-.34,.22,(dInt-.06*g)+.16*fringe2);
-    float blueB=1.-smoothstep(-.34,.22,(dInt+.06*g)+.16*fringe2);
-    orb.r=mix(milk.r,ink.r,blueR);
-    orb.b=mix(milk.b,ink.b,blueB);
+  // NÚCLEO QUENTE onde as fases colidem — no susto, ele SALTA na direção do impulso
+  vec2 ecK=ec+u_kick*2.2;
+  float hot=exp(-9.*dInt*dInt)*exp(-2.4*dot(q-ecK,q-ecK));
+  orb=mix(orb,vec3(1.,.958,.845),hot*(.30+.25*energy+.8*kmag));
+  // pluma de luz: o DEDO que dispara (segue o impulso, intensifica no susto)
+  vec2 kdir=kmag>.002?normalize(u_kick):vec2(0.,1.);
+  vec2 rel=q-ecK; float along=dot(rel,kdir); float across=dot(rel,vec2(-kdir.y,kdir.x));
+  float plume=exp(-13.*across*across)*smoothstep(0.,.75,along)*(1.-smoothstep(.6,1.15,along));
+  orb=mix(orb,mix(orb,vec3(1.),.5),plume*(.14+1.1*kmag)*(.6+.4*energy));
+  // granulado novatrix (color dodge) — a variação //grão
+  if(grainAmt>.003){
+    float gn=(hash21(gl_FragCoord.xy+fract(t)*3.)-.5)*.20*grainAmt;
+    vec3 gcol=vec3(.5+gn);
+    orb=min(orb/(1.-gcol+.0001),vec3(1.));
   }
-  // NÚCLEO QUENTE onde as fases colidem (creme luminoso na zona do vórtice)
-  float hot=exp(-9.*dInt*dInt)*exp(-2.4*dot(q-ec,q-ec));
-  orb=mix(orb,vec3(1.,.958,.845),hot*(.30+.25*energy));
-  // pluma de luz subindo do núcleo (empuxo)
-  float plume=exp(-13.*(q.x-ec.x)*(q.x-ec.x))*smoothstep(0.,.75,q.y-ec.y)*(1.-smoothstep(.6,1.15,q.y-ec.y));
-  orb=mix(orb,mix(orb,vec3(1.),.5),plume*.16*(.6+.4*energy));
   orb*=1.-.06*clamp(-q.y,0.,1.);   // leve sombra na base (volume, sem virar esfera 3D)
   orb*=1.+.05*(1.-len);            // leve clareada no miolo
   orb*=1.+.14*u_level*(speak+.45*listen)+.04*u_pulse;
@@ -565,12 +568,10 @@ const FAMILIES=[
   vars:[
    {k:'anil',accent:'#3552C4',c1:[.99,.99,1],c2:[.19,.31,.78],c3:[.06,.11,.42],p1:.62,p2:.35,p3:1,note:'BR · a base — azul anil profundo, temperamento quase-vivo'},
    {k:'gpt',accent:'#2E7BF5',c1:[1,1,1],c2:[.18,.48,.96],c3:[.05,.24,.72],p1:.62,p2:.25,p3:1,note:'branco + azul vivo do vídeo real (temperamento Vale: vivo)'},
-   {k:'laranja',accent:'#E45933',c1:[1,.99,.97],c2:[.94,.42,.16],c3:[.66,.19,.05],p1:.62,p2:.35,p3:1,note:'tinta laranja unflat sobre leite'},
    {k:'jade',accent:'#12B877',c1:[.99,1,.99],c2:[.05,.66,.44],c3:[.01,.40,.28],p1:.62,p2:.85,p3:1,note:'verde-jade, temperamento Spruce: calmo/estratos'},
-   {k:'lilás',accent:'#8B5CF6',c1:[1,.99,1],c2:[.55,.40,.94],c3:[.32,.18,.72],p1:.62,p2:.5,p3:1,note:'violeta elétrico'},
-   {k:'rosa',accent:'#EC4899',c1:[1,.99,.99],c2:[.92,.31,.60],c3:[.68,.10,.40],p1:.62,p2:.2,p3:1,note:'rosa vibrante (vivo)'},
    {k:'grafite',accent:'#9AA0AA',c1:[.98,.98,.99],c2:[.38,.42,.50],c3:[.10,.12,.16],p1:.62,p2:.7,p3:1,note:'tinta nanquim, contido'},
-   {k:'anil//glitch',accent:'#3552C4',c1:[.99,.99,1],c2:[.19,.31,.78],c3:[.06,.11,.42],p1:.62,p2:.3,p3:2,note:'anil + glitch NOVATRIX: nos ataques o fluido rasga no loop de distorção com separação RGB, e reforma'},
+   {k:'anil//grão',accent:'#3552C4',c1:[.99,.99,1],c2:[.19,.31,.78],c3:[.06,.11,.42],p1:.62,p2:.35,p3:2,note:'anil + GRANULADO novatrix (color dodge) no fluido'},
+   {k:'gpt//grão',accent:'#2E7BF5',c1:[1,1,1],c2:[.18,.48,.96],c3:[.05,.24,.72],p1:.62,p2:.25,p3:2,note:'gpt + granulado'},
   ]},
 ];
 
@@ -608,7 +609,7 @@ function useFamily(i){
   curProg=programs[f.id];
   gl.useProgram(curProg);
   uni={};
-  for(const n of ['u_res','u_time','u_level','u_pulse','u_w','u_intro','u_c1','u_c2','u_c3','u_p1','u_p2','u_p3','u_flow'])
+  for(const n of ['u_res','u_time','u_level','u_pulse','u_w','u_intro','u_c1','u_c2','u_c3','u_p1','u_p2','u_p3','u_flow','u_kick'])
     uni[n]=gl.getUniformLocation(curProg,n);
 }
 
@@ -624,7 +625,14 @@ addEventListener('resize',resize); resize();
 
 /* ---------- estado & áudio ---------- */
 const S={ state:0, stateT:0, level:0, pulse:0, w:[1,0,0,0], intro:0, introT:performance.now(),
-          c1:[1,1,1], c2:[.7,.8,1], c3:[.2,.3,.5], p1:1, p2:1, p3:0, flow:0 };
+          c1:[1,1,1], c2:[.7,.8,1], c3:[.2,.3,.5], p1:1, p2:1, p3:0, flow:0,
+          kx:0, ky:0, kickT:-9, kickAng:0, kickMag:0, nextKick:2.5 };
+/* SUSTO: dispara um impulso direcional (ataque instantâneo, decai ~250ms + assenta ~900ms) */
+function kick(mag){
+  S.kickT=performance.now()/1000;
+  S.kickAng=Math.random()*6.283;            // direção aleatória = mudança de rota repentina
+  S.kickMag=mag;
+}
 let audioCtx=null, analyser=null, micOn=false, micStream=null;
 const timeData=new Float32Array(1024);
 
@@ -794,8 +802,22 @@ function frame(now){
   else if(S.state===2){ target=.12+.08*Math.sin(S.stateT*2.); }
   const k=target>S.level?1-Math.exp(-dt*28):1-Math.exp(-dt*6);
   S.level+=(target-S.level)*k;
-  if(target-S.level>.25)S.pulse=Math.min(1,S.pulse+.5);
+  if(target-S.level>.25){S.pulse=Math.min(1,S.pulse+.5);kick(.35+.5*S.level);}
   S.pulse*=Math.exp(-dt*5.5);
+
+  /* sustos estocásticos: frequentes falando, raros em repouso (o fluido do GPT treme sozinho) */
+  S.nextKick-=dt;
+  if(S.nextKick<=0){
+    if(S.state===3){kick(.25+.45*S.level);S.nextKick=.7+Math.random()*1.4;}
+    else if(S.state===1){kick(.15+.3*S.level);S.nextKick=1.2+Math.random()*1.8;}
+    else if(S.state===2){kick(.18);S.nextKick=1.5+Math.random()*2.;}
+    else{kick(.10);S.nextKick=3.5+Math.random()*3.5;}
+  }
+  /* envelope do susto: rápido pra entrar (250ms), cauda de assentamento (900ms) */
+  const kAge=(now/1000)-S.kickT;
+  const kEnv=S.kickMag*(Math.exp(-kAge/.25)*.8+Math.exp(-kAge/.9)*.25);
+  S.kx=Math.cos(S.kickAng)*kEnv*.09;
+  S.ky=Math.sin(S.kickAng)*kEnv*.09;
 
   for(let i=0;i<4;i++){
     const goal=S.state===i?1:0;
@@ -826,6 +848,7 @@ function frame(now){
   gl.uniform1f(uni.u_p2,S.p2);
   gl.uniform1f(uni.u_p3,S.p3);
   gl.uniform1f(uni.u_flow,S.flow);
+  gl.uniform2f(uni.u_kick,S.kx,S.ky);
   gl.drawArrays(gl.TRIANGLES,0,3);
 
   const bars=lvlEl.children;

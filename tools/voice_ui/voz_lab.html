@@ -247,6 +247,7 @@ uniform float u_p2;      // param 2 da família (intensidade/modo)
 uniform float u_p3;      // param 3 da família (ex.: rigidez do círculo na BRUMA)
 uniform float u_flow;    // relógio de FLUIDO acumulado no JS: acelera com a voz, sem salto
 uniform vec2  u_kick;    // IMPULSO repentino (dardo direcional que decai): o "susto" do GPT
+uniform float u_spin;    // GIRO-susto: redemoinho transiente (sobe e reassenta, nunca contínuo)
 out vec4 fragColor;
 #define PI 3.14159265358979
 #define TWO_PI 6.28318530718
@@ -306,6 +307,11 @@ void main(){
   // luminância ORGÂNICA (sem linhas direcionais — nada de olho, nada de spotify):
   // limbo + nuvens fbm pixeladas derivando devagar
   vec2 qq=p/max(rad,.001);
+  // giro-susto: as nuvens rodopiam no miolo e reassentam (transiente, peso central)
+  if(abs(u_spin)>.004){
+    float sa=u_spin*.9*exp(-.9*dot(qq,qq));
+    qq=mat2(cos(sa),-sin(sa),sin(sa),cos(sa))*qq;
+  }
   float limb=sqrt(max(0.,1.-r*r));                       // volume suave
   float n1=fbm(qq*1.9+vec2(t*.035,-t*.028)-u_kick*1.3);
   float n2=fbm(qq*3.6-vec2(t*.022,t*.03)+vec2(2.7,5.1)-u_kick*.8);
@@ -342,7 +348,13 @@ void main(){
   mat2 R=mat2(cos(angle),-sin(angle),sin(angle),cos(angle));
   vec2 uv=R*p;
 
-  float bump=fbm(uv*2.2+vec2(t*.6,t*.4)-u_kick*2.2)*(.26+.45*u_level*(speak+.4*listen));
+  // giro-susto: só o RELEVO rodopia (o eixo das listras segue fixo)
+  vec2 uvb=uv;
+  if(abs(u_spin)>.004){
+    float sa=u_spin*.7;
+    uvb=mat2(cos(sa),-sin(sa),sin(sa),cos(sa))*uvb;
+  }
+  float bump=fbm(uvb*2.2+vec2(t*.6,t*.4)-u_kick*2.2)*(.26+.45*u_level*(speak+.4*listen));
   float stripe=fract(uv.y*u_p1+t*.8*u_p2+bump+edge*1.6);
 
   float m=abs(stripe*2.-1.);
@@ -385,6 +397,10 @@ void main(){
 
   float wAmp=.06+.16*u_level*(speak+.4*listen);
   uv-=u_kick*1.6;   // susto: a malha dá um tranco e reassenta
+  if(abs(u_spin)>.004){  // giro-susto: a malha rodopia e volta
+    float sa=u_spin*.55;
+    uv=mat2(cos(sa),-sin(sa),sin(sa),cos(sa))*uv;
+  }
   uv.x+=sin(uv.x*2.6+t*.34)*cos(uv.y*2.6+t*.30)*wAmp;
   uv.y+=sin((uv.x+10.)*3.8+t*.26)*cos((uv.y+10.)*3.8+t*.26)*wAmp*.5;
 
@@ -443,15 +459,16 @@ void main(){
   float calm=clamp(u_p2,0.,1.);
 
   // ---- SLOSH: a interface inclina de um lado pro outro (o coração do GPT) ----
-  float tilt=(.34*sin(F*.34)+.16*sin(F*.13+1.7))*(1.+.9*energy)*mix(1.,.45,calm);
+  // no pensando o slosh lateral ACALMA (a energia migra pros giros — assinatura própria)
+  float tilt=(.34*sin(F*.34)+.16*sin(F*.13+1.7))*(1.+.9*energy)*mix(1.,.45,calm)*(1.-.32*think);
   float lvl0=-.06+.11*sin(F*.21+.8)+.10*energy+.06*calm;       // sobe quando fala
   // ondas viajando lateralmente (cristas correm; direção alterna com o slosh)
   float wave=.15*sin(q.x*2.3-F*.55)+.08*sin(q.x*4.2+F*.36+1.3);
-  wave*=(1.+1.1*energy)*mix(1.,.55,calm);
+  wave*=(1.+1.1*energy)*mix(1.,.55,calm)*(1.-.35*think);
   // ---- MICROGIROS (20fps do vídeo Dumbar): vórtices locais NA interface —
   // línguas de tinta giram pra dentro da massa clara e relaxam; direção alterna ----
   vec2 ec=vec2(.42*sin(F*.16), lvl0+tilt*.42*sin(F*.16)+.06);   // centro do vórtice deriva na interface
-  float th=(.42*sin(F*.27+2.)+.18*sin(F*.11))* (1.+.6*energy);  // ângulo oscila = gira e VOLTA
+  float th=(.42*sin(F*.27+2.)+.18*sin(F*.11))* (1.+.6*energy+.9*think);  // ângulo oscila = gira e VOLTA (fundo no pensando)
   vec2 dq=q-ec; float fall=exp(-2.6*dot(dq,dq));
   float a1=th*fall; mat2 R1=mat2(cos(a1),-sin(a1),sin(a1),cos(a1));
   vec2 qe=ec+R1*dq;                                             // coordenada com giro local
@@ -459,6 +476,17 @@ void main(){
   float th2=-.3*sin(F*.21+.7); dq=qe-ec2; fall=exp(-3.4*dot(dq,dq));
   float a2=th2*fall; mat2 R2=mat2(cos(a2),-sin(a2),sin(a2),cos(a2));
   qe=ec2+R2*dq;
+
+  // GIRO-SUSTO: um ou outro susto vem como REDEMOINHO largo — rotação transiente
+  // de área grande que sobe e reassenta (nunca contínua). No pensando é o susto
+  // padrão: giros lentos alternando o sentido, como quem AMASSA o fluido.
+  if(abs(u_spin)>.004){
+    vec2 sc=vec2(.20*sin(F*.13), lvl0);            // centro NA interface: o giro dobra a superfície
+    vec2 sdq=q-sc; float sfall=exp(-1.9*dot(sdq,sdq));
+    float sa=u_spin*(1.5+.8*think)*sfall;          // no pensando o redemoinho é mais fundo
+    mat2 SR=mat2(cos(sa),-sin(sa),sin(sa),cos(sa));
+    qe=sc+SR*(qe-sc);
+  }
 
   // SUSTO (frames v062→v068 do vídeo): o fluido DISPARA numa direção e reassenta —
   // impulso do JS, mais forte no miolo e perto da interface, quase nulo na borda
@@ -503,7 +531,7 @@ void main(){
   // NÚCLEO QUENTE onde as fases colidem — no susto, ele SALTA na direção do impulso
   vec2 ecK=ec+u_kick*2.2;
   float hot=exp(-9.*dInt*dInt)*exp(-2.4*dot(q-ecK,q-ecK));
-  orb=mix(orb,vec3(1.,.958,.845),hot*(.30+.25*energy+.8*kmag));
+  orb=mix(orb,vec3(1.,.958,.845),hot*(.30+.25*energy+.8*kmag+.35*abs(u_spin)));
   // pluma de luz: o DEDO que dispara (segue o impulso, intensifica no susto)
   vec2 kdir=kmag>.002?normalize(u_kick):vec2(0.,1.);
   vec2 rel=q-ecK; float along=dot(rel,kdir); float across=dot(rel,vec2(-kdir.y,kdir.x));
@@ -563,7 +591,7 @@ const FAMILIES=[
  {id:'bruma',name:'BRUMA',sub:'fluido de duas fases',frag:FRAG_BRUMA,
   tag:'ref · vídeo real do gpt voice, analisado a 12fps',
   concept:'Reconstruída a partir do <b>vídeo oficial do GPT Voice quebrado em 12fps</b>: massa branca/creme e <b>tinta viva</b> se encontrando numa interface de aquarela que <b>inclina de um lado pro outro</b> (slosh) — o azul sobe pela direita, desce pela esquerda, ondas correm lateralmente, franjas esfareladas, veios brancos cruzando a tinta. O círculo NUNCA deforma (só a escala pulsa); toda a energia da voz vai pro fluido, que acelera falando e assenta no silêncio. Todas as variações herdam o zoom+.',
-  states:{repouso:'a tinta assenta, interface quase parada',ouvindo:'o fluido mexe de leve com sua voz',pensando:'dobras lentas e profundas',falando:'slosh forte: a tinta sobe e varre de um lado pro outro'},
+  states:{repouso:'a tinta assenta, interface quase parada',ouvindo:'o fluido mexe de leve com sua voz',pensando:'REDEMOINHOS lentos amassando o fluido (o slosh para)',falando:'slosh forte + sustos; um ou outro vem com giro maior'},
   refs:'chatgpt.com/features/voice (vídeo, 66 frames @12fps) · github.com/elevenlabs/ui',
   vars:[
    {k:'anil',accent:'#3552C4',c1:[.99,.99,1],c2:[.19,.31,.78],c3:[.06,.11,.42],p1:.62,p2:.35,p3:1,note:'BR · a base — azul anil profundo, temperamento quase-vivo'},
@@ -609,7 +637,7 @@ function useFamily(i){
   curProg=programs[f.id];
   gl.useProgram(curProg);
   uni={};
-  for(const n of ['u_res','u_time','u_level','u_pulse','u_w','u_intro','u_c1','u_c2','u_c3','u_p1','u_p2','u_p3','u_flow','u_kick'])
+  for(const n of ['u_res','u_time','u_level','u_pulse','u_w','u_intro','u_c1','u_c2','u_c3','u_p1','u_p2','u_p3','u_flow','u_kick','u_spin'])
     uni[n]=gl.getUniformLocation(curProg,n);
 }
 
@@ -626,12 +654,19 @@ addEventListener('resize',resize); resize();
 /* ---------- estado & áudio ---------- */
 const S={ state:0, stateT:0, level:0, pulse:0, w:[1,0,0,0], intro:0, introT:performance.now(),
           c1:[1,1,1], c2:[.7,.8,1], c3:[.2,.3,.5], p1:1, p2:1, p3:0, flow:0,
-          kx:0, ky:0, kickT:-9, kickAng:0, kickMag:0, nextKick:2.5 };
-/* SUSTO: dispara um impulso direcional (ataque instantâneo, decai ~250ms + assenta ~900ms) */
-function kick(mag){
+          kx:0, ky:0, kickT:-9, kickAng:0, kickMag:0, nextKick:2.5,
+          spin:0, spinT:-9, spinMag:0, spinDir:1, spinTau:.8 };
+/* SUSTO: dispara um impulso direcional (ataque instantâneo, decai ~250ms + assenta ~900ms).
+   spin>0 = GIRO-susto: redemoinho transiente junto com o dardo (tau = quão lento assenta);
+   o sentido ALTERNA a cada giro — amassa pra lá e pra cá, nunca vira rotação contínua. */
+function kick(mag,spin,tau){
   S.kickT=performance.now()/1000;
   S.kickAng=Math.random()*6.283;            // direção aleatória = mudança de rota repentina
   S.kickMag=mag;
+  if(spin){
+    S.spinT=S.kickT; S.spinMag=spin; S.spinTau=tau||.8;
+    S.spinDir=-S.spinDir;
+  }
 }
 let audioCtx=null, analyser=null, micOn=false, micStream=null;
 const timeData=new Float32Array(1024);
@@ -802,22 +837,28 @@ function frame(now){
   else if(S.state===2){ target=.12+.08*Math.sin(S.stateT*2.); }
   const k=target>S.level?1-Math.exp(-dt*28):1-Math.exp(-dt*6);
   S.level+=(target-S.level)*k;
-  if(target-S.level>.25){S.pulse=Math.min(1,S.pulse+.5);kick(.35+.5*S.level);}
+  if(target-S.level>.25){S.pulse=Math.min(1,S.pulse+.5);kick(.28+.40*S.level,Math.random()<.28?(.45+.4*S.level):0,.55);}
   S.pulse*=Math.exp(-dt*5.5);
 
-  /* sustos estocásticos: frequentes falando, raros em repouso (o fluido do GPT treme sozinho) */
+  /* sustos estocásticos: frequentes falando, raros em repouso (o fluido do GPT treme sozinho).
+     Um ou outro vem com GIRO maior (redemoinho); no PENSANDO o giro lento É o susto padrão —
+     dardo quase nulo, redemoinho fundo alternando o sentido = assinatura do estado. */
   S.nextKick-=dt;
   if(S.nextKick<=0){
-    if(S.state===3){kick(.25+.45*S.level);S.nextKick=.7+Math.random()*1.4;}
-    else if(S.state===1){kick(.15+.3*S.level);S.nextKick=1.2+Math.random()*1.8;}
-    else if(S.state===2){kick(.18);S.nextKick=1.5+Math.random()*2.;}
-    else{kick(.10);S.nextKick=3.5+Math.random()*3.5;}
+    if(S.state===3){kick(.18+.34*S.level,Math.random()<.20?(.40+.35*S.level):0,.6);S.nextKick=1.1+Math.random()*1.8;}
+    else if(S.state===1){kick(.10+.22*S.level,Math.random()<.12?.30:0,.75);S.nextKick=1.8+Math.random()*2.2;}
+    else if(S.state===2){kick(.04,.5+Math.random()*.35,1.4);S.nextKick=2.2+Math.random()*1.8;}  // giro termina antes do próximo
+    else{S.nextKick=4.+Math.random()*4.;}   // repouso: BEM parado — sem susto nenhum
   }
   /* envelope do susto: rápido pra entrar (250ms), cauda de assentamento (900ms) */
   const kAge=(now/1000)-S.kickT;
   const kEnv=S.kickMag*(Math.exp(-kAge/.25)*.8+Math.exp(-kAge/.9)*.25);
-  S.kx=Math.cos(S.kickAng)*kEnv*.09;
-  S.ky=Math.sin(S.kickAng)*kEnv*.09;
+  S.kx=Math.cos(S.kickAng)*kEnv*.08;
+  S.ky=Math.sin(S.kickAng)*kEnv*.08;
+  /* envelope do GIRO: sobe suave (~140ms) e reassenta no tau do estado (falando rápido, pensando lento) */
+  const sAge=(now/1000)-S.spinT;
+  const sEnv=S.spinMag*(1-Math.exp(-sAge/.14))*Math.exp(-sAge/S.spinTau);
+  S.spin=S.spinDir*sEnv;
 
   for(let i=0;i<4;i++){
     const goal=S.state===i?1:0;
@@ -832,8 +873,9 @@ function frame(now){
   S.p1+=((v.p1!=null?v.p1:1)-S.p1)*.08;
   S.p2+=((v.p2!=null?v.p2:1)-S.p2)*.08;
   S.p3+=((v.p3!=null?v.p3:0)-S.p3)*.08;
-  /* relógio de fluido: acelera com a voz (interior "reage" sem mexer na silhueta) */
-  S.flow+=dt*(0.32+0.35*S.w[2]+S.level*(2.4*S.w[3]+0.9*S.w[1]));
+  /* relógio de fluido: acelera com a voz (interior "reage" sem mexer na silhueta).
+     No REPOUSO o fluido quase congela (0.13) — a tinta só assenta, bem parada. */
+  S.flow+=dt*(0.13+0.19*(1-S.w[0])+0.35*S.w[2]+S.level*(2.4*S.w[3]+0.9*S.w[1]));
 
   gl.uniform2f(uni.u_res,W,H);
   gl.uniform1f(uni.u_time,t);
@@ -849,6 +891,7 @@ function frame(now){
   gl.uniform1f(uni.u_p3,S.p3);
   gl.uniform1f(uni.u_flow,S.flow);
   gl.uniform2f(uni.u_kick,S.kx,S.ky);
+  gl.uniform1f(uni.u_spin,S.spin);
   gl.drawArrays(gl.TRIANGLES,0,3);
 
   const bars=lvlEl.children;

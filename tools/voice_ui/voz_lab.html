@@ -530,6 +530,9 @@ void main(){
             + speak*(.10*u_level+.035*u_level*talkMod)
             + .03*listen*u_level);
 
+  // p3: 0-1 = rigidez do círculo · >1 = rigidez 1 + GLITCH novatrix (p3-1)
+  float glitchAmt=max(0.,u_p3-1.);
+
   // círculo SEMPRE: borda definida, zero deformação angular
   float d=len-rad;
   float body=1.-smoothstep(-.006,.013,d);
@@ -560,6 +563,15 @@ void main(){
   float th2=-.3*sin(F*.21+.7); dq=qe-ec2; fall=exp(-3.4*dot(dq,dq));
   float a2=th2*fall; mat2 R2=mat2(cos(a2),-sin(a2),sin(a2),cos(a2));
   qe=ec2+R2*dq;
+
+  // GLITCH novatrix: nos ataques, o fluido rasga no loop de distorção e reforma
+  float g=glitchAmt*clamp(u_pulse*1.1+.18*energy,0.,1.);
+  if(g>.003){
+    vec2 gu=q*2.2;
+    float dd=-F*.5, aa=0.;
+    for(float i=1.;i<4.;++i){ aa+=cos(i-dd-aa*gu.x); dd+=sin(gu.y*i+aa); }
+    qe=mix(qe, qe+vec2(cos(aa),sin(dd))*.30, g);
+  }
 
   // mudanças de ROTA: a advecção da franja serpenteia (direção deriva devagar)
   float md=.9*sin(F*.07)+.5*sin(F*.023+1.);
@@ -593,6 +605,13 @@ void main(){
   milk=mix(milk,mix(u_c1,u_c2,.28),.30*smoothstep(.0,.9,fringe2)*(1.-cream));
 
   vec3 orb=mix(milk,ink,blue);
+  // glitch: separação RGB na interface (canais R/B leem a fronteira deslocada)
+  if(g>.003){
+    float blueR=1.-smoothstep(-.34,.22,(dInt-.06*g)+.16*fringe2);
+    float blueB=1.-smoothstep(-.34,.22,(dInt+.06*g)+.16*fringe2);
+    orb.r=mix(milk.r,ink.r,blueR);
+    orb.b=mix(milk.b,ink.b,blueB);
+  }
   // NÚCLEO QUENTE onde as fases colidem (creme luminoso na zona do vórtice)
   float hot=exp(-9.*dInt*dInt)*exp(-2.4*dot(q-ec,q-ec));
   orb=mix(orb,vec3(1.,.958,.845),hot*(.30+.25*energy));
@@ -682,6 +701,7 @@ const FAMILIES=[
    {k:'lilás',accent:'#8B5CF6',c1:[1,.99,1],c2:[.55,.40,.94],c3:[.32,.18,.72],p1:.62,p2:.5,p3:1,note:'violeta elétrico'},
    {k:'rosa',accent:'#EC4899',c1:[1,.99,.99],c2:[.92,.31,.60],c3:[.68,.10,.40],p1:.62,p2:.2,p3:1,note:'rosa vibrante (vivo)'},
    {k:'grafite',accent:'#9AA0AA',c1:[.98,.98,.99],c2:[.38,.42,.50],c3:[.10,.12,.16],p1:.62,p2:.7,p3:1,note:'tinta nanquim, contido'},
+   {k:'anil//glitch',accent:'#3552C4',c1:[.99,.99,1],c2:[.19,.31,.78],c3:[.06,.11,.42],p1:.62,p2:.3,p3:2,note:'anil + glitch NOVATRIX: nos ataques o fluido rasga no loop de distorção com separação RGB, e reforma'},
   ]},
 ];
 

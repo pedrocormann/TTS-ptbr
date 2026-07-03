@@ -18,10 +18,10 @@ No app: aba **Agente** (local `/agente` · site `/tts-ptbr/agente`, com mic).
 | **TRAMA** | nuvens ORGÂNICAS de pixel Bayer 8×8 derivando (sem linhas — nada de spotify; sem olho) | tinta · âmbar · **bandeira** |
 | **FUNDIÇÃO** | metal líquido escorrendo devagar, veios fundidos na fala | cromo · ouro · cobre · **verde-ouro** |
 | **NOVATRIX** | malha de gradiente domada (sem flicker) | oceano · **bandeira** (anil/verde/amarelo) |
-| **BRUMA** ★ | fluido de DUAS FASES do vídeo real do GPT (Studio Dumbar, 20fps): slosh lateral, microgiros (vórtices locais que giram e voltam), rotas serpenteando, núcleo quente, pluma, SUSTOS; círculo NUNCA deforma; temperamento vivo↔calmo por variação | **anil** (default) · gpt · jade · grafite · **anil//grão** · gpt//grão (granulado colorDodge do novatrix) |
+| **BRUMA** ★ | fluido de DUAS FASES do vídeo real do GPT (Studio Dumbar, 20fps): slosh lateral, microgiros (vórtices locais que giram e voltam), rotas serpenteando, núcleo quente, pluma, SUSTOS + giro-sustos; círculo NUNCA deforma; temperamento vivo↔calmo por variação | **anil** (default) · gpt · jade · grafite |
 
 Mortas na curadoria (git guarda): AURA, SAMANTHA, ESPECTRO, PRESENÇA, VIDRO + variações
-ciano/unflat/pêssego + bruma laranja/lilás/rosa + o glitch RGB (Pedro: "glitch" = granulado).
+ciano/unflat/pêssego + bruma laranja/lilás/rosa + glitch RGB + as variações //grão.
 
 ## Motor
 
@@ -39,5 +39,5 @@ ciano/unflat/pêssego + bruma laranja/lilás/rosa + o glitch RGB (Pedro: "glitch
   lateral acalma → assinatura própria do estado. REPOUSO = bem parado: zero sustos e relógio
   de fluido quase congelado (0.13 vs 0.32).
 - BRUMA p1=zoom · p2=temperamento (vivo↔calmo, conceito do vídeo Dumbar: cada voz GPT = mesmo
-  shader, outros parâmetros) · p3=rigidez do círculo (>1 = +granulado colorDodge)
+  shader, outros parâmetros)
 - Análises-fonte: research/dossier-2026-07/91-voice-ui-refs.md + frames 12/20fps no scratchpad

@@ -442,9 +442,6 @@ void main(){
             + speak*(.10*u_level+.035*u_level*talkMod)
             + .03*listen*u_level);
 
-  // p3: 0-1 = rigidez do círculo · >1 = rigidez 1 + GRANULADO novatrix (p3-1)
-  float grainAmt=max(0.,u_p3-1.);
-
   // círculo SEMPRE: borda definida, zero deformação angular
   float d=len-rad;
   float body=1.-smoothstep(-.006,.013,d);
@@ -537,12 +534,6 @@ void main(){
   vec2 rel=q-ecK; float along=dot(rel,kdir); float across=dot(rel,vec2(-kdir.y,kdir.x));
   float plume=exp(-13.*across*across)*smoothstep(0.,.75,along)*(1.-smoothstep(.6,1.15,along));
   orb=mix(orb,mix(orb,vec3(1.),.5),plume*(.14+1.1*kmag)*(.6+.4*energy));
-  // granulado novatrix (color dodge) — a variação //grão
-  if(grainAmt>.003){
-    float gn=(hash21(gl_FragCoord.xy+fract(t)*3.)-.5)*.20*grainAmt;
-    vec3 gcol=vec3(.5+gn);
-    orb=min(orb/(1.-gcol+.0001),vec3(1.));
-  }
   orb*=1.-.06*clamp(-q.y,0.,1.);   // leve sombra na base (volume, sem virar esfera 3D)
   orb*=1.+.05*(1.-len);            // leve clareada no miolo
   orb*=1.+.14*u_level*(speak+.45*listen)+.04*u_pulse;
@@ -598,8 +589,6 @@ const FAMILIES=[
    {k:'gpt',accent:'#2E7BF5',c1:[1,1,1],c2:[.18,.48,.96],c3:[.05,.24,.72],p1:.62,p2:.25,p3:1,note:'branco + azul vivo do vídeo real (temperamento Vale: vivo)'},
    {k:'jade',accent:'#12B877',c1:[.99,1,.99],c2:[.05,.66,.44],c3:[.01,.40,.28],p1:.62,p2:.85,p3:1,note:'verde-jade, temperamento Spruce: calmo/estratos'},
    {k:'grafite',accent:'#9AA0AA',c1:[.98,.98,.99],c2:[.38,.42,.50],c3:[.10,.12,.16],p1:.62,p2:.7,p3:1,note:'tinta nanquim, contido'},
-   {k:'anil//grão',accent:'#3552C4',c1:[.99,.99,1],c2:[.19,.31,.78],c3:[.06,.11,.42],p1:.62,p2:.35,p3:2,note:'anil + GRANULADO novatrix (color dodge) no fluido'},
-   {k:'gpt//grão',accent:'#2E7BF5',c1:[1,1,1],c2:[.18,.48,.96],c3:[.05,.24,.72],p1:.62,p2:.25,p3:2,note:'gpt + granulado'},
   ]},
 ];
 

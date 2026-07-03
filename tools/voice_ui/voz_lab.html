@@ -244,6 +244,8 @@ uniform vec3  u_c2;
 uniform vec3  u_c3;
 uniform float u_p1;      // param 1 da família (zoom/freq/escala)
 uniform float u_p2;      // param 2 da família (intensidade/modo)
+uniform float u_p3;      // param 3 da família (ex.: rigidez do círculo na BRUMA)
+uniform float u_flow;    // relógio de FLUIDO acumulado no JS: acelera com a voz, sem salto
 out vec4 fragColor;
 #define PI 3.14159265358979
 #define TWO_PI 6.28318530718
@@ -524,21 +526,26 @@ void main(){
             + speak*(.10*u_level+.035*u_level*talkMod)
             + .03*listen*u_level);
 
+  // rigidez (u_p3): 1 = CÍRCULO perfeito, borda definida, energia só no fluido interno (GPT)
+  float rigid=clamp(u_p3,0.,1.);
   float lobes=.55*sin(ang*3.+t*.55)+.45*sin(ang*5.-t*.8);
-  float defSpeak=speak*u_level*.042*lobes;
+  float defSpeak=speak*u_level*.042*lobes*(1.-rigid);
   float rip=sin(ang*7.+t*3.6)*sin(ang*4.-t*2.8);
-  float defListen=listen*(.006+.028*u_level)*rip;
+  float defListen=listen*(.006+.028*u_level)*rip*(1.-rigid);
   float d=len-(rad+defSpeak+defListen);
 
-  float body=1.-smoothstep(-.015,.05,d);
-  float edgeGlow=exp(-40.*abs(d))*.22;
+  // borda: pluma quando solto, definida quando rígido
+  float eIn=mix(-.015,-.006,rigid), eOut=mix(.05,.014,rigid);
+  float body=1.-smoothstep(eIn,eOut,d);
+  float edgeGlow=exp(-mix(40.,90.,rigid)*abs(d))*mix(.22,.30,rigid);
 
-  // interior com ZOOM (nuvens grandes), SEM rotação; pensando = warp mais fundo
+  // interior: o FLUIDO é a animação (relógio u_flow acelera com a voz, como no GPT)
   vec2 q=p/max(rad,.001);
-  float wStr=.55+.45*think;
-  vec2 w=vec2(fbm(q*1.1*u_p1+vec2(0.,-t*.07)), fbm(q*1.1*u_p1+vec2(3.7,t*.05)))*wStr;
-  float smoke =fbm(q*1.35*u_p1+.6*w+vec2(0.,-t*.10));
-  float smoke2=fbm(q*2.4*u_p1-.4*w+vec2(t*.03,-t*.14));
+  float F=u_flow;
+  float wStr=(.55+.45*think)*(1.+.6*rigid*u_level*(speak+.4*listen));
+  vec2 w=vec2(fbm(q*1.1*u_p1+vec2(0.,-F*.07)), fbm(q*1.1*u_p1+vec2(3.7,F*.05)))*wStr;
+  float smoke =fbm(q*1.35*u_p1+.6*w+vec2(0.,-F*.10));
+  float smoke2=fbm(q*2.4*u_p1-.4*w+vec2(F*.03,-F*.14));
   float dens=smoothstep(-.35,.95,.75*smoke+.5*smoke2);
 
   float topLight=.5+.5*clamp(-q.y*.7+.3,-1.,1.);
@@ -549,7 +556,7 @@ void main(){
   orb=mix(orb,vec3(1.),clamp(.55*core+.30*pow(dens,2.2)*topLight,0.,1.));
   orb=mix(u_c3*.8,orb,.5+.5*topLight);
   float band=smoothstep(.78,.97,len/max(rad,.001))*(1.-smoothstep(.97,1.04,len/max(rad,.001)));
-  orb+=vec3(1.)*band*.09;
+  orb+=vec3(1.)*band*mix(.09,.16,rigid);   // anel interno mais presente no modo rígido (borda GPT)
   orb*=1.+.18*u_level*(speak+.45*listen)+.05*u_pulse;
 
   vec3 col=mix(BGC(),orb,body);
@@ -624,10 +631,10 @@ const FAMILIES=[
   states:{repouso:'pulso regular, nuvens grandes derivam',ouvindo:'borda ondula assimétrica no seu volume',pensando:'a fumaça se dobra mais fundo — borda parada',falando:'silhueta deforma no ritmo, interior acende'},
   refs:'chatgpt.com/features/voice · github.com/elevenlabs/ui (orb.tsx)',
   vars:[
-   {k:'gpt',accent:'#C9DCFC',c1:[.788,.863,.988],c2:[.627,.725,.820],c3:[.33,.43,.64],p1:1,p2:1,note:'azul+branco fiel'},
-   {k:'zoom+',accent:'#C9DCFC',c1:[.788,.863,.988],c2:[.627,.725,.820],c3:[.33,.43,.64],p1:.62,p2:1.5,note:'ainda mais perto: nuvens gigantes, núcleo maior'},
-   {k:'grafite',accent:'#C9CDD4',c1:[.92,.93,.95],c2:[.60,.62,.66],c3:[.17,.19,.23],p1:.8,p2:1,note:'fumaça monocromática'},
-   {k:'anil',accent:'#5C7FE0',c1:[.75,.83,1],c2:[.36,.48,.85],c3:[.09,.16,.42],p1:.8,p2:1,note:'BR · azul anil profundo'},
+   {k:'gpt',accent:'#C9DCFC',c1:[.788,.863,.988],c2:[.627,.725,.820],c3:[.33,.43,.64],p1:1,p2:1,p3:.65,note:'azul+branco fiel, quase-círculo'},
+   {k:'zoom+',accent:'#C9DCFC',c1:[.788,.863,.988],c2:[.627,.725,.820],c3:[.33,.43,.64],p1:.62,p2:1.5,p3:1,note:'GPT máximo: CÍRCULO perfeito, borda definida, TODA a animação no fluido interno'},
+   {k:'grafite',accent:'#C9CDD4',c1:[.92,.93,.95],c2:[.60,.62,.66],c3:[.17,.19,.23],p1:.8,p2:1,p3:.65,note:'fumaça monocromática'},
+   {k:'anil',accent:'#5C7FE0',c1:[.75,.83,1],c2:[.36,.48,.85],c3:[.09,.16,.42],p1:.8,p2:1,p3:.65,note:'BR · azul anil profundo'},
   ]},
 ];
 
@@ -665,7 +672,7 @@ function useFamily(i){
   curProg=programs[f.id];
   gl.useProgram(curProg);
   uni={};
-  for(const n of ['u_res','u_time','u_level','u_pulse','u_w','u_intro','u_c1','u_c2','u_c3','u_p1','u_p2'])
+  for(const n of ['u_res','u_time','u_level','u_pulse','u_w','u_intro','u_c1','u_c2','u_c3','u_p1','u_p2','u_p3','u_flow'])
     uni[n]=gl.getUniformLocation(curProg,n);
 }
 
@@ -681,7 +688,7 @@ addEventListener('resize',resize); resize();
 
 /* ---------- estado & áudio ---------- */
 const S={ state:0, stateT:0, level:0, pulse:0, w:[1,0,0,0], intro:0, introT:performance.now(),
-          c1:[1,1,1], c2:[.7,.8,1], c3:[.2,.3,.5], p1:1, p2:1 };
+          c1:[1,1,1], c2:[.7,.8,1], c3:[.2,.3,.5], p1:1, p2:1, p3:0, flow:0 };
 let audioCtx=null, analyser=null, micOn=false, micStream=null;
 const timeData=new Float32Array(1024);
 
@@ -866,6 +873,9 @@ function frame(now){
   lerp3(S.c1,v.c1,.08); lerp3(S.c2,v.c2,.08); lerp3(S.c3,v.c3||[0,0,0],.08);
   S.p1+=((v.p1!=null?v.p1:1)-S.p1)*.08;
   S.p2+=((v.p2!=null?v.p2:1)-S.p2)*.08;
+  S.p3+=((v.p3!=null?v.p3:0)-S.p3)*.08;
+  /* relógio de fluido: acelera com a voz (interior "reage" sem mexer na silhueta) */
+  S.flow+=dt*(0.32+0.35*S.w[2]+S.level*(2.4*S.w[3]+0.9*S.w[1]));
 
   gl.uniform2f(uni.u_res,W,H);
   gl.uniform1f(uni.u_time,t);
@@ -878,6 +888,8 @@ function frame(now){
   gl.uniform3f(uni.u_c3,S.c3[0],S.c3[1],S.c3[2]);
   gl.uniform1f(uni.u_p1,S.p1);
   gl.uniform1f(uni.u_p2,S.p2);
+  gl.uniform1f(uni.u_p3,S.p3);
+  gl.uniform1f(uni.u_flow,S.flow);
   gl.drawArrays(gl.TRIANGLES,0,3);
 
   const bars=lvlEl.children;

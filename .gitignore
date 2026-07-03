@@ -59,3 +59,10 @@ data/raw/elevenlabs2024/transcribed_clean.jsonl
 tools/curate/curate_edits.jsonl
 .gstack/
 src/duplex/.env
+
+# artefatos de treino coletados do pod (tars gigantes + wavs gerados)
+runpod_samples/
+# adapters locais (weights ficam fora; HF Hub é o backup)
+models/
+# working data da curadoria no rate (espelhado no Supabase)
+tools/rate/curate_edits.jsonl

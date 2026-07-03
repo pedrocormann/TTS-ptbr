@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """F1 · Prep do dado BASE-PT (Camada 0 — ensina a LÍNGUA). [RODAR NO RUNPOD]
 
-Baixa os datasets T0 SHIPPÁVEIS (CC-BY/CC0) via HF, filtra pt, e monta UM manifest de treino
-data/manifests/base_pt.jsonl com gate de licença (assert_license_gate). NUNCA inclui NC/ND
-(TAGARELA/CORAA ficam de fora — ver tools/data/ingest.py).
+Baixa os datasets via HF, filtra pt, e monta UM manifest de treino data/base_pt/base_pt.jsonl
+com wavs em data/base_pt/segments/ (layout que o train_voice.py espera: <data-dir>/segments/<basename>).
+Licença/shippable/tier REAIS por fonte no manifest (NC/ND ⇒ shippable=false, tier=research).
 
 Deps: pip install datasets soundfile librosa
-  python prep_base_pt.py --sources cml,mls,cv --hours-cap 200 --out data/manifests/base_pt.jsonl
+  python prep_base_pt.py --sources cml,mls,cv --hours-cap 200 --out data/base_pt/base_pt.jsonl
   python prep_base_pt.py --sources granary --dnsmos 3.0   # in-the-wild: filtra qualidade
 
 Fontes T0 (licença verificada no data/dataset_registry.yaml):
@@ -37,8 +37,9 @@ def main():
     ap.add_argument("--sources", default="cml,mls,cv", help="cml,mls,cv,granary")
     ap.add_argument("--hours-cap", type=float, default=None, help="teto de horas por fonte")
     ap.add_argument("--dnsmos", type=float, default=None, help="filtro de qualidade (só granary/in-the-wild)")
-    ap.add_argument("--out", default=str(REPO / "data/manifests/base_pt.jsonl"))
-    ap.add_argument("--audio-dir", default=str(REPO / "data/base_pt_audio"))
+    ap.add_argument("--out", default=str(REPO / "data/base_pt/base_pt.jsonl"))
+    ap.add_argument("--audio-dir", default=str(REPO / "data/base_pt/segments"),
+                    help="DEVE ser <pai do manifest>/segments — layout que train_voice.py monta")
     a = ap.parse_args()
 
     from ingest import research_ok, gate_license   # modo pesquisa: usa NC/ND, só marca proveniência
@@ -55,7 +56,9 @@ def main():
             print(f"  fonte desconhecida: {key}"); continue
         repo, cfg, lic, txtcol = SOURCES[key]
         assert research_ok(lic), f"{key} sem acesso/pago ({lic}) — nem pesquisa usa"
-        tag = "" if gate_license(lic) else "  ⚠ research-only (NC/ND, marca proveniência)"
+        ship = gate_license(lic)                 # shippable REAL: NC/ND ⇒ False (proveniência, não trava)
+        tier = "T0" if ship else "research"      # NC/ND nunca é T0 — vira research-only no manifest
+        tag = "" if ship else "  ⚠ research-only (NC/ND, marca proveniência)"
         print(f"[{key}] {repo}:{cfg} ({lic}){tag} — streaming…", flush=True)
         try:
             ds = load_dataset(repo, cfg, split="train", streaming=True)
@@ -75,7 +78,7 @@ def main():
             fid = f"{key}_{n:06d}.wav"
             sf.write(adir / fid, wav, sr, subtype="PCM_16")
             fout.write(json.dumps({"audio": str(adir / fid), "text": txt, "source": key,
-                                   "license": lic, "tier": "T0", "shippable": True, "dur_s": round(d, 2)},
+                                   "license": lic, "tier": tier, "shippable": ship, "dur_s": round(d, 2)},
                                   ensure_ascii=False) + "\n")
             secs += d; n += 1; total_rows += 1
             if a.hours_cap and secs >= a.hours_cap * 3600:

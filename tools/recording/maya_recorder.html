@@ -154,7 +154,7 @@ const $=id=>document.getElementById(id);
 /* ===================== Identidade (email logado, OTP) ===================== */
 const INJ_EMAIL="__GRAVADOR_USER__";            // a rota /tts-ptbr/gravar injeta o email aqui
 const HAS_EMAIL=INJ_EMAIL.indexOf("@")>0;        // se não injetou (uso local), cai no dropdown
-function whoVal(){return HAS_EMAIL?INJ_EMAIL.split("@")[0].toLowerCase():($("who")?whoVal():"");}
+function whoVal(){return HAS_EMAIL?INJ_EMAIL.split("@")[0].toLowerCase():($("who")?($("who").value||"").trim():"");}
 
 /* ===================== ESTADO ===================== */
 let sb=null, channel=null, myName="", meetingCode="";

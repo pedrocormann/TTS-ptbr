@@ -1,0 +1,65 @@
+# VERIFICAÇÃO (verificador adversarial — 02/jul/2026)
+
+Método: 8 claims load-bearing checados contra a fonte citada via fetch direto + 1 checagem independente quando disponível. Vereditos: CONFIRMADO / PLAUSÍVEL / REFUTADO / SEM-FONTE.
+
+**1. ElevenLabs PVC: 30 min mínimo, 2-3h ótimo, "o que importa é runtime total" — CONFIRMADO.** A doc oficial diz literalmente "The bare minimum we recommend is 30 minutes" / "closer to 2-3 hours of audio" / "the number of samples is irrelevant; the total runtime is what matters"; busca independente retorna o mesmo número em múltiplas páginas da ElevenLabs (docs + blog).
+
+**2. Azure CNV: 300 utterances mínimo; 2.000 pra produção — CONFIRMADO com nuance que FORTALECE a tese central.** O mínimo de 300 está na doc atual ("Select at least 300 utterances to create a custom voice", atualizada fev/2026); mas a doc diz que 300 já dá "reasonable custom voice" e que **mais dado não melhora necessariamente a naturalidade** — o 1.000-2.000 é recomendado especificamente pra personas expressivas/entonação dinâmica, não como piso de "produção". Ou seja: a curva de voz satura ainda mais cedo do que o relatório pinta.
+
+**3. XTTS speaker adaptation: SECS 0.585→0.717 com ~10 min — CONFIRMADO.** Paper (arXiv 2406.04904, Seção 5): SECS 0.5852→0.7166 com "approximately 10 min of speech". Números exatos batem.
+
+**4. XTTS Tabela 1 (pt 2.386h; tcheco 52h, japonês 57h, húngaro 62h, holandês 74h) + pt CER 1.11 — CONFIRMADO.** Paper confirma 2.386,8h pt, 52,4/57,3/62,0/74,1h e CER pt 1,1068 (Tabela 4). Ressalva: "as línguas mais fracas da tabela" é interpretação do relatório, não afirmação do paper.
+
+**5. NVIDIA: 30 min de fine-tune ≈ 27h do zero — CONFIRMADO, com caveat de época.** Abstract (arXiv 2110.05798, Neekhara/Li/Ginsburg, Interspeech 2022) diz verbatim "fine-tuning... on just 30 minutes of data can yield comparable performance to a model trained from scratch on more than 27 hours". Caveat: paper de 2021/2022, era FastPitch/HiFi-GAN — pré-LLM-TTS; o número pode não transferir 1:1 pra modelos tipo CSM.
+
+**6. CSM-1B georgiano: 35h, LoRA r64/Unsloth, CER 0.108 no FLEURS — CONFIRMADO na fonte primária, mas fonte única.** Model card bate exatamente (35h, 12 falantes, 21.421 samples Common Voice, LoRA rank=64 via Unsloth, CER mean 0.1081; 48,5% dos samples <5% CER). É self-reported, sem replicação independente — tratar como um único data point, não como lei.
+
+**7. Orpheus: 100k h de base; ~50 exemplos = alta qualidade; 300/falante = best results — CONFIRMADO.** README diz verbatim "trained over 100k hours" e "high quality results after ~50 examples but for best results, aim for 300 examples/speaker". Nota: são claims promocionais do próprio projeto, sem MOS/benchmark publicado.
+
+**8. Sesame CSM: 1M h × 5 épocas; Maya = variante fine-tunada; nenhum número público por voz — CONFIRMADO na fonte primária.** O post de pesquisa da própria Sesame diz "approximately one million hours of predominantly English audio" e treino "over five epochs"; o repo diz "A fine-tuned variant of CSM powers the interactive voice demo" e não divulga nenhum volume por voz; the-decoder (mar/2025) confirma. Detalhe extra útil: a Sesame admite que multilinguismo só "emerge por contaminação do dataset" — reforça a ressalva do relatório sobre pt-BR na base.
+
+**Claims secundários checados:**
+- **YourTTS <1 min — CONFIRMADO** (abstract: "fine-tune... with less than 1 minute of speech and achieve state-of-the-art results in voice similarity and with reasonable quality"); o "treinou pt com 1 falante" está no abstract só como "target language with a single-speaker dataset" (o idioma ser pt está no corpo do paper, não no abstract).
+- **F5 community (10-15h voz; 100h bom; 300h+ perfeito; polonês 90h/350k steps) — CONFIRMADO nas fontes citadas, mas é anedota de comunidade.** #143: lpscr (autor da UI Gradio, não maintainer) diz exatamente isso; #1168: "90+ hours" baseline, from-scratch 90h convergiu ~350k steps, fine-tune 100-150k steps. Sem avaliação formal por trás.
+- **F5-TTS-pt-br ~330h — PLAUSÍVEL, número é inferência.** O card descreve fases (130h → ~200h + rodadas extras medidas em samples/dias; dataset final 90.947 áudios com média 17,73s ≈ ~448h se somado); "330h" não aparece escrito em lugar nenhum. Ordem de grandeza (centenas de horas) confirmada; o número exato não.
+
+**Veredito da tese central ("voz satura ~3h; horas grandes pertencem à língua"): SUSTENTADO.** Todos os pilares confirmados, e a nuance da Azure (mais dado além de 300 utterances não melhora naturalidade) empurra na mesma direção. Fragilidades honestas: (a) o data point georgiano é fonte única self-reported; (b) o "30min≈27h" é de arquitetura de 2021; (c) as receitas F5 são anedota de comunidade; (d) nenhuma fonte quantifica o salto qualidade-Maya — o buraco apontado pelo relatório é real.
+
+---
+
+# Evidência concreta: horas de áudio → qualidade em TTS fine-tunado
+
+## Tabela horas → qualidade esperada (com fonte por linha)
+
+| Horas (por voz, salvo indicação) | O que a evidência mostra | Modelo/contexto | Fonte |
+|---|---|---|---|
+| **<1 min (fine-tune)** | Similaridade de voz SOTA, qualidade "razoável" — identidade sim, prosódia não | YourTTS (Casanova; treinou pt com **1 falante** só) | [arxiv.org/abs/2112.02418](https://arxiv.org/abs/2112.02418) |
+| **~3 min (contexto, sem treino)** | Clone zero-shot funcional: captura timbre, **perde** ritmo, phrasing e maneirismos | CSM-1B voice cloning (recomenda ~2min50s de amostra) | [github.com/isaiahbjork/csm-voice-cloning](https://github.com/isaiahbjork/csm-voice-cloning) |
+| **~10 min (fine-tune)** | Similaridade cross-lingual sobe de SECS 0.585 → **0.717**; imitou até voz sussurrada em 16 línguas | XTTS paper, seção "Speaker Adaptation" | [arxiv.org/pdf/2406.04904](https://arxiv.org/pdf/2406.04904) |
+| **30 min (fine-tune)** | Equivale a treinar do zero com **27h**; mínimo aceito pela ElevenLabs e pela Azure (300 utterances) | NVIDIA transfer learning; ElevenLabs PVC; Azure CNV | [arxiv.org/abs/2110.05798](https://arxiv.org/abs/2110.05798) · [elevenlabs.io PVC docs](https://elevenlabs.io/docs/eleven-creative/voices/voice-cloning/professional-voice-cloning) |
+| **~50 exemplos (~10-20 min)** | "Alta qualidade" começa a aparecer | Orpheus TTS README (base de 100k h) | [github.com/canopyai/Orpheus-TTS](https://github.com/canopyai/Orpheus-TTS) |
+| **300 exemplos/falante (~45-60 min)** | "Best results" da receita oficial | Orpheus TTS README | [github.com/canopyai/Orpheus-TTS](https://github.com/canopyai/Orpheus-TTS) |
+| **2-3h** | **Production-grade** de voz: ideal da ElevenLabs PVC ("30 min é o mínimo, 2-3h é o ótimo; o que importa é runtime total"); Azure recomenda 2.000 utterances (~2-3h) pra produção | ElevenLabs PVC; Azure Custom Neural Voice | [elevenlabs.io PVC docs](https://elevenlabs.io/docs/eleven-creative/voices/voice-cloning/professional-voice-cloning) · [learn.microsoft.com CNV](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/custom-neural-voice) |
+| **~3h (1.200 samples)** | Dataset-exemplo padrão da receita Unsloth pra fine-tune de Orpheus/CSM (LoRA 16-bit default) | Unsloth TTS guide (dataset Elise) | [unsloth.ai/docs TTS fine-tuning](https://unsloth.ai/docs/basics/text-to-speech-tts-fine-tuning) |
+| **10-15h** | Voz única "boa" na receita comunitária F5-TTS | F5-TTS community | [github.com/SWivid/F5-TTS/discussions/143](https://github.com/SWivid/F5-TTS/discussions/143) |
+| **35h (nova língua!)** | CSM-1B aprendeu **georgiano** via LoRA (rank 64, Unsloth): CER 0.108 no FLEURS — inteligível, sem claim de prosódia | CSM-1B-Georgian (Common Voice) | [huggingface.co/NMikka/CSM-1B-Georgian](https://huggingface.co/NMikka/CSM-1B-Georgian) |
+| **50-75h (língua inteira)** | XTTS aprendeu tcheco (52h), japonês (57h), húngaro (62h), holandês (74h) — funcional mas as línguas mais fracas da tabela | XTTS paper, Tabela 1 | [arxiv.org/pdf/2406.04904](https://arxiv.org/pdf/2406.04904) |
+| **90-150h (nova língua)** | Polonês no F5-TTS: 90h convergiu do zero (350k steps); fine-tune pede 100-150k steps; "90+ h" é a baseline citada | F5-TTS Polish thread | [github.com/SWivid/F5-TTS/discussions/1168](https://github.com/SWivid/F5-TTS/discussions/1168) |
+| **~100h+ (nova língua)** | Regra de bolso da comunidade XTTS pra nova língua; 100h multi-speaker = "modelo bom", 300h+ = "perfeito" (F5) | XTTS/F5 community | [huggingface.co/coqui/XTTS-v2/discussions/43](https://huggingface.co/coqui/XTTS-v2/discussions/43) · [discussions/143](https://github.com/SWivid/F5-TTS/discussions/143) |
+| **~330h (pt-BR!)** | F5-TTS-pt-br: 130h→200h + Common Voice (3.500 falantes) = pt-BR funcional open-source | firstpixel/F5-TTS-pt-br | [huggingface.co/firstpixel/F5-TTS-pt-br](https://huggingface.co/firstpixel/F5-TTS-pt-br) |
+| **2.386h (pt no XTTS)** | Português com qualidade SOTA multilingual (CER 1.11, entre os melhores da tabela) | XTTS paper, Tabela 1 | [arxiv.org/pdf/2406.04904](https://arxiv.org/pdf/2406.04904) |
+| **100.000h (base)** | Pretrain do Orpheus (inglês) | Orpheus README | [github.com/canopyai/Orpheus-TTS](https://github.com/canopyai/Orpheus-TTS) |
+| **1.000.000h × 5 épocas (base)** | Pretrain do CSM da Sesame (inglês). **Nenhum número público por voz** — Maya é variante fine-tunada/condicionada não divulgada; o repo só diz "a fine-tuned variant of CSM powers the demo" | Sesame CSM | [the-decoder.com](https://the-decoder.com/sesame-releases-csm-1b-ai-voice-generator-as-open-source/) · [github.com/SesameAILabs/csm](https://github.com/SesameAILabs/csm) |
+
+## Síntese honesta por faixa
+
+**Achado central: a curva de "voz" satura cedo (~3h); as horas grandes pertencem à LÍNGUA, não à voz.** Nenhuma receita pública — comercial ou open — pede mais que ~3h por voz. Todos os números de 35h pra cima na literatura são de *idioma/domínio*, não de identidade vocal.
+
+- **5h/voz**: já está ACIMA do ótimo da ElevenLabs (2-3h) e da Azure (produção). Sobre uma base que já fala a língua, 5h limpas = identidade + naturalidade de leitura production-grade. **Ressalva crítica pro projeto**: sobre CSM-1B, que é enviesado pro inglês, as 5h compram identidade carioca mas não consertam a língua — o georgiano com 35h ficou *inteligível* (CER 0.108), não ficou *natural*. As 5h só rendem "Maya-like" se a base já tiver pt-BR sólido.
+- **10-20h/voz**: sustentado pela receita F5 (10-15h = voz única boa). O ganho marginal não é mais em identidade (saturada) e sim em cobertura: números, prosódia interrogativa, estilos, fonemas raros. Faixa razoável como teto por voz.
+- **40h+/voz**: **sem evidência de que alguém faça isso por voz**. XTTS aprendeu línguas inteiras com 52-74h. A evidência sugere realocar: 40h de UMA voz < 40h multi-falante pt-BR + 3-10h da voz por cima.
+- **100h+/voz**: nenhuma fonte encontrada usa isso por identidade vocal. Só faz sentido reclassificado como dado de língua/domínio conversacional.
+- **CPT de idioma (500-3.000h)**: bem sustentado. A escada empírica: 35h = inteligível (CSM georgiano); 90-150h = língua funcional com erros (F5 polonês); 330h = pt-BR utilizável (F5-pt-br); 2.386h = pt SOTA-multilingual (XTTS). 500-3.000h cai exatamente entre "utilizável" e "SOTA aberto" — meta correta pro CPT pt-BR (e valida o plano TAGARELA ~2.800h).
+- **O buraco na evidência**: ninguém publicou "X horas → qualidade Maya". A naturalidade conversacional da Maya vem de 1M h de base + dado *conversacional com contexto/turnos* (o CSM condiciona em diálogo) — dimensão que nenhuma dessas receitas de horas captura. As horas compram inteligibilidade, sotaque e identidade; o que separa isso da Maya é tipo de dado (conversa espontânea multi-turno), não só volume.
+
+Sources: [HF sesame/csm-1b #9](https://huggingface.co/sesame/csm-1b/discussions/9), [Speechmatics CSM finetune](https://blog.speechmatics.com/sesame-finetune), [davidbrowne17/csm-streaming](https://github.com/davidbrowne17/csm-streaming), [NMikka/CSM-1B-Georgian](https://huggingface.co/NMikka/CSM-1B-Georgian), [Orpheus-TTS README](https://github.com/canopyai/Orpheus-TTS), [Unsloth TTS guide](https://unsloth.ai/docs/basics/text-to-speech-tts-fine-tuning), [ElevenLabs PVC docs](https://elevenlabs.io/docs/eleven-creative/voices/voice-cloning/professional-voice-cloning), [Azure CNV](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/custom-neural-voice), [XTTS paper](https://arxiv.org/pdf/2406.04904), [YourTTS](https://arxiv.org/abs/2112.02418), [NVIDIA transfer learning](https://arxiv.org/abs/2110.05798), [F5-TTS #1168](https://github.com/SWivid/F5-TTS/discussions/1168), [F5-TTS #143](https://github.com/SWivid/F5-TTS/discussions/143), [firstpixel/F5-TTS-pt-br](https://huggingface.co/firstpixel/F5-TTS-pt-br), [the-decoder Sesame](https://the-decoder.com/sesame-releases-csm-1b-ai-voice-generator-as-open-source/), [SesameAILabs/csm](https://github.com/SesameAILabs/csm)

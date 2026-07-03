@@ -62,6 +62,10 @@ def main():
     ap.add_argument("--audio", required=True, help="wav da faixa dessa pessoa")
     ap.add_argument("--model", default="large-v3")
     ap.add_argument("--dry", action="store_true", help="não sobe/insere, só mostra a quebra")
+    ap.add_argument("--prosodic", action="store_true", default=True,
+                    help="pontuação prosódica + segmentação por unidade entoacional (abordagem Aluísio/NILC; default)")
+    ap.add_argument("--no-prosodic", dest="prosodic", action="store_false",
+                    help="volta pro modo antigo (pontuação gramatical do Whisper + quebra por pausa)")
     a = ap.parse_args()
 
     import soundfile as sf
@@ -72,12 +76,31 @@ def main():
     model = WhisperModel(a.model, device="cuda" if os.environ.get("CUDA_VISIBLE_DEVICES") else "cpu",
                          compute_type="float16" if os.environ.get("CUDA_VISIBLE_DEVICES") else "int8")
     segs_it, info = model.transcribe(a.audio, language="pt", vad_filter=True,
+                                     word_timestamps=a.prosodic,
                                      vad_parameters={"min_silence_duration_ms": 400})
-    segs = [{"start": s.start, "end": s.end, "text": s.text} for s in segs_it]
-    chunks = segmentar(segs)
+    if a.prosodic:
+        # pontuação prosódica (pausas+F0 do próprio áudio) + segmentação por IU
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "text"))
+        from prosodic_punct import ProsodicPunctuator, iu_segments
+        words = [{"word": w.word.strip(), "start": w.start, "end": w.end}
+                 for s in segs_it for w in (s.words or []) if w.word.strip()]
+        pp = ProsodicPunctuator(a.audio)
+        out = pp.repunctuate(words)
+        print(f"  prosódica: {out.stats['terminal']} terminais · {out.stats['nonterminal']} vírgulas · "
+              f"{out.stats['hesitation']} hesitações · {out.stats['question']} perguntas", flush=True)
+        chunks = []
+        for sg in iu_segments(out.words, out.boundaries):
+            txt = " ".join(t for t in out.tokens[sg["i0"]:sg["i1"] + 1] if t).strip()
+            chunks.append({"start": sg["start"], "end": sg["end"], "text": txt,
+                           "longo": (sg["end"] - sg["start"]) > 15.0})
+        n_unid = len(out.words)
+    else:
+        segs = [{"start": s.start, "end": s.end, "text": s.text} for s in segs_it]
+        chunks = segmentar(segs)
+        n_unid = len(segs)
     durs = [c["end"] - c["start"] for c in chunks]
     longos = sum(1 for c in chunks if c.get("longo"))
-    print(f"  {len(segs)} segs Whisper → {len(chunks)} frases · "
+    print(f"  {n_unid} {'palavras' if a.prosodic else 'segs Whisper'} → {len(chunks)} frases · "
           f"dur med={sorted(durs)[len(durs)//2]:.1f}s min={min(durs):.1f} max={max(durs):.1f}"
           f"{' · '+str(longos)+' >15s (revisar)' if longos else ''}", flush=True)
 

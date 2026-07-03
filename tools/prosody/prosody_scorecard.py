@@ -92,7 +92,11 @@ def main():
         try:
             r = analyse(w)
             if r:
-                r["wav"] = str(pathlib.Path(w).relative_to(pathlib.Path.cwd()) if pathlib.Path(w).is_absolute() else w)
+                p = pathlib.Path(w)
+                try:    # relative_to levanta ValueError se o wav está fora do cwd — cai pro absoluto
+                    r["wav"] = str(p.relative_to(pathlib.Path.cwd())) if p.is_absolute() else str(w)
+                except ValueError:
+                    r["wav"] = str(p)
                 rows.append(r)
         except Exception as e:
             print(f"  erro {w}: {e}", file=sys.stderr)

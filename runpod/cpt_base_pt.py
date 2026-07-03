@@ -17,9 +17,11 @@ RECEITA (gotchas já aprendidos — ver memory project-csm-training-gotchas):
   - meta: WER de leitura (held-out 50 frases) < 15% mantendo paridade de timbre
 
 Uso (no pod):
-  python prep_base_pt.py --sources cml,mls,cv --out data/manifests/base_pt.jsonl
-  python cpt_base_pt.py --manifest data/manifests/base_pt.jsonl --version v1 --minutes 600
+  python prep_base_pt.py --sources cml,mls,cv --out data/base_pt/base_pt.jsonl
+  python cpt_base_pt.py --manifest data/base_pt/base_pt.jsonl --smoke     # valida caminhos SEM GPU
+  python cpt_base_pt.py --manifest data/base_pt/base_pt.jsonl --version v1 --minutes 600
   # → produz runs/base_pt_v1/  → usar como --base-adapter no train_voice.py da voz
+  # (--mode commercial: FALHA se houver clipe NC/ND no manifest; default research só marca proveniência)
 """
 import argparse, json, pathlib, subprocess, sys
 
@@ -29,7 +31,7 @@ sys.path.insert(0, str(REPO / "tools" / "data"))
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--manifest", default=str(REPO / "data/manifests/base_pt.jsonl"))
+    ap.add_argument("--manifest", default=str(REPO / "data/base_pt/base_pt.jsonl"))
     ap.add_argument("--version", default="v1")
     ap.add_argument("--lr", type=float, default=7e-5)          # conservador (gotcha #6)
     ap.add_argument("--lora-r", type=int, default=64)
@@ -37,6 +39,10 @@ def main():
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--accum", type=int, default=4)
     ap.add_argument("--text-mode", default="normalize")
+    ap.add_argument("--mode", default="research", choices=["research", "commercial"],
+                    help="research (padrão): NC/ND entra, proveniência marcada · commercial: FALHA se houver NC/ND")
+    ap.add_argument("--smoke", action="store_true",
+                    help="valida (sem GPU) que os wavs do manifest existem no caminho que o train_voice.py monta")
     ap.add_argument("--dry", action="store_true")
     a = ap.parse_args()
 
@@ -45,12 +51,36 @@ def main():
         sys.exit(f"manifest não existe: {man} — rode prep_base_pt.py primeiro")
 
     # --- GATE de licença antes de gastar GPU ---
-    from ingest import assert_license_gate
+    from ingest import assert_license_gate, gate_license
     rows = [json.loads(l) for l in man.read_text(encoding="utf-8").splitlines() if l.strip()]
-    assert_license_gate(rows, mode="research")       # PESQUISA: usa NC/ND, só avisa proveniência
+    assert_license_gate(rows, mode=a.mode)           # commercial: SystemExit se licença NC/ND
     horas = sum(r.get("dur_s", 0) for r in rows) / 3600
     fontes = sorted({r.get("source", "?") for r in rows})
-    print(f"manifest: {len(rows)} clipes · {horas:.1f}h · fontes {fontes} · todas shippáveis ✅")
+
+    def _ship(r):   # usa o bool do manifest; fallback: deriva da licença (manifests antigos)
+        s = r.get("shippable")
+        return s if isinstance(s, bool) else gate_license(r.get("license", ""))
+    n_ship = sum(1 for r in rows if _ship(r))
+    n_research = len(rows) - n_ship
+    print(f"manifest: {len(rows)} clipes · {horas:.1f}h · fontes {fontes}")
+    print(f"  licenças: {n_ship} shippáveis · {n_research} research-only (NC/ND)")
+    if a.mode == "commercial" and n_research:
+        src = sorted({r.get('source', '?') for r in rows if not _ship(r)})
+        sys.exit(f"❌ --mode commercial com {n_research} clipe(s) NÃO-shippáveis no manifest "
+                 f"(fontes: {src}). Bloqueado — remova NC/ND ou rode --mode research.")
+
+    # --- SMOKE: valida (sem GPU) o caminho que o train_voice.py monta ---
+    # train_voice.py:67 → os.path.join(data_dir, 'segments', basename(audio)); cpt passa data_dir=man.parent
+    if a.smoke:
+        seg = [man.parent / "segments" / pathlib.Path(r["audio"]).name for r in rows]
+        ok = sum(1 for p in seg if p.exists())
+        print(f"--smoke: {ok}/{len(seg)} wavs existem em <data-dir>/segments/ (data-dir = {man.parent})")
+        for p in seg[:3]:
+            print(f"  {'✓' if p.exists() else '✗'} {p}")
+        if ok != len(seg):
+            sys.exit(f"❌ smoke: {len(seg) - ok} wav(s) ausentes — prep gravou fora de {man.parent / 'segments'}?")
+        print("✓ smoke OK — caminhos batem com o que o train_voice.py resolve")
+        return
 
     out = REPO / "runs" / f"base_pt_{a.version}"
     cmd = [sys.executable, str(REPO / "runpod" / "train_voice.py"),

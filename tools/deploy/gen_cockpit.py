@@ -40,8 +40,9 @@ PAGE = PAGE.replace(
   '"/curate/audio?id="+encodeURIComponent(c.id)',
   'CAUDIO(c.id)')
 
-# 3) aba Gravar → rota same-origin (getUserMedia simples)
+# 3) abas Gravar/Agente → rotas same-origin (getUserMedia simples)
 PAGE = PAGE.replace('src="/gravar"', 'src="/tts-ptbr/gravar"')
+PAGE = PAGE.replace('src="/agente"', 'src="/tts-ptbr/agente"')
 
 # 4) interceptor de fetch + supabase-js (bloqueante) injetados antes do <script> do app
 INTERCEPT = r"""<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -108,9 +109,15 @@ rec = (REPO/"tools/recording/maya_recorder.html").read_text(encoding="utf-8")
 rb64 = base64.b64encode(rec.encode("utf-8")).decode()
 (APP/"recorder.html.ts").write_text(f'// gravador (flywheel) — servido em /tts-ptbr/gravar\nexport const REC_B64 = "{rb64}";\n', encoding="utf-8")
 
+# voz lab (aba Agente, rota same-origin)
+lab = (REPO/"tools/voice_ui/voz_lab.html").read_text(encoding="utf-8")
+lb64 = base64.b64encode(lab.encode("utf-8")).decode()
+(APP/"agent.html.ts").write_text(f'// Voz Lab (identidades do agente) — servido em /tts-ptbr/agente\nexport const AGENT_B64 = "{lb64}";\n', encoding="utf-8")
+
 # checagens
 assert "AUDIO(c.run,c.id)" in PAGE, "rewrite audio falhou"
 assert "/tts-ptbr/gravar" in PAGE, "iframe rewrite falhou"
+assert "/tts-ptbr/agente" in PAGE, "iframe agente rewrite falhou"
 assert "window.supabase.createClient" in PAGE, "interceptor não injetado"
 assert PAGE.count("← apps")==1, "back-link"
 print(f"OK · PAGE {len(PAGE)//1024}KB · dashboard b64 {len(b64)//1024}KB · recorder b64 {len(rb64)//1024}KB")

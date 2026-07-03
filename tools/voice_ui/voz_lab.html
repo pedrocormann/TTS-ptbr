@@ -279,59 +279,6 @@ vec2 orbUV(){
 vec3 BGC(){ return vec3(.027,.035,.059); }
 `;
 
-/* ---------- 1 · AURA — círculo REDONDO que respira ---------- */
-const FRAG_AURA = COMMON + `
-void main(){
-  vec2 p=orbUV();
-  float t=u_time;
-  float speak=u_w.w, listen=u_w.y, think=u_w.z;
-  float len=length(p);
-
-  // borda perfeitamente redonda: nada de deslocamento angular
-  float breath=.016*sin(t*.55);
-  float rad=.40*u_intro+breath+.11*u_level*(listen*.6+speak)+.025*speak;
-  float d=len-rad;
-
-  float body=1.-smoothstep(-.012,.018,d);
-  float rim=exp(-90.*abs(d))*.85;
-  float halo=exp(-5.5*max(d,0.))*.30*(.35+.65*u_level);
-
-  // interior: nuvens lentas (sem rotação; pensando = deriva um pouco mais + brilho ondula devagar)
-  float drift=.05+.06*think;
-  vec2 q=p/max(rad,.001);
-  float inner=fbm(q*2.4*u_p1+vec2(t*drift,-t*drift*.8));
-  float inner2=fbm(q*4.2*u_p1-vec2(t*drift*.6,0.));
-  float cloud=.5+.5*(0.7*inner+0.45*inner2);
-  float core=exp(-6.5*dot(p,p));
-  float shimmer=1.+.05*think*sin(t*1.1+len*6.);
-
-  vec3 col=BGC();
-  vec3 orb=mix(u_c3,u_c2,clamp(cloud,0.,1.));
-  orb=mix(orb,u_c1,core*1.05);
-  orb*=shimmer*(1.+.16*u_level*(speak+.4*listen));
-  col=mix(col,orb,body);
-
-  // glitch cromático SÓ em ataque forte, curto e contido
-  float g=max(0.,u_pulse-.55)*u_p2;
-  if(g>0.){
-    float dr=len-(rad+.010*g);
-    float db=len-(rad-.012*g);
-    col.r=mix(col.r,orb.r*1.05,max(0.,(1.-smoothstep(-.012,.018,dr))-body));
-    col.b=mix(col.b,orb.b*1.08,max(0.,(1.-smoothstep(-.012,.018,db))-body));
-  }
-  col+=u_c2*rim*(.45+.55*u_level);
-  col+=u_c3*halo;
-
-  // anel de escuta: pontos calmos (respiram, não giram)
-  float ang=atan(p.y,p.x);
-  float ring=smoothstep(.012,.0,abs(len-(rad+.09)))*listen;
-  float tick=pow(.5+.5*sin(ang*20.),10.)*(.55+.45*sin(t*1.6));
-  col+=u_c1*ring*tick*(.20+.65*u_level);
-
-  float grain=(hash21(gl_FragCoord.xy+fract(t)*13.)-.5)*.028;
-  fragColor=vec4(col+grain,1.);
-}`;
-
 /* ---------- 2 · TRAMA — dither Bayer, tecido que respira (sem olho, sem pressa) ---------- */
 const FRAG_TRAMA = COMMON + `
 const int bayer8x8[64]=int[64](
@@ -355,13 +302,17 @@ void main(){
   float r=length(p)/max(rad,.001);
   if(r>1.15){ fragColor=vec4(BGC(),1.); return; }
 
-  // luminância SEM ponto de luz (nada de olho): limbo + trama horizontal lenta
+  // luminância ORGÂNICA (sem linhas direcionais — nada de olho, nada de spotify):
+  // limbo + nuvens fbm pixeladas derivando devagar
+  vec2 qq=p/max(rad,.001);
   float limb=sqrt(max(0.,1.-r*r));                       // volume suave
-  float weave=.5+.5*sin(p.y*16./max(rad,.3)+1.2*sin(p.x*4.+t*.22)+t*.30);
-  float rings=sin(9.*length(p)-t*(.8+1.6*u_level*speak))*.5+.5;  // ondas LENTAS na fala
+  float n1=fbm(qq*1.9+vec2(t*.035,-t*.028));
+  float n2=fbm(qq*3.6-vec2(t*.022,t*.03)+vec2(2.7,5.1));
+  float field=smoothstep(.15,.85,.5+.5*(.7*n1+.45*n2));
+  float rings=sin(9.*r-t*(.8+1.6*u_level*speak))*.5+.5;  // ondas LENTAS só na fala
   float breathe=.5+.5*sin(t*.45+3.*think*sin(t*.2));
 
-  float shape=limb*(.34+.30*weave+.16*rings*speak*u_level+.12*breathe*think
+  float shape=limb*(.26+.40*field+.13*rings*speak*u_level+.11*breathe*think
               +.22*u_level*(speak+.5*listen));
   shape=mix(shape,pow(shape,1.5),listen*.4);
 
@@ -453,63 +404,6 @@ void main(){
   vec3 outCol=mix(BGC(),col,mask);
   outCol+=u_c1*exp(-4.5*max(len-rad,0.))*.30*(.3+.7*u_level);
   fragColor=vec4(outCol,1.);
-}`;
-
-/* ---------- 5 · ESPECTRO — aurora boreal ---------- */
-const FRAG_ESPECTRO = COMMON + `
-vec3 spectral(float l){
-  float r=0.,g=0.,b=0.;
-  if(l>=400.&&l<410.){float s=(l-400.)/10.;r=.33*s-.2*s*s;}
-  else if(l>=410.&&l<475.){float s=(l-410.)/65.;r=.14-.13*s*s;}
-  else if(l>=545.&&l<595.){float s=(l-545.)/50.;r=1.98*s-s*s;}
-  else if(l>=595.&&l<650.){float s=(l-595.)/55.;r=.98+.06*s-.4*s*s;}
-  else if(l>=650.&&l<700.){float s=(l-650.)/50.;r=.65-.84*s+.2*s*s;}
-  if(l>=415.&&l<475.){float s=(l-415.)/60.;g=.8*s*s;}
-  else if(l>=475.&&l<590.){float s=(l-475.)/115.;g=.8+.76*s-.8*s*s;}
-  else if(l>=585.&&l<639.){float s=(l-585.)/54.;g=.82-.8*s;}
-  if(l>=400.&&l<475.){float s=(l-400.)/75.;b=2.2*s-1.5*s*s;}
-  else if(l>=475.&&l<560.){float s=(l-475.)/85.;b=.7-s+.3*s*s;}
-  return vec3(r,g,b);
-}
-void main(){
-  vec2 p=orbUV();
-  float t=u_time;
-  float speak=u_w.w, listen=u_w.y, think=u_w.z;
-  float len=length(p);
-
-  float rad=.46*u_intro+.015*sin(t*.4)+.09*u_level*(listen*.6+speak);
-  float mask=1.-smoothstep(rad-.02,rad+.06,len);
-
-  // cortinas de aurora: poucas colunas largas, deslocadas por ruído MUITO lento
-  vec2 q=p/max(rad,.001);
-  float sway=fbm(vec2(q.y*.5 - t*.03, t*.02));       // ondula devagar, sem zigue-zague
-  float xx=q.x*1.15+.55*sway;
-  float ray=.5+.5*sin(xx*3.1);
-  float ray2=.5+.5*sin(xx*5.3+1.7+.25*fbm(vec2(q.y*.8,t*.03)));
-  float streak=.65+.35*fbm(vec2(xx*1.3, q.y*.45 - t*.05));  // variação ao longo da cortina
-  float curtain=(pow(ray,3.2)+.4*pow(ray2,4.))*streak;
-
-  // véu vertical: aurora vive no alto, esvanece embaixo
-  float vert=smoothstep(-1.05,-.1,q.y)*(1.-.45*smoothstep(.15,.9,q.y));
-  float dance=.85+.15*sin(t*.5+q.x*2.);   // ondula, não gira
-  float I=curtain*vert*dance*(.34+.55*u_level*(speak+.45*listen)+.14*think*(.5+.5*sin(t*.7)));
-
-  // cor: rampa da variação ao longo da altura+ruído (ou espectro físico na var III)
-  float h=clamp(.5+.45*q.y+.25*fbm(vec2(xx*.7,q.y-t*.02)),0.,1.);
-  vec3 aur;
-  if(u_p2>.5){ aur=spectral(430.+220.*h); }
-  else{
-    aur=mix(u_c1,u_c2,smoothstep(0.,.55,h));
-    aur=mix(aur,u_c3,smoothstep(.55,1.,h));
-  }
-  vec3 col=aur*I;
-  // chão fraco de luz (reflexo)
-  col+=u_c1*.05*(1.-smoothstep(-1.,-.2,q.y))*curtain;
-
-  vec3 outCol=mix(BGC(),BGC()+col,mask);
-  outCol+=aur*exp(-5.*max(len-rad,0.))*.12*I;
-  float grain=(hash21(gl_FragCoord.xy+fract(t))-.5)*.035;
-  fragColor=vec4(outCol+grain,1.);
 }`;
 
 /* ---------- 6 · BRUMA — fluido de DUAS FASES com slosh lateral (do vídeo real
@@ -633,25 +527,13 @@ void main(){
 /* ---------- catálogo: 6 famílias × 4 variações ---------- */
 /* cores do Brasil: anil #2A4DA8 · verde bandeira #009E3D · canarinho #FFDB1A */
 const FAMILIES=[
- {id:'aura',name:'AURA',sub:'o círculo que respira',frag:FRAG_AURA,
-  tag:'ref · gpt voice, borda redonda',
-  concept:'O círculo perfeito: borda <b>redonda</b> sempre (nada de blob), quem vive é o interior — nuvens lentas derivando. Ataques de fala dão um glitch cromático curto e contido. A opção mais "assistente universal".',
-  states:{repouso:'respiração lenta, nuvens derivam',ouvindo:'anel de pontos calmos + borda cresce com sua voz',pensando:'as nuvens derivam mais fundo, brilho ondula devagar',falando:'expansão no ritmo + glitch contido nos ataques'},
-  refs:'chatgpt.com/features/voice · ai-input-wave-hero',
-  vars:[
-   {k:'gelo',accent:'#BFD4FF',c1:[.97,.985,1],c2:[.75,.83,1],c3:[.16,.24,.55],p1:1,p2:1,note:'azul-gelo original'},
-   {k:'prata',accent:'#D9DDE4',c1:[1,1,1],c2:[.82,.84,.88],c3:[.26,.28,.34],p1:1.15,p2:.4,note:'monocromo neutro, quase sem glitch'},
-   {k:'petróleo',accent:'#6FC7C0',c1:[.88,1,.98],c2:[.45,.78,.76],c3:[.05,.24,.29],p1:.85,p2:.6,note:'verde-petróleo profundo'},
-   {k:'canarinho',accent:'#FFDB1A',c1:[1,.98,.86],c2:[1,.86,.10],c3:[.42,.30,.02],p1:1,p2:.5,note:'BR · amarelo canarinho, um sol'},
-  ]},
  {id:'trama',name:'TRAMA',sub:'pixel & bayer',frag:FRAG_TRAMA,
   tag:'ref · dithering-swirl-shader (tecido, não olho)',
-  concept:'A esfera como <b>trama de pixels</b> Bayer 8×8 — agora lendo como tecido/malha que respira: luminância de limbo + trama horizontal lenta, <b>sem ponto de luz</b> (nada que pareça olho) e sem pressa. A tinta muda de cor quando fala.',
+  concept:'A esfera como <b>trama de pixels</b> Bayer 8×8 — luminância orgânica de <b>nuvens pixeladas</b> derivando devagar sobre o limbo. Sem ponto de luz (nada de olho) e <b>sem linhas direcionais</b> (nada de spotify). A tinta muda de cor quando fala.',
   states:{repouso:'trama respira devagar',ouvindo:'contraste acompanha sua voz',pensando:'a respiração fica mais funda',falando:'ondas lentas atravessam + tinta ativa'},
   refs:'app.unflat.studio/playground/shaders/dithering-swirl-shader',
   vars:[
    {k:'tinta',accent:'#E7E9EF',c1:[.906,.914,.937],c2:[1,1,1],p1:1,p2:1,note:'tinta branca'},
-   {k:'ciano',accent:'#37C8C3',c1:[.35,.62,.61],c2:[.30,.95,.92],p1:1,p2:1,note:'ciano unflat'},
    {k:'âmbar',accent:'#E4A959',c1:[.62,.46,.28],c2:[1,.78,.42],p1:1.35,p2:1,note:'âmbar, pixel maior'},
    {k:'bandeira',accent:'#00C24A',c1:[0,.62,.24],c2:[1,.86,.10],p1:1,p2:1,note:'BR · verde bandeira; fala vira canarinho'},
   ]},
@@ -672,21 +554,8 @@ const FAMILIES=[
   states:{repouso:'malha flui devagar',ouvindo:'ondas ganham amplitude',pensando:'o fluxo aprofunda sutilmente',falando:'twist aperta + terceira cor entra'},
   refs:'app.unflat.studio/playground/shaders/novatrix-gradient-mesh',
   vars:[
-   {k:'unflat',accent:'#E45933',c1:[.118,.2,.525],c2:[.216,.784,.765],c3:[.894,.349,.2],p1:1,p2:1,note:'azul/ciano/laranja da marca'},
-   {k:'pêssego',accent:'#F8A577',c1:[.28,.10,.26],c2:[.97,.64,.44],c3:[1,.93,.82],p1:.9,p2:.8,note:'ameixa/pêssego/creme'},
    {k:'oceano',accent:'#6FB9D6',c1:[.04,.10,.28],c2:[.10,.54,.64],c3:[.85,.95,1],p1:1.2,p2:.9,note:'fundo do mar'},
    {k:'bandeira',accent:'#FFDB1A',c1:[.16,.30,.66],c2:[0,.62,.24],c3:[1,.86,.10],p1:1,p2:.9,note:'BR · anil/verde/canarinho misturados'},
-  ]},
- {id:'espectro',name:'ESPECTRO',sub:'aurora boreal',frag:FRAG_ESPECTRO,
-  tag:'ref · shader-spectral-clock → aurora',
-  concept:'A luz virou <b>aurora boreal</b>: cortinas verticais ondulando devagar dentro do círculo, vivendo no alto e esvanecendo embaixo. A voz abre e acende as cortinas. A variação <b>espectral</b> mantém o arco-íris físico do shader original — em câmera lenta.',
-  states:{repouso:'cortinas ondulam quase paradas',ouvindo:'as cortinas acendem com sua voz',pensando:'a aurora respira em ondas longas',falando:'cortinas abertas, dançando no ritmo'},
-  refs:'app.unflat.studio/playground/shaders/shader-spectral-clock',
-  vars:[
-   {k:'boreal',accent:'#52E89B',c1:[.10,.75,.45],c2:[.20,.72,.72],c3:[.45,.35,.90],p1:1,p2:0,note:'verde→teal→violeta clássico'},
-   {k:'austral',accent:'#C86FD6',c1:[.75,.30,.55],c2:[.45,.30,.85],c3:[.20,.55,.95],p1:1,p2:0,note:'rosa→violeta→azul'},
-   {k:'espectral',accent:'#7CE8B8',c1:[0,0,0],c2:[0,0,0],c3:[0,0,0],p1:1,p2:1,note:'o espectro físico original, lento'},
-   {k:'verde-amarela',accent:'#00C24A',c1:[0,.62,.24],c2:[.55,.80,.20],c3:[1,.86,.10],p1:1,p2:0,note:'BR · aurora verde-bandeira→canarinho'},
   ]},
  {id:'bruma',name:'BRUMA',sub:'fluido de duas fases',frag:FRAG_BRUMA,
   tag:'ref · vídeo real do gpt voice, analisado a 12fps',

@@ -539,12 +539,16 @@ void main(){
   float F=u_flow;
   float energy=u_level*(speak+.45*listen);
 
+  // temperamento (u_p2, do vídeo do Studio Dumbar: cada voz = mesmos fluidos,
+  // outros parâmetros): 0 = vivo (Vale) · 1 = calmo/estratificado (Spruce)
+  float calm=clamp(u_p2,0.,1.);
+
   // ---- SLOSH: a interface inclina de um lado pro outro (o coração do GPT) ----
-  float tilt=(.34*sin(F*.34)+.16*sin(F*.13+1.7))*(1.+.9*energy);
-  float lvl0=-.06+.11*sin(F*.21+.8)+.10*energy;                // sobe quando fala
+  float tilt=(.34*sin(F*.34)+.16*sin(F*.13+1.7))*(1.+.9*energy)*mix(1.,.45,calm);
+  float lvl0=-.06+.11*sin(F*.21+.8)+.10*energy+.06*calm;       // sobe quando fala
   // ondas viajando lateralmente (cristas correm; direção alterna com o slosh)
   float wave=.15*sin(q.x*2.3-F*.55)+.08*sin(q.x*4.2+F*.36+1.3);
-  wave*=(1.+1.1*energy);
+  wave*=(1.+1.1*energy)*mix(1.,.55,calm);
   // franja de aquarela: fbm advectado lateralmente
   float fringe=fbm(vec2(q.x*2.1*u_p1-F*.20, q.y*2.0*u_p1+F*.07));
   float fringe2=fbm(vec2(q.x*4.3*u_p1+F*.13, q.y*3.6*u_p1-F*.11));
@@ -560,6 +564,11 @@ void main(){
   // veios brancos finos cruzando a tinta
   float vein=pow(max(0.,fbm(vec2(q.x*2.6-F*.28,q.y*2.2+F*.10))),2.2);
   ink=mix(ink,mix(u_c2,vec3(1.),.75),vein*.35*(1.-smoothstep(.5,1.,depth)));
+  // a FITA do Arbor: arco branco curvando pela tinta (vive no pensando, sussurra no resto)
+  vec2 rc=vec2(.22*sin(F*.09),.05+.1*cos(F*.07));
+  float rr=abs(length(q-rc)-(.52+.06*sin(F*.11)));
+  float ribbon=exp(-34.*rr*rr)*(.55+.45*fbm(vec2(q.x*2.-F*.1,q.y*2.)));
+  ink=mix(ink,mix(u_c2,vec3(1.),.85),ribbon*(.10+.45*think)*(1.-smoothstep(.6,1.,depth)));
 
   // massa clara: branca com miolo creme e sombras azuladas suaves
   float cream=pow(max(0.,fbm(vec2(q.x*1.8+F*.06,q.y*1.6-F*.05))),1.6);
@@ -643,13 +652,13 @@ const FAMILIES=[
   states:{repouso:'a tinta assenta, interface quase parada',ouvindo:'o fluido mexe de leve com sua voz',pensando:'dobras lentas e profundas',falando:'slosh forte: a tinta sobe e varre de um lado pro outro'},
   refs:'chatgpt.com/features/voice (vídeo, 66 frames @12fps) · github.com/elevenlabs/ui',
   vars:[
-   {k:'gpt',accent:'#2E7BF5',c1:[1,1,1],c2:[.18,.48,.96],c3:[.05,.24,.72],p1:.62,p2:1.5,p3:1,note:'branco + azul vivo do vídeo real'},
-   {k:'laranja',accent:'#E45933',c1:[1,.99,.97],c2:[.94,.42,.16],c3:[.66,.19,.05],p1:.62,p2:1.5,p3:1,note:'tinta laranja unflat sobre leite'},
-   {k:'jade',accent:'#12B877',c1:[.99,1,.99],c2:[.05,.66,.44],c3:[.01,.40,.28],p1:.62,p2:1.5,p3:1,note:'verde-jade profundo'},
-   {k:'lilás',accent:'#8B5CF6',c1:[1,.99,1],c2:[.55,.40,.94],c3:[.32,.18,.72],p1:.62,p2:1.5,p3:1,note:'violeta elétrico'},
-   {k:'rosa',accent:'#EC4899',c1:[1,.99,.99],c2:[.92,.31,.60],c3:[.68,.10,.40],p1:.62,p2:1.5,p3:1,note:'rosa vibrante'},
-   {k:'grafite',accent:'#9AA0AA',c1:[.98,.98,.99],c2:[.38,.42,.50],c3:[.10,.12,.16],p1:.62,p2:1.5,p3:1,note:'tinta nanquim'},
-   {k:'anil',accent:'#3552C4',c1:[.99,.99,1],c2:[.19,.31,.78],c3:[.06,.11,.42],p1:.62,p2:1.5,p3:1,note:'BR · azul anil profundo'},
+   {k:'gpt',accent:'#2E7BF5',c1:[1,1,1],c2:[.18,.48,.96],c3:[.05,.24,.72],p1:.62,p2:.25,p3:1,note:'branco + azul vivo do vídeo real (temperamento Vale: vivo)'},
+   {k:'laranja',accent:'#E45933',c1:[1,.99,.97],c2:[.94,.42,.16],c3:[.66,.19,.05],p1:.62,p2:.35,p3:1,note:'tinta laranja unflat sobre leite'},
+   {k:'jade',accent:'#12B877',c1:[.99,1,.99],c2:[.05,.66,.44],c3:[.01,.40,.28],p1:.62,p2:.85,p3:1,note:'verde-jade, temperamento Spruce: calmo/estratos'},
+   {k:'lilás',accent:'#8B5CF6',c1:[1,.99,1],c2:[.55,.40,.94],c3:[.32,.18,.72],p1:.62,p2:.5,p3:1,note:'violeta elétrico'},
+   {k:'rosa',accent:'#EC4899',c1:[1,.99,.99],c2:[.92,.31,.60],c3:[.68,.10,.40],p1:.62,p2:.2,p3:1,note:'rosa vibrante (vivo)'},
+   {k:'grafite',accent:'#9AA0AA',c1:[.98,.98,.99],c2:[.38,.42,.50],c3:[.10,.12,.16],p1:.62,p2:.7,p3:1,note:'tinta nanquim, contido'},
+   {k:'anil',accent:'#3552C4',c1:[.99,.99,1],c2:[.19,.31,.78],c3:[.06,.11,.42],p1:.62,p2:.6,p3:1,note:'BR · azul anil profundo'},
   ]},
 ];
 

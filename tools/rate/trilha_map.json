@@ -178,8 +178,8 @@
   {
    "status": "aberta",
    "claim": "Cortar por unidade entoacional (IU) > cortar por pausa, pra prosódia",
-   "evidence": "A quebra por pausa corta em silêncio, não em fronteira entoacional → parte contornos no meio; Aluísio recomenda Whisper-IU (PSST, F1 87%).",
-   "detail": "Hoje quebramos em 3-12s por pausa/Whisper. Os papers do grupo Aluísio mostram que a unidade prosódica certa é a IU (unidade entoacional), e que cortar fora dela parte o contorno melódico — o que pode ensinar prosódia picotada. Caminho recomendado por ela: fine-tunar Whisper pra cuspir fronteiras de IU (método PSST, F1 87%), melhor que o segmentador heurístico (F1 0.31) e que a nossa quebra ingênua. A testar quando houver dado. Ver reference-aluisio-prosodia-eval.",
+   "evidence": "A quebra por pausa corta em silêncio, não em fronteira entoacional → parte contornos no meio; o grupo Aluísio recomenda Whisper-IU (PSST) e AGORA publicou o pt-BR: SAMPA (arXiv 2607.07408, jul/26, F1 0,73-0,80).",
+   "detail": "Hoje quebramos em 3-12s por pausa/Whisper. Os papers do grupo Aluísio mostram que a unidade prosódica certa é a IU (unidade entoacional), e que cortar fora dela parte o contorno melódico — o que pode ensinar prosódia picotada. Caminho recomendado por ela: fine-tunar Whisper pra cuspir fronteiras de IU (método PSST, F1 87% em EN), melhor que o segmentador heurístico (F1 0.31) e que a nossa quebra ingênua. [jul/2026] SAMPA (Lima/Galdino/Treviso, arXiv 2607.07408) é esse PSST-pt PUBLICADO: Whisper large-v3 que emite a fronteira terminal como token, F1 0,731 (NURC-SP) / 0,796 (MuPe-Diversidades). Pesos no HF upon acceptance → quando sair, vira a v2 neural do prosodic_punct.py (A/B sem GPU). Ver dossiê 83 + reference-aluisio-prosodia-eval.",
    "node": "a-emo"
   },
   {
@@ -234,7 +234,7 @@
   {
    "node": "rev-jul02",
    "status": "aberta",
-   "claim": "PSST-pt (Whisper emitindo fronteira de IU, F1 0,87 em EN) como colaboração USP/NILC — co-autoria no buraco que eles declararam"
+   "claim": "PSST-pt PUBLICADO = SAMPA (Whisper-IU pt-BR, arXiv 2607.07408 jul/26, F1 0,73-0,80; Galdino coautor) — co-autoria USP fica óbvia: SAMPA é SP-only, nosso carioca é o test set que falta a eles"
   }
  ],
  "lanes": [

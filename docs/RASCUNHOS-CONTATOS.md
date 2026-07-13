@@ -61,8 +61,11 @@ Três coisas que talvez interessem a vocês:
    cobre essa variedade; se servir como test set externo pra prosódia/dialeto, é de vocês.
 3. O buraco que o review de vocês aponta (eval perceptual de prosódia desenhada pra prosódia)
    é exatamente o que precisamos construir — teria interesse em co-desenhar esse protocolo
-   (na variedade carioca) com a gente como estudo de caso? Também nos interessa muito a linha
-   PSST (Whisper emitindo fronteira de IU) em pt-BR.
+   (na variedade carioca) com a gente como estudo de caso? E parabéns pelo **SAMPA** (arXiv
+   2607.07408) — é exatamente a peça que a gente ia perguntar se dava pra construir junto. Como
+   ele é treinado em NURC-SP/CATNA (paulista), adoraríamos **rodá-lo na nossa fala carioca
+   dirigida e reportar onde a fronteira erra por causa do sotaque** — o test set de variedade que
+   o TaRSila ainda não tem. Assim que os pesos saírem no HF, topamos rodar e devolver o relatório.
 
 Uma dúvida de registro: o card do ENTOA_TTS no HF diz MIT, mas o paper menciona CC-BY-NC-ND —
 qual vale? (Pra sabermos o que podemos fazer além de pesquisa.)

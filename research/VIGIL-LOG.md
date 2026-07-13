@@ -268,3 +268,62 @@ HF-pura uniforme nos CSM + preflight + guards. **Lição: 'pip install <pkg>' se
 no Colab é a fonte nº1 de quebra** (pkg arrasta transformers/torch incompatíveis).
 
 Next scan: 2026-06-17 (weekly). Next hard review: **2026-07-17**.
+
+### 2026-07-13 — achado: SAMPA (o "PSST-pt" publicado pelo grupo Aluísio)
+
+Pedro trouxe **arXiv 2607.07408** (Lima, **Galdino**, Treviso — ICMC-USP + IST-Lisboa, jul/2026):
+**SAMPA**, Whisper large-v3 fine-tunado que transcreve pt-BR espontâneo **inserindo um token de
+fronteira prosódica TERMINAL** (`!!!!!`), estilo PSST (Roll et al. 2023). É **exatamente o "teto =
+PSST-pt / colaboração USP" que estava aberto** no roadmap e no trilha_map (claims IU/PSST).
+
+- **Números:** F1 binário **0,731 in-domain (NURC-SP)** · **0,796 out-of-domain (MuPe-Diversidades,
+  17 estados)** · WER 0,103 (não estraga a transcrição). Filtro HP generaliza melhor pro dado limpo.
+- **Decisão — INCORPORAR (como ferramenta, quando o release sair):** os pesos vêm no HF "upon
+  acceptance". Vira a **v2 neural do `prosodic_punct.py`** (A/B de fronteiras terminais, sem GPU).
+- **Decisão — COLABORAÇÃO:** SAMPA é **SP-only** (NURC-SP/CATNA). Nossa fala carioca dirigida é o
+  test set de variedade que falta a eles → gancho de co-autoria ficou concreto (Galdino é o contato).
+  E-mail em `docs/RASCUNHOS-CONTATOS.md` atualizado.
+- **Realismo:** SAMPA melhora o front-end de segmentação, **não** o tamanho do prêmio da prosódia
+  (BRACIS = ~7 pts WER em FastSpeech2, sem prova em CSM). O arm A/B da rodada 3 segue sendo o juiz.
+- Proveniência: base Whisper MIT; dados de treino NURC-SP CC-BY-NC-ND (registrar, uso como ferramenta
+  de anotação em modo pesquisa). Deep-dive: `research/dossier-2026-07/83-sampa-psst-pt-verificado.md`.
+
+### 2026-07-13 — triagem de lote (9 papers que o Pedro salvou)
+
+9 PDFs lidos na íntegra (1 agente/paper). PDFs + digests em `research/papers/`; índice/verdito em
+`research/dossier-2026-07/84-triagem-papers-jul13.md`. **Nenhum é HIGH** (nenhum entrega tool/modelo/dado
+pt-BR plug-and-play — quase todos outra língua, sem release). Onde há valor:
+
+- **EVAL (2 papers load-bearing):** (a) *Human-Model Discrepancies* (arXiv 2606.19951) **prova que
+  MOS-preditores (UTMOS/NISQA/DNSMOS/SHEET) são cegos a erro de prosódia** (humano −1,84; modelos <0,1) +
+  viés de F0 → **valida construir scorecard próprio**, não confiar em MOS automático pra prosódia/timbre.
+  (b) *Phonology-Informed Eval* (arXiv 2607.01965) = **template do "accent-scorecard carioca"** (classificador
+  treinado em humano + auditoria cross-domain com direção do erro) → torna o gap #1 (sotaque) objetivo por-segmento.
+- **RECEITAS:** FFmpeg de pares de prosódia relativa (FineCombo, 2606.19209) pra fabricar dado de controle
+  limpo da voz do Pedro; eval de emoção + âncora-neutra/resíduo relativo (DTRF, applsci-16-06613, CC-BY).
+- **Canary/insight:** FlowEdit (2606.20518) — fine-tuning causa drift/esquecimento (vigiar qualidade-geral no
+  Estágio A/B) + léxico override fraco (contra G2P parkeado). Alinhamento por gradiente (2607.06831) confirma MFA/WhisperX.
+- **LOW (arquivo):** GAF-Flow/IJCNN (front-end mel, não-CSM — único venue IEEE do lote), Lampung ASR, Myaamia TTS
+  (âncora de realismo horas→MOS: 8h→3,05 / 17h→3,62 / 25h→3,69).
+- **IEEE 11570809:** não identificável só pelo número (IEEE bloqueia scraping; número não indexado). Se for o
+  IJCNN/GAF-Flow, o Pedro já tem a versão livre. Aguardando o título pra confirmar.
+
+### 2026-07-13 — sweep ARQUITETURAS & ADD-ONS (11 frentes, não-filtrado por idioma)
+
+Pedido do Pedro: mapear as melhores arquiteturas + add-ons pra treino/deploy/eval, e pôr TUDO em plano+código
+(experiment-ready). Sweep de 11 células (web+conhecimento). Mapa vivo em `research/dossier-2026-07/85-arquiteturas-addons.md`
+(+ 11 deep-dives em `arch-map/`). Arms toggleáveis em `runpod/experiments.py`; guardrails em `SWEEP_GUARDRAILS`.
+
+**As 7 decisões:**
+1. **Spine: Qwen3-TTS** (Alibaba, Apache, jan/26) — LM AR RVQ 12,5Hz (= Mimi), **pt-BR nativo** (WER 1.53, spk-sim
+   0.817 > ElevenLabs), 101ms. **Bake-off vs CSM vs Kyutai-TTS-pt** = arm de maior alavancagem (pode **dissolver o Estágio A**).
+2. **Flow-matching:** não trocar spine; **roubar o decoder FM chunk-wise** (padrão CosyVoice/Kimi) sobre tokens do Mimi → #1/#2 sem retreinar o LM.
+3. **Deploy = engenharia** (tese Sesame): ADOPT CUDA-graph do decode (2,2×), streaming+chunk, stream LLM→TTS+WS-multiplex, barge-in abort+flush (<300ms), **truncar contexto na fração ouvida** (código nosso pronto), flush-trick (−300ms). Rodam no Mac.
+4. **Emoção:** dual-ref ($0) → tags-LoRA → CSP-FT (camada) → task-vector α (BR, CC-BY). Guardrail: **mixed-replay 25–30%**.
+5. **RL:** **DPO-humano de prosódia ANTES de GRPO** (GRPO sobre WER colapsa prosódia — provado, 2509.18531).
+6. **Synth:** cura sotaque, mata prosódia (>50%) → **par obrigatório com DPO anti-erosão** (2605.27383).
+7. **Eval:** ADOPT win-rate/CMOS carioca + TTSDS2 + VERSA + accent-scorecard (construído). SKIP MOS-oráculo. **Watermark = obrigação legal** (PL 2338; AudioSeal MIT / silentcipher).
+
+**Codec:** manter Mimi (fundido no CSM); único acionável = **T-Mimi** (decoder transformer → 42→4,4ms on-device, iOS).
+**Full-duplex:** não sair da cascata; **SoulX-Duplug** (Apache, 0.6B) = controlador de barge-in plug. Moshi/Step-Audio-2 = WATCH.
+**Licença — não embarcam (método livre):** Higgs-v3/F5/E2/moshika-rl/Freeze-Omni/SpeechJudge (NC), LiveKit-turn-detector (lock), Orpheus (Llama).

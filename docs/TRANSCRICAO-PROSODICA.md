@@ -61,8 +61,13 @@ pausa), hesitações e continuações marcadas, zero falso-"?" após o aperto le
 3. **Reparo P&C com LLM + guardrail** (receita Granary): LLM corrige caixa/pontuação, reverte se
    desviar >5% CER — melhor que restauradores gramaticais (kredor/dominguesm) pra fala espontânea.
 4. **Tags de evento inline** (`[risada]`, `[respira]`) padrão CosyVoice/Dia quando houver eventos.
-5. **Teto (colaboração USP)**: PSST-pt — fine-tunar Whisper pra emitir fronteira de IU em pt-BR.
-   É a proposta de co-autoria perfeita: eles têm método+anotação, nós temos dado carioca+produto.
+5. **Teto (colaboração USP) — JÁ EXISTE: SAMPA** (Lima, **Galdino**, Treviso, arXiv 2607.07408, jul/2026):
+   Whisper large-v3 fine-tunado que emite a fronteira TERMINAL de IU como token (`!!!!!`), estilo PSST — a
+   v2 neural do nosso `prosodic_punct.py` (heurístico). **F1 0,731 in-domain (NURC-SP) / 0,796 out-of-domain
+   (MuPe-Diversidades, 17 estados).** Pesos prometidos no HF "upon acceptance". Quando sair: A/B de fronteiras
+   terminais SAMPA vs heurística no nosso áudio (sem GPU de treino). E a co-autoria ficou óbvia — **SAMPA é
+   treinado só em SP; nossa fala carioca dirigida é o test set de variedade que falta a eles.** Deep-dive:
+   [dossiê 83](../research/dossier-2026-07/83-sampa-psst-pt-verificado.md).
 
 ## Bônus da pesquisa BR (mudam outras frentes)
 

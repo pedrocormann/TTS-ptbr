@@ -101,6 +101,118 @@ ARMS = {
         'hyp': 'Base carioca + voz carioca → sotaque transfere melhor (CML formal bloqueava)',
         'gate': 'Nativo score +0.5 vs baseline; sotaque classifier discrimina carioca >=70%',
     },
+
+    # ═══════════════════ ARMS DO SWEEP arch-addons (13/jul/2026) ═══════════════════
+    # Fonte: research/dossier-2026-07/85-arquiteturas-addons.md (matriz de experimentos).
+    # Marcadas com verdict (ADOPT/TEST) + stage + runner. Algumas precisam de runner
+    # PRÓPRIO (spine bake-off, decoder-FM) — declaradas aqui como fonte de verdade; o
+    # train_voice.py atual só roda as CSM/Stage-B. text_fn seguro (frontend padrão).
+
+    # SPINE BAKE-OFF ★ — o arm de maior alavancagem: base pt-nativa dissolve o Estágio A?
+    'spine_qwen3_base': {
+        'label': 'Bake-off spine · Qwen3-TTS-0.6B-Base + LoRA Pedro (vs CSM)',
+        'stage': 'spine', 'verdict': 'TEST', 'runner': 'external:qwen3_tts_finetune',
+        'recipe': {'lr': 5e-5, 'note': 'Qwen3-TTS-12Hz-0.6B-Base (Apache, pt-nativo, 12.5Hz como o Mimi)'},
+        'dataset': 'transcribed_clean.jsonl',
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['wer', 'spk_sim', 'accent_scorecard', 'nativo_score'],
+        'hyp': 'Base pt-nativa (Qwen3) mata o Estágio A e o gap #1 (gringo) vs CSM base-EN',
+        'gate': 'accent_scorecard(carioca) e nativo_score > CSM+EstágioA no MESMO eval; spk-sim ≥0.70',
+        'todo': 'usar repo Qwen3-TTS-Finetuning; mesma voz curada; comparar cego no rate_app',
+    },
+    'spine_kyutai_pt': {
+        'label': 'Bake-off spine · Kyutai-TTS-pt (CC-BY, sobre Mimi)',
+        'stage': 'spine', 'verdict': 'TEST', 'runner': 'external:kyutai_dsm',
+        'recipe': {'note': 'Kyutai-TTS 1.6B streaming, pt desde abr/2026; mesmo codec Mimi'},
+        'dataset': 'transcribed_clean.jsonl',
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['wer', 'spk_sim', 'accent_scorecard', 'nativo_score'],
+        'hyp': '3º competidor do bake-off; CC-BY passa no gate',
+        'gate': 'idem spine_qwen3_base',
+    },
+    # DECODER FM CHUNK-WISE ★ — troca só o detokenizer do Mimi, mantém o LM AR do CSM
+    'decode_fm_chunk': {
+        'label': 'Decoder flow-matching chunk-wise sobre tokens do Mimi (mantém o LM do CSM)',
+        'stage': 'decoder', 'verdict': 'TEST', 'runner': 'external:fm_detokenizer',
+        'recipe': {'note': 'treinar SÓ o detokenizer FM em áudio carioca; LM do CSM intocado'},
+        'dataset': 'transcribed_clean.jsonl',
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['f0_rmse_iu', 'nativo_score', 'ttsds2'],
+        'hyp': 'Detokenizer FM ataca #1/#2 (sotaque/robótico) SEM retreinar o LM (padrão CosyVoice/Kimi)',
+        'gate': 'F0-RMSE por IU e nativo_score sobem vs decode Mimi padrão',
+    },
+    # DADO — contexto de turno (ADOPT) e synth+DPO anti-erosão (TEST, par obrigatório)
+    'b_context_turn': {
+        'label': 'Estágio B · alvo=enunciado condicionado no turno anterior (áudio+texto)',
+        'stage': 'voice', 'verdict': 'ADOPT', 'runner': 'train_voice',
+        'recipe': {**STAGE_B, 'note': 'condicionar cada alvo no(s) turno(s) anterior(es); loss só no alvo'},
+        'dataset': 'transcribed_clean.jsonl',
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['wer', 'spk_sim', 'nativo_score'],
+        'hyp': 'Utterance-com-contexto > conversa-inteira (que alucina similaridade de locutor) — arXiv 2505.07202',
+        'gate': 'naturalidade/nativo sobe sem regredir spk-sim',
+    },
+    'data_synth_dpo': {
+        'label': 'Dado sintético do NOSSO CSM + DPO anti-erosão (par obrigatório)',
+        'stage': 'data', 'verdict': 'TEST', 'runner': 'external:synth+dpo',
+        'recipe': {'note': 'LLM→texto carioca → nosso CSM → filtro WER; DPO duplo-objetivo contra o próprio synth'},
+        'dataset': 'synth_carioca.jsonl',
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['wer', 'token_entropy', 'nativo_score', 'f0_rmse_iu'],
+        'hyp': 'synth multiplica volume e ataca #1/#3, MAS achata prosódia >50% razão → DPO devolve a alma (arXiv 2605.27383)',
+        'gate': 'entropia de token e F0 não caem vs baseline; WER melhora; NUNCA rodar synth sem o DPO',
+        'todo': 'sintetizar SÓ com peso do nosso gate (CSM Apache), nunca XTTS (CPML)',
+    },
+    # EMOÇÃO — sequência do mais barato ao mais caro (F2/F3); todas preservam o timbre
+    'emo_dualref': {
+        'label': 'Emoção · dual-reference (ref timbre Pedro + ref só-emoção) — ZERO treino',
+        'stage': 'emotion', 'verdict': 'TEST', 'runner': 'inference_only',
+        'recipe': {'note': 'usa o audio-conditioning nativo do CSM; 2ª ref pode ser de outra voz/idioma (só estilo)'},
+        'dataset': None,
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['ser_uar_independent', 'spk_sim'],
+        'hyp': 'CSM transfere estilo por áudio-ref em pt-BR sem treinar (intuição IndexTTS2) — n=0 hoje',
+        'gate': 'SER-UAR da emoção-alvo sobe sem cair spk-sim; 1º arm por custar $0',
+    },
+    'emo_cspft_probe': {
+        'label': 'Emoção · CSP-FT (probe: em que camada do CSM mora a emoção; congela locutor)',
+        'stage': 'emotion', 'verdict': 'TEST', 'runner': 'external:cspft_probe',
+        'recipe': {'note': 'probing de camada (arXiv 2501.14273); FT só das camadas de emoção, congela as de locutor'},
+        'dataset': 'g2_emotions.jsonl',
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['ser_uar_independent', 'spk_sim'],
+        'hyp': 'Disentangle por localização de camada preserva a voz do Pedro; publicável com USP',
+        'gate': 'controle de emoção sobe com spk-sim preservado (≥ baseline)',
+    },
+    'emo_taskvector_alpha': {
+        'label': 'Emoção · botão α por task-vector (diff de pesos emo−neutro, backbone congelado)',
+        'stage': 'emotion', 'verdict': 'TEST', 'runner': 'external:taskvector',
+        'recipe': {'note': 'arXiv 2606.05367 (CC-BY, autor BR, LM-based); α contínuo, aditivo, preserva locutor'},
+        'dataset': 'g2_emotions.jsonl',
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['ser_uar_independent', 'spk_sim', 'intensity_vad'],
+        'hyp': 'α por aritmética de pesos dá intensidade fina sem retreinar; precisa de dado emo p/ montar o vetor',
+        'gate': 'intensidade monotônica com α; spk-sim intacto',
+    },
+}
+
+# ─────────── GUARDRAILS do sweep 13/jul (regras que o método PROVOU) ───────────
+# Aplicar em build_prep/train; ver dossiê 85 §matriz e arch-map/.
+SWEEP_GUARDRAILS = {
+    'mixed_replay': 'No FT de voz (C2), misturar 25–30% do dado de pré-treino (experience replay) + canary de '
+                    'frases pt fixas. Single-speaker sem mistura degrada 40–50% fora-de-domínio (arXiv 2603.10904). '
+                    'É o gotcha #6 (WER 300%) formalizado. Canary vira gate automático no watchdog.',
+    'synthetic_erosion': 'NUNCA usar dado sintético sem alinhamento de preferência de duplo objetivo. Synth cura '
+                         'fonética/sotaque mas achata a prosódia a partir de ~50% de razão (arXiv 2605.27383). '
+                         'Monitorar entropia de token como proxy de diversidade prosódica.',
+    'rl_order': 'RL: DPO-humano de prosódia ANTES de GRPO. GRPO sobre WER/spk-sim COLAPSA a prosódia em fala '
+                'monótona (reward hacking, arXiv 2509.18531). GRPO só escopado a número/#3, com KL forte.',
+    'quant_codec_conservative': 'Quantização: backbone AR agressivo (Q4/Q8), mas codec Mimi (GAN) CONSERVADOR '
+                                '(Q8/FP16) — quantizar o codec forte degrada timbre mais que o backbone.',
+    'dsp_aug_scope': 'DSP-aug (pitch/tempo) SÓ em C0/C1 (língua/robustez). Na camada de VOZ carioca (C2), '
+                     'pitch/formant-shift CORROMPE a identidade que estamos clonando (spk-sim cai).',
+    'eval_no_mos_oracle': 'NÃO rankear checkpoints por MOS automático (cego a prosódia + viés F0, arXiv 2606.19951). '
+                          'Régua = win-rate/CMOS carioca + TTSDS2 + accent_scorecard. Ver eval/README.',
 }
 
 

@@ -28,14 +28,15 @@ latência, e os três são replicáveis em escala de nicho. Nosso diferencial n�
 | 2 | **Horas grandes pertencem à LÍNGUA**: 35h=inteligível · 90-150h=funcional · ~330h=utilizável · 2.386h=SOTA aberto | CPT 1.000h+ é o passo certo (~$200) | CSM-georgiano (HF NMikka) · F5 polonês #1168 · firstpixel/F5-pt-br · XTTS paper |
 | 3 | **Segmentação/pontuação PROSÓDICA melhora TTS**: WER 0,43 vs 0,50 (p<0,01), F0-RMSE 39 vs 44 Hz | Implementado (default na coleta) + arm A/B r3_pedro_pros | Grupo Aluísio, BRACIS 2025 (arXiv:2511.14779) |
 | 4 | **Transcrição "limpa demais" NÃO CONVERGE** (CER 60% vs 15% verbatim) | Fillers ficam no texto, sempre | DisfluencySpeech (arXiv:2406.08820) |
-| 5 | **Silêncio ≥300ms ≈ todas as heurísticas** de fronteira prosódica (Δ0-3%) | Nossa heurística é defensável; teto = PSST | PROPOR 2024 (aclanthology 2024.propor-1.4) |
+| 5 | **Silêncio ≥300ms ≈ todas as heurísticas** de fronteira prosódica (Δ0-3%) | Heurística defensável; teto PSST **realizado → SAMPA** (Whisper-IU pt-BR, F1 0,73-0,80; Galdino coautor) | PROPOR 2024 · **SAMPA (arXiv 2607.07408, jul/26)** |
 | 6 | **O "robótico" é mensurável**: menos pausa + ritmo achatado + sílaba nuclear 280→150ms | Scorecard roda a cada treino ($0) | Galdino ENIAC 2024 + nosso baseline (eval/prosody_baseline) |
 | 7 | **Curadoria de transcrição não melhora WER e ACHATA prosódia** | Curar só estilo/emoção/lixo/números | Nosso grid 26 arms + baseline de prosódia |
 | 8 | **GPU não é gargalo**: programa completo ~$330-480 | Não otimizar centavos; não desperdiçar runs | Preços 02/jul verificados + throughput medido (50h-áudio/H100-h) |
 | 9 | **Maya = cascata** (ASR→LLM→CSM audio-conditioned); mágica = orquestração (abort 20ms, re-síntese) | Trilha M: medir a cascata é pilar, não detalhe | CTO Sesame no a16z · PCWorld (stack Gemma4+CSM) |
-| 10 | **WER saturou como métrica** (a própria Sesame diz); eval que importa prevê felicidade | Grids ≤ capacidade de escuta (~top-4/noite) | Blog Sesame · vaga Research Eng 17/jun |
+| 10 | **WER saturou como métrica** (a própria Sesame diz); eval que importa prevê felicidade; **MOS-preditores automáticos (UTMOS/NISQA/DNSMOS) são cegos a prosódia + viés de F0** → régua própria, não MOS | Grids ≤ capacidade de escuta (~top-4/noite) | Blog Sesame · vaga Research Eng 17/jun · **arXiv 2606.19951 (dossiê 84)** |
 | 11 | **Filler: marcar a LOCALIZAÇÃO basta** — modelo escolhe o tipo melhor que anotador | Não micro-gerenciar taxonomia de filler | Székely SSW'19 |
-| 12 | **DPO áudio: treino barato, geração cara** (15k pares = 7 A100-h) | Só depois de eval girando (pares humanos) | Tango 2 (arXiv:2404.09956) |
+| 12 | **DPO áudio: treino barato, geração cara** (15k pares = 7 A100-h); **DPO-humano de prosódia ANTES de GRPO** (GRPO sobre WER/spk-sim colapsa a prosódia em fala monótona) | Só depois de eval girando (pares humanos); GRPO só escopado a número/#3, guardado | Tango 2 (2404.09956) · No-Verifiable-Reward (2509.18531) |
+| 13 | **Spine não é mais só CSM**: **Qwen3-TTS** (Apache, pt-nativo, 12.5Hz como o Mimi) ataca o gringo na raiz; **decoder FM chunk-wise** melhora #1/#2 sem retreinar o LM; **deploy = engenharia** (CUDA-graph 2× + flush-trick −300ms + truncar-contexto-ouvido, tudo no Mac); dado sintético só com DPO anti-erosão | **Bake-off de spine** (pode dissolver o Estágio A) + arms em `runpod/experiments.py`; deploy ADOPT no `src/duplex`; **accent-scorecard** já no `eval/` | Sweep arch-addons — **dossiê 85 + arch-map/** |
 
 ## O plano — M0.5 → M3
 
@@ -60,7 +61,7 @@ pronto; wedge Sesc) · P9 janela pt-BR (aberta, correndo) · P10 cadência de 1 
 
 | Quem | O macete que levamos | Estado |
 |---|---|---|
-| **Sandra Aluísio, Julio Galdino, Gustavo Araújo, Flaviane Svartman** (NILC/ICMC-USP, TaRSila) | Pontuação/segmentação prosódica (IMPLEMENTADA) · silêncio 300ms · fillers NURC · scorecard do robótico · F0-RMSE segmentado · EyetrackingMOS · PSST-pt como teto | e-mail rascunhado (co-autoria eval carioca) |
+| **Sandra Aluísio, Julio Galdino, Gustavo Araújo, Flaviane Svartman** (NILC/ICMC-USP, TaRSila) | Pontuação/segmentação prosódica (IMPLEMENTADA) · silêncio 300ms · fillers NURC · scorecard do robótico · F0-RMSE segmentado · EyetrackingMOS · **PSST-pt publicado = SAMPA (arXiv 2607.07408, Galdino coautor)** | e-mail rascunhado — **gancho SAMPA: rodar no nosso carioca (gap SP-only deles)** |
 | **Frederico Oliveira** (UFMT/AKCIT-UFG) | TAGARELA 8.972h com **rótulo de dialeto** → minerar subset carioca · classificador de sotaque · 2.800h clean TTS | e-mail rascunhado (troca: nossa eval carioca) |
 | **Edresson Casanova** (NVIDIA) | YourTTS <1min clone · XTTS 10min⇒SECS 0,72 · pt precisa ~2.400h pra SOTA · Koel-TTS/NanoCodec ≈ nosso stack | referência de receita; responde a comunidade |
 | **Arnaldo Candido Jr** (UNESP) | Playbook 2026 de **fine-tuning emocional pt-BR com poucos dados** (~$5 de GPU pra replicar) | replicar → e-mail com resultado |
@@ -79,6 +80,9 @@ arquitetura; reavaliar com 50h+ estéreo) · FreeSVC até eval girar · voz F co
 - [ROADMAP-SESAME.md](ROADMAP-SESAME.md) — os 10 pilares com evidência OSINT
 - [TRANSCRICAO-PROSODICA.md](TRANSCRICAO-PROSODICA.md) — pesquisa + implementação da abordagem Aluísio
 - [RASCUNHOS-CONTATOS.md](RASCUNHOS-CONTATOS.md) — e-mails prontos (Frederico, grupo USP)
-- `research/dossier-2026-07/` — dossiês verificados: 12-competitivo · 20-escala-dados · 21-transcrição-global · 40-custos-GPU · 80-pesquisadores-BR · 81-sesame · 82-aluisio · 91-voice-ui
+- `research/dossier-2026-07/` — dossiês verificados: 12-competitivo · 20-escala-dados · 21-transcrição-global · 40-custos-GPU · 80-pesquisadores-BR · 81-sesame · 82-aluisio · **83-SAMPA/PSST-pt** · **84-triagem-papers-13jul** · **85-arquiteturas-addons** · 91-voice-ui
+- **[`85-arquiteturas-addons.md`](../research/dossier-2026-07/85-arquiteturas-addons.md)** — MAPA VIVO (11 frentes): tabela-mestra ADOPT/TEST/WATCH/SKIP + **matriz de experimentos** (arms toggleáveis). Deep-dives em `research/dossier-2026-07/arch-map/`.
+- `research/papers/` — PDFs + digests completos dos papers triados (lote 13/jul + SAMPA)
+- **Código de experimentos:** `runpod/experiments.py` (ARMS + `SWEEP_GUARDRAILS`) · `eval/accent_scorecard.py` (gap #1 objetivo)
 - `runpod/RUNBOOK-rodada3.md` — a próxima rodada de treino (12 arms, custos, go/no-go)
 - `eval/prosody_baseline_2026-07-02.md` + `eval/prosodic_punct_report.md` — os primeiros números de prosódia

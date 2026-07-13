@@ -27,6 +27,14 @@ to be reused by every Phase-0 spike and every later phase.
   siglas, estrangeirismos, topônimos cariocas, casos difíceis. Cada item tem
   `probe` (o que testar) + `expect` (resposta certa). Avaliação: escuta humana
   (acertou a pronúncia contextual? sim/não) — objetivo e não-saturável.
+- `accent_scorecard.py` — **sotaque OBJETIVO por-segmento com DIREÇÃO do erro** (o gap #1 vira
+  número, não reclamação). Classificador (LR/RF) treinado na fala carioca REAL do Pedro pra um
+  contraste fonológico (médias abertas/fechadas /ɛ/-/e/, /ɔ/-/o/), aplicado cross-domain na saída
+  do CSM → mede se o TTS cai do lado errado e **pra que lado** ("fecha as abertas?"). Método
+  reimplementado de arXiv 2607.01965 (livre; código deles sem licença → não copiado). Lógica
+  validada em self-test (`python eval/accent_scorecard.py --selftest`); falta plugar extração real
+  de formante (parselmouth) + alinhamento de vogal (MFA) + rótulo do léxico (tools/text/g2p_lexicon,
+  BIPA dialeto-Rio). Alimenta o gate de sotaque + é peça publicável com a USP.
 
 ## Protocol (what a run reports)
 1. Synthesize `benchmark_ptbr.jsonl` with the spine under test → `gen/`.
@@ -37,6 +45,15 @@ to be reused by every Phase-0 spike and every later phase.
 5. `python -m eval.speaker_sim --ref-dir ref_pedro/ --gen-dir gen/` (clone runs).
 6. (later) emotion accuracy via a pt-BR SER head (must be trained — no good
    off-the-shelf for pt-BR prosody; dossier 50).
+
+## Guardrails de métrica (verificado externamente — não repetir erro)
+- **NÃO rankear checkpoints por MOS automático (UTMOS/UTMOSv2/NISQA/DNSMOS/SHEET) em PROSÓDIA/timbre.**
+  Eles são **cegos a erro de prosódia** (humano cai 1,84 MOS; os modelos <0,1) e têm **viés de F0**
+  (premiam voz mais grave: DNSMOS r=−0,79; UTMOSv2 r=−0,72) — arXiv 2606.19951 (dossiê 84). Então:
+  (a) medir prosódia pelo scorecard próprio (F0-RMSE segmentado / IU), não por MOS escalar;
+  (b) **controlar por F0 médio** ao comparar vozes (é confundidor); (c) usar **variância de F0** como
+  feature do "vivo" (humanos correlacionam +0,48; MOS ignora). Confirma externamente o rebaixamento do UTMOS.
+- Sanity-check de régua: perturbar a prosódia de propósito e checar se a métrica MOVE (senão é cega ao que importa).
 
 ## Still to build (tracked, not done — needs GPU/data or auth)
 - pt-BR SER classifier (train our own on the in-house labeled set).

@@ -1,5 +1,25 @@
 # RUNBOOK — Rodada 3 (multi-voz: pedro/gui/joao)
 
+> ## ▶️ COMEÇAR POR AQUI (prioridade do sweep arch-addons, 13/jul — dossiê 85)
+> Antes/ao lado dos 12 arms de treino: os **4 primeiros custam ~$0 e rodam no Mac** (deploy/eval,
+> não dependem de dado nem GPU); o **5º é o arm de GPU de maior alavancagem**. Ordem:
+>
+> 1. **Barge-in: truncar o contexto na fração ouvida** — `consume_interruption()` já devolve a fração;
+>    só usá-la antes de `tts.add_context`. Mata deriva de conversa no CSM. ~1 tarde, `src/duplex`.
+> 2. **Flush-trick** — não esperar o `endpoint_ms` duro quando o Smart-Turn tem alta confiança →
+>    **−300 ms** de latência de turno. ~1 tarde, `turn_engine`/`chat_loop`.
+> 3. **CUDA-graph do decode Mimi (2,2×) + streaming/chunk adaptativo + WS multiplex + sessão isolada** —
+>    a cascata "parece Maya" sem trocar modelo. `src/duplex`.
+> 4. **Régua girando:** arena carioca (win-rate vs gravação real do Pedro) + **TTSDS2** + **VERSA** +
+>    **`eval/accent_scorecard.py`** (gap #1 objetivo). É o que decide todos os arms.
+> 5. **Bake-off de spine (GPU, ~$3-6):** `spine_qwen3_base` vs `spine_csm` vs `spine_kyutai_pt`
+>    (`runpod/experiments.py`) na voz curada, mesmo eval. **Hipótese a matar: base pt-nativa
+>    (Qwen3-TTS, Apache) dissolve o Estágio A e o gap #1 (gringo).**
+>
+> **Guardrails obrigatórios** em qualquer arm: `runpod.experiments.SWEEP_GUARDRAILS` (mixed-replay
+> 25–30%, synth só com DPO anti-erosão, DPO antes de GRPO, quant codec conservador, DSP-aug só C0/C1,
+> sem MOS-oráculo). Menu completo: `research/dossier-2026-07/85-arquiteturas-addons.md`.
+
 **Quando rodar:** quando a fase de coleta entregar **≥5h por voz** exportadas pelo flywheel.
 **O que responde:** (1) a receita provada do Pedro generaliza pra outras vozes? (2) misturar
 base pública (0.15/0.30) melhora a língua **sem poluir a voz**? (3) qual a variância entre seeds?

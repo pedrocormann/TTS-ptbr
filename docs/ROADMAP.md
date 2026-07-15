@@ -80,7 +80,7 @@ arquitetura; reavaliar com 50h+ estéreo) · FreeSVC até eval girar · voz F co
 - [ROADMAP-SESAME.md](ROADMAP-SESAME.md) — os 10 pilares com evidência OSINT
 - [TRANSCRICAO-PROSODICA.md](TRANSCRICAO-PROSODICA.md) — pesquisa + implementação da abordagem Aluísio
 - [RASCUNHOS-CONTATOS.md](RASCUNHOS-CONTATOS.md) — e-mails prontos (Frederico, grupo USP)
-- `research/dossier-2026-07/` — dossiês verificados: 12-competitivo · 20-escala-dados · 21-transcrição-global · 40-custos-GPU · 80-pesquisadores-BR · 81-sesame · 82-aluisio · **83-SAMPA/PSST-pt** · **84-triagem-papers-13jul** · **85-arquiteturas-addons** · 91-voice-ui
+- `research/dossier-2026-07/` — dossiês verificados: 12-competitivo · 20-escala-dados · 21-transcrição-global · 40-custos-GPU · 80-pesquisadores-BR · 81-sesame · 82-aluisio · **83-SAMPA/PSST-pt** · **84-triagem-papers-13jul** · **85-arquiteturas-addons** · **86-triagem-tabs** · 91-voice-ui
 - **[`85-arquiteturas-addons.md`](../research/dossier-2026-07/85-arquiteturas-addons.md)** — MAPA VIVO (11 frentes): tabela-mestra ADOPT/TEST/WATCH/SKIP + **matriz de experimentos** (arms toggleáveis). Deep-dives em `research/dossier-2026-07/arch-map/`.
 - `research/papers/` — PDFs + digests completos dos papers triados (lote 13/jul + SAMPA)
 - **Código de experimentos:** `runpod/experiments.py` (ARMS + `SWEEP_GUARDRAILS`) · `eval/accent_scorecard.py` (gap #1 objetivo)

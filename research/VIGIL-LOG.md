@@ -327,3 +327,20 @@ Pedido do Pedro: mapear as melhores arquiteturas + add-ons pra treino/deploy/eva
 **Codec:** manter Mimi (fundido no CSM); único acionável = **T-Mimi** (decoder transformer → 42→4,4ms on-device, iOS).
 **Full-duplex:** não sair da cascata; **SoulX-Duplug** (Apache, 0.6B) = controlador de barge-in plug. Moshi/Step-Audio-2 = WATCH.
 **Licença — não embarcam (método livre):** Higgs-v3/F5/E2/moshika-rl/Freeze-Omni/SpeechJudge (NC), LiveKit-turn-detector (lock), Orpheus (Llama).
+
+### 2026-07-13 — lote 2: 7 abas do Chrome (dossiê 86)
+
+Pedro jogou 7 abas no grupo do Claude. Triados (PDFs em `research/papers/`). 4 somam, 1 MED, 1 LOW, 1 SKIP:
+- **TED-TTS** (ACL 2026-1077, NUS) — emoção+duração **training-free INTRA-enunciado** (causal mask + EOS logit
+  steering) sobre AR semantic LM → a instância concreta do "steering training-free" (era WATCH no 85, sobe p/ **TEST**).
+  Novo arm `emo_ted_steering`.
+- **S5-TTS** (NVIDIA) — streaming incremental com **lookahead limitado k=2** (recupera 88–94%) → referência de deploy.
+- **SDP-Codec** (KAIST, código aberto) — **desacopla locutor + injeta pitch**, VC zero-shot → referência de
+  disentangle timbre×sotaque + VC pós-TTS.
+- **Penang Hokkien** (IJACSA) — **completude fonética > diversidade prosódica** no corpus sintético base (MOS 3.92 com
+  45min real + 2h synth) → novo arm `data_phonetic_complete` (par com `data_synth_dpo`).
+- **SR-FD** (Fréchet loss, NTU+Amazon) — MED: loss de treino p/ **few-step flow-matching** (só se adotarmos FM decoder)
+  + confirma que **FD escalar é seletor de checkpoint FRACO** (reforça: não usar métrica distribucional única como oráculo).
+- **pt-BR grammar correction** (Springer AIED, IF-PE/UFAL) — LOW: front-end de texto (alerta de overcorrection no reparo LLM).
+- **VSRo-200** (lip-reading romeno) — **SKIP** (modalidade/tarefa diferentes).
+`runpod/experiments.py` +2 arms (16 total). Detalhe: `research/dossier-2026-07/86-triagem-tabs-jul13.md`.

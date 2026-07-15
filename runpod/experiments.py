@@ -194,6 +194,29 @@ ARMS = {
         'hyp': 'α por aritmética de pesos dá intensidade fina sem retreinar; precisa de dado emo p/ montar o vetor',
         'gate': 'intensidade monotônica com α; spk-sim intacto',
     },
+
+    # ─────────────── ARMS DO LOTE 2 (7 abas do Chrome, 13/jul) — dossiê 86 ───────────────
+    'emo_ted_steering': {
+        'label': 'Emoção · training-free intra-enunciado (TED-TTS: causal mask + EOS logit steering)',
+        'stage': 'emotion', 'verdict': 'TEST', 'runner': 'inference_only',
+        'recipe': {'note': 'TED-TTS (ACL 2026-1077): controle emoção+duração DENTRO do enunciado, sem treinar'},
+        'dataset': None,
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['ser_uar_independent', 'spk_sim', 'intensity_vad'],
+        'hyp': 'mecanismo training-free (causal mask + EOS logit steering) porta pro AR do CSM p/ emoção intra-frase',
+        'gate': 'emoção muda no meio da frase, reconhecível (SER-UAR), sem cair spk-sim; roda depois do emo_dualref',
+        'todo': 'reimplementar o steering sobre o backbone AR do CSM; a base do paper é 2-estágio (não porta o pipeline)',
+    },
+    'data_phonetic_complete': {
+        'label': 'Dados · COMPLETUDE FONÉTICA carioca (Penang Hokkien: completude > diversidade no base)',
+        'stage': 'data', 'verdict': 'TEST', 'runner': 'external:phonetic_coverage',
+        'recipe': {'note': 'cobrir todos os fones/contextos cariocas via síntese/concatenação; prosódia do dado real'},
+        'dataset': 'synth_phonetic_carioca.jsonl',
+        'text_fn': lambda t: text_frontend(t, normalize_numbers=True, g2p=None),
+        'eval_metrics': ['accent_scorecard', 'wer', 'nativo_score'],
+        'hyp': 'garantir cobertura fonética completa (barato) ataca o gap #1; prosódia vem do dado dirigido real',
+        'gate': 'accent_scorecard cobre mais fones sem regredir prosódia; par com data_synth_dpo (DPO anti-erosão)',
+    },
 }
 
 # ─────────── GUARDRAILS do sweep 13/jul (regras que o método PROVOU) ───────────

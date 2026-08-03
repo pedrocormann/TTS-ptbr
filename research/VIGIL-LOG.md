@@ -344,3 +344,18 @@ Pedro jogou 7 abas no grupo do Claude. Triados (PDFs em `research/papers/`). 4 s
 - **pt-BR grammar correction** (Springer AIED, IF-PE/UFAL) — LOW: front-end de texto (alerta de overcorrection no reparo LLM).
 - **VSRo-200** (lip-reading romeno) — **SKIP** (modalidade/tarefa diferentes).
 `runpod/experiments.py` +2 arms (16 total). Detalhe: `research/dossier-2026-07/86-triagem-tabs-jul13.md`.
+
+## 2026-08-03 — Triagem alerta Scholar (tracking Sandra Aluísio), 9 papers
+
+Lote dominado por ASR/understanding (7/9) — filtro de arquitetura segurou. Saldo: **3 WATCH · 6 SKIP**.
+- **Qwen-Audio-3.0-TTS** (2607.23938) — **WATCH** (era TEST; rebaixado na verificação — realismo): sucessor do
+  challenger do bake-off; FSQ **12.5Hz** (converge com Mimi/CSM) + **LM+FM por hidden-states** + annealing +
+  GRPO com reward de prosódia. Fechado, sem pesos; nosso curado real (~24min) não sustenta annealing; DPO-antes-
+  de-GRPO já é guardrail. Resíduo = anotação de linhagem. Re-triagem se: pesos abertos OU Estágio A sobreviver.
+- **BoN-ASR confound** (2607.08256) — **WATCH + regra imediata de protocolo**: filtro/reranking por ASR
+  (anti-erosão, pares DPO, curadoria) deve usar ASR de **família diferente** da eval — self-bias de linhagem
+  infla WER como o self-bias de LLM-judge.
+- **AF zero-shot** (2607.23606) — **WATCH**: traços articulatórios frame-level língua-agnósticos capturam
+  distinções não-fonêmicas → candidato a detector objetivo de **alofones cariocas** no accent scorecard (gap #1).
+- SKIP (excluídos): OT-AVSR · MEUSLI · diffusion-LM-ASR · Indic DiarBench · DA-ICL árabe · MSE-TTS por imagem.
+Detalhe: `research/dossier-2026-07/87-triagem-scholar-ago03.md`.

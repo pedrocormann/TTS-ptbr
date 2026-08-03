@@ -66,3 +66,9 @@ runpod_samples/
 models/
 # working data da curadoria no rate (espelhado no Supabase)
 tools/rate/curate_edits.jsonl
+
+# Centelha — anexos pesados / documentos pessoais (ficam locais, fora do git)
+centelha/*.MP4
+centelha/*.mp4
+centelha/*.HEIC
+centelha/RG*.pdf

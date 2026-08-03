@@ -1417,7 +1417,7 @@
  },
  "roadmap_master": "docs/ROADMAP.md",
  "aprendizados": {
-  "titulo": "A ciência que decide por nós — verificada em fonte primária (02/jul)",
+  "titulo": "A ciência que decide por nós — verificada em fonte primária (atualizada 03/ago)",
   "itens": [
    {
     "claim": "Identidade de voz satura ~2-3h; ninguém no mundo usa >3h por voz",
@@ -1576,6 +1576,34 @@
      {
       "n": "Tango 2",
       "u": "https://arxiv.org/abs/2404.09956"
+     }
+    ]
+   },
+   {
+    "claim": "Spine não é mais só CSM: Qwen3-TTS (Apache, pt-nativo, 12.5Hz como o Mimi) ataca o gringo na raiz; decoder FM chunk-wise melhora #1/#2 sem retreinar o LM; deploy = engenharia",
+    "acao": "Bake-off de spine (pode dissolver o Estágio A) + arms em runpod/experiments.py; accent-scorecard no eval/. Linhagem evoluiu: Qwen-Audio-3.0-TTS (fechado, 12.5Hz FSQ + LM+FM por hidden-states) — WATCH até pesos abrirem",
+    "fontes": [
+     {
+      "n": "dossiê 85 — arquiteturas & add-ons",
+      "u": "research/dossier-2026-07/85-arquiteturas-addons.md"
+     },
+     {
+      "n": "Qwen-Audio-3.0-TTS (2607.23938)",
+      "u": "https://arxiv.org/abs/2607.23938"
+     }
+    ]
+   },
+   {
+    "claim": "Seleção por ASR + eval com ASR da MESMA família infla WER (self-bias de linhagem, como LLM-judge; rankings revertem entre famílias)",
+    "acao": "REGRA de protocolo: filtro/reranking por ASR (anti-erosão de synth, pares DPO, futuro BoN) usa família DISJUNTA da eval — Whisper seleciona ⇒ MMS/XLSR avalia (ou vice-versa); reportar WER sob ≥2 famílias",
+    "fontes": [
+     {
+      "n": "BoN-ASR confound (2607.08256, ICML'26 WS)",
+      "u": "https://arxiv.org/abs/2607.08256"
+     },
+     {
+      "n": "dossiê 87 — triagem Scholar 03/ago",
+      "u": "research/dossier-2026-07/87-triagem-scholar-ago03.md"
      }
     ]
    }
